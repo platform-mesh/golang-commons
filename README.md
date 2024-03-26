@@ -1,4 +1,7 @@
-# Description
+# openMFP - golang-commons
+![Build Status](https://github.com/openmfp/golang-commons/actions/workflows/pipeline.yml/badge.svg)
+
+## Description
 
 golang-commons contains golang library packages to be reused across microservices and operators/controllers. The scope includes, but is not limited to:
 

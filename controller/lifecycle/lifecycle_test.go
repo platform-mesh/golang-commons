@@ -6,9 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/openmfp/golang-commons/controller/testSupport"
-	"github.com/openmfp/golang-commons/logger/testlogger"
-	"github.com/openmfp/golang-commons/sentry"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -16,6 +13,10 @@ import (
 	controllerruntime "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	"github.com/openmfp/golang-commons/controller/testSupport"
+	"github.com/openmfp/golang-commons/logger/testlogger"
+	"github.com/openmfp/golang-commons/sentry"
 )
 
 func TestLifecycle(t *testing.T) {
@@ -480,8 +481,7 @@ func (r *testReconciler) Reconcile(ctx context.Context, req controllerruntime.Re
 }
 
 func createLifecycleManager(subroutines []Subroutine, c client.Client) (*LifecycleManager, *testlogger.TestLogger) {
-	logger := testlogger.New()
-
-	mgr := NewLifecycleManager(logger.Logger, "test-operator", "test-controller", c, subroutines)
-	return mgr, logger
+	log := testlogger.New()
+	mgr := NewLifecycleManager(log.Logger, "test-operator", "test-controller", c, subroutines)
+	return mgr, log
 }

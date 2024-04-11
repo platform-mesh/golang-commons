@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	"errors"
 	"io"
 	"os"
 	"runtime"
@@ -69,6 +70,34 @@ func (l *Logger) ChildLogger(key string, value string) *Logger {
 	return NewFromZerolog(l.With().Str(key, value).Logger())
 }
 
+var ErrInvalidKeyValPair = errors.New("invalid key value pair")
+
+// SubLogger returns a new child logger that inherits all settings but adds a number of new string key field
+func (l *Logger) ChildLoggerWithAttributes(keyVal ...string) (*Logger, error) {
+	if len(keyVal)%2 != 0 {
+		return nil, ErrInvalidKeyValPair
+
+	}
+	var key string
+	for i, v := range keyVal {
+		if i%2 == 0 {
+			key = v
+			continue
+		}
+		l = l.ChildLogger(key, v)
+	}
+	return l, nil
+}
+
+// MustChildLogger returns a new child logger that inherits all settings but adds a number of new string key field. It panics in case of wrong use.
+func (l *Logger) MustChildLoggerWithAttributes(keyVal ...string) *Logger {
+	logger, err := l.ChildLoggerWithAttributes(keyVal...)
+	if err != nil {
+		l.Fatal().Err(err).Msg("failed to create child logger")
+	}
+	return logger
+}
+
 // Level wraps the underlying zerolog level func to openmfp logger level
 func (l *Logger) Level(lvl Level) *Logger {
 	return NewFromZerolog(l.Logger.Level(zerolog.Level(lvl)))
@@ -114,8 +143,8 @@ func NewRequestLoggerFromZerolog(ctx context.Context, logger zerolog.Logger) *Lo
 	return &Logger{logger}
 }
 
-func SetLoggerInContext(ctx context.Context, logger *Logger) context.Context {
-	return context.WithValue(ctx, keys.LoggerCtxKey, logger)
+func SetLoggerInContext(ctx context.Context, log *Logger) context.Context {
+	return context.WithValue(ctx, keys.LoggerCtxKey, log)
 }
 
 // LoadFromContext returns the Logger from a given context

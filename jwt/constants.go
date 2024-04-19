@@ -8,4 +8,3 @@ const SpiffeCtxKey = "spiffe"
 // Request Headers
 
 const HeaderSpiffeValue = "X-Forwarded-Client-Cert"
-const AuthorizationHeaderName = "Authorization"

@@ -3,6 +3,7 @@ package lifecycle
 import (
 	"context"
 	"fmt"
+	"github.com/openmfp/golang-commons/context/keys"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -172,4 +173,28 @@ func (m *implementConditionsAndSpreadReconciles) GetNextReconcileTime() metav1.T
 }
 func (m *implementConditionsAndSpreadReconciles) SetNextReconcileTime(time metav1.Time) {
 	m.Status.NextReconcileTime = time
+}
+
+type contextValueSubroutine struct {
+}
+
+const contextValueKey = keys.ContextKey("contextValueKey")
+
+func (f contextValueSubroutine) Process(ctx context.Context, r RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
+	if instance, ok := r.(*testSupport.TestApiObject); ok {
+		instance.Status.Some = ctx.Value(contextValueKey).(string)
+	}
+	return controllerruntime.Result{}, nil
+}
+
+func (f contextValueSubroutine) Finalize(_ context.Context, _ RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
+	return controllerruntime.Result{}, nil
+}
+
+func (f contextValueSubroutine) Finalizers() []string {
+	return []string{}
+}
+
+func (c contextValueSubroutine) GetName() string {
+	return "contextValueSubroutine"
 }

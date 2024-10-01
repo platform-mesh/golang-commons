@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -370,18 +371,18 @@ func (l *LifecycleManager) addFinalizerIfNeeded(ctx context.Context, instance Ru
 	return nil
 }
 
-func (l *LifecycleManager) SetupWithManager(mgr ctrl.Manager, maxReconciles int, reconcilerName string, instance RuntimeObject, debugLabelValue string, r reconcile.Reconciler, log *logger.Logger, eventPredicates ...predicate.Predicate) error {
+func (l *LifecycleManager) SetupWithManagerBuilder(mgr ctrl.Manager, maxReconciles int, reconcilerName string, instance RuntimeObject, debugLabelValue string, r reconcile.Reconciler, log *logger.Logger, eventPredicates ...predicate.Predicate) (*builder.Builder, error) {
 	if l.manageConditions {
 		_, err := toRuntimeObjectConditionsInterface(instance, log)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	if l.spreadReconciles {
 		_, err := toRuntimeObjectSpreadReconcileStatusInterface(instance, log)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -390,8 +391,16 @@ func (l *LifecycleManager) SetupWithManager(mgr ctrl.Manager, maxReconciles int,
 		Named(reconcilerName).
 		For(instance).
 		WithOptions(controller.Options{MaxConcurrentReconciles: maxReconciles}).
-		WithEventFilter(predicate.And(eventPredicates...)).
-		Complete(r)
+		WithEventFilter(predicate.And(eventPredicates...)), nil
+}
+
+func (l *LifecycleManager) SetupWithManager(mgr ctrl.Manager, maxReconciles int, reconcilerName string, instance RuntimeObject, debugLabelValue string, r reconcile.Reconciler, log *logger.Logger, eventPredicates ...predicate.Predicate) error {
+	bldr, err := l.SetupWithManagerBuilder(mgr, maxReconciles, reconcilerName, instance, debugLabelValue, r, log, eventPredicates...)
+	if err != nil {
+		return err
+	}
+
+	return bldr.Complete(r)
 }
 
 type PrepareContextFunc func(ctx context.Context, instance RuntimeObject) (context.Context, errors.OperatorError)

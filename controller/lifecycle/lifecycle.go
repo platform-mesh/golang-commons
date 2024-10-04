@@ -134,6 +134,14 @@ func (l *LifecycleManager) Reconcile(ctx context.Context, req ctrl.Request, inst
 			setSubroutineConditionToUnknownIfNotSet(&conditions, subroutine, inDeletion, log)
 		}
 		subResult, retry, err := l.reconcileSubroutine(ctx, instance, subroutine, log, sentryTags)
+		if l.manageConditions {
+			instanceConditionsObj, err := toRuntimeObjectConditionsInterface(instance, log)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+			// Add conditions that the subroutine may have added to the list of conditions
+			conditions = append(conditions, instanceConditionsObj.GetConditions()...)
+		}
 		if err != nil {
 			if l.manageConditions {
 				setSubroutineCondition(&conditions, subroutine, result, err, inDeletion, log)
@@ -371,7 +379,7 @@ func (l *LifecycleManager) addFinalizerIfNeeded(ctx context.Context, instance Ru
 	return nil
 }
 
-func (l *LifecycleManager) SetupWithManagerBuilder(mgr ctrl.Manager, maxReconciles int, reconcilerName string, instance RuntimeObject, debugLabelValue string, r reconcile.Reconciler, log *logger.Logger, eventPredicates ...predicate.Predicate) (*builder.Builder, error) {
+func (l *LifecycleManager) SetupWithManagerBuilder(mgr ctrl.Manager, maxReconciles int, reconcilerName string, instance RuntimeObject, debugLabelValue string, log *logger.Logger, eventPredicates ...predicate.Predicate) (*builder.Builder, error) {
 	if l.manageConditions {
 		_, err := toRuntimeObjectConditionsInterface(instance, log)
 		if err != nil {
@@ -395,7 +403,7 @@ func (l *LifecycleManager) SetupWithManagerBuilder(mgr ctrl.Manager, maxReconcil
 }
 
 func (l *LifecycleManager) SetupWithManager(mgr ctrl.Manager, maxReconciles int, reconcilerName string, instance RuntimeObject, debugLabelValue string, r reconcile.Reconciler, log *logger.Logger, eventPredicates ...predicate.Predicate) error {
-	bldr, err := l.SetupWithManagerBuilder(mgr, maxReconciles, reconcilerName, instance, debugLabelValue, r, log, eventPredicates...)
+	bldr, err := l.SetupWithManagerBuilder(mgr, maxReconciles, reconcilerName, instance, debugLabelValue, log, eventPredicates...)
 	if err != nil {
 		return err
 	}

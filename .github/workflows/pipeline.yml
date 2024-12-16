@@ -10,4 +10,5 @@ jobs:
     secrets: inherit
     with:
       useLocalCoverageConfig: true
+      versionPrefix: v
 

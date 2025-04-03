@@ -64,7 +64,7 @@ func CommonFlags() *pflag.FlagSet {
 	flagSet.String("log-level", "info", "Set the log level")
 	flagSet.Bool("no-json", false, "Disable JSON logging")
 	flagSet.Duration("shutdown-timeout", 1*time.Minute, "Set the shutdown timeout")
-	flagSet.String("metric-bind-address", ":8080", "Set the metrics bind address")
+	flagSet.String("metrics-bind-address", ":8080", "Set the metrics bind address")
 	flagSet.String("health-probe-bind-address", ":8090", "Set the health probe bind address")
 	flagSet.Bool("leader-elect", false, "Enable leader election")
 	flagSet.String("sentry-dsn", "", "Set the Sentry DSN")

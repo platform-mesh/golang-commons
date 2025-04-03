@@ -40,7 +40,7 @@ type CommonServiceConfig struct {
 	} `mapstructure:",squash"`
 
 	ShutdownTimeout        time.Duration `mapstructure:"shutdown-timeout"`
-	MetricsBindAddress     string        `mapstructure:"metric-bind-address"`
+	MetricsBindAddress     string        `mapstructure:"metrics-bind-address"`
 	HealthProbeBindAddress string        `mapstructure:"health-probe-bind-address"`
 
 	LeaderElection struct {

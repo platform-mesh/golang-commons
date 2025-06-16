@@ -12,7 +12,6 @@ golang-commons contains golang library packages to be reused across microservice
 - Logging
 - [Controllers](./controller/README.md)
 
-
 ## Getting started
 
 Add the dependency to your go module based project like so:

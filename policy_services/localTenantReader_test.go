@@ -7,8 +7,9 @@ import (
 
 	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
-	openmfpcontext "github.com/openmfp/golang-commons/context"
 	"github.com/stretchr/testify/assert"
+
+	pmcontext "github.com/platform-mesh/golang-commons/context"
 )
 
 func TestLocalTenantReader(t *testing.T) {
@@ -23,8 +24,8 @@ func TestLocalTenantReader(t *testing.T) {
 		token, err := jwt.NewWithClaims(jwt.SigningMethodNone, claims).SignedString(jwt.UnsafeAllowNoneSignatureType)
 		assert.NoError(t, err)
 
-		testContext = openmfpcontext.AddWebTokenToContext(testContext, token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm("none")})
-		testContext = openmfpcontext.AddAuthHeaderToContext(testContext, fmt.Sprintf("Bearer %s", token))
+		testContext = pmcontext.AddWebTokenToContext(testContext, token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm("none")})
+		testContext = pmcontext.AddAuthHeaderToContext(testContext, fmt.Sprintf("Bearer %s", token))
 
 		// Act
 		id, err := reader.RetrieveTenant(testContext)

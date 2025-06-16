@@ -1,6 +1,6 @@
-# OpenMFP Logger
+# Platform Mesh Logger
 
-The OpenMFP logger is a structured type safe logger that operates on top of [Zerolog](https://github.com/rs/zerolog).
+The Platform Mesh logger is a structured type safe logger that operates on top of [Zerolog](https://github.com/rs/zerolog).
 It can create JSON formatted logs but also tagged logs for console output.
 
 ### Initialization
@@ -97,10 +97,10 @@ and give this field a common name that can be used for in Kibana.
 
 ### Logr Instance
 
-The helper method `log.Logr()` returns a log instance of an existing OpenMFP Logger that fulfills the `logr.Logger` interface from [go-logr](https://github.com/go-logr/logr).
+The helper method `log.Logr()` returns a log instance of an existing Platform Mesh Logger that fulfills the `logr.Logger` interface from [go-logr](https://github.com/go-logr/logr).
 This is a common interface that is used in many external packages for instance in the Kubernetes controller runtime.
 
-The returned logger inherits settings from the existing OpenMFP Logger.
+The returned logger inherits settings from the existing Platform Mesh Logger.
 
 
 ### Default Logger
@@ -109,11 +109,11 @@ The package defines a global default logger as `logger.StdLogger`. Please only u
 Please always create a new logger instance with `New()` and pass it to structs and functions.
 This makes testing easier and is in general best practice.
 
-### OpenMFP Logger from Zerolog
+### Platform Mesh Logger from Zerolog
 
-Because the OpenMFP logger internally embeds Zerolog it is compatible with new versions of Zerolog.
+Because the Platform Mesh logger internally embeds Zerolog it is compatible with new versions of Zerolog.
 Nevertheless, because of this embeding, some functions return Zerolog instances.
-It is very easy to return a new OpenMFP logger from a Zerolog instance using this helper function:
+It is very easy to return a new Platform Mesh logger from a Zerolog instance using this helper function:
 ```go
 log := NewFromZerolog(zerologger)
 ```

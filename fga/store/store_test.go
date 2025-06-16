@@ -10,8 +10,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/openmfp/golang-commons/directive/mocks"
-	fgastore "github.com/openmfp/golang-commons/fga/store"
+	"github.com/platform-mesh/golang-commons/directive/mocks"
+	fgastore "github.com/platform-mesh/golang-commons/fga/store"
 )
 
 func TestGetModelIDForTenant(t *testing.T) {

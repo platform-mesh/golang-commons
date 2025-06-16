@@ -8,7 +8,7 @@ import (
 	language "github.com/openfga/language/pkg/go/transformer"
 	"github.com/openfga/openfga/pkg/server"
 	"github.com/openfga/openfga/pkg/storage/memory"
-	"github.com/openmfp/golang-commons/fga/helpers"
+	"github.com/platform-mesh/golang-commons/fga/helpers"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/resolver"

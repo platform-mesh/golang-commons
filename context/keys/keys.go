@@ -1,6 +1,6 @@
 package keys
 
-import "github.com/openmfp/golang-commons/jwt"
+import "github.com/platform-mesh/golang-commons/jwt"
 
 type ContextKey string
 

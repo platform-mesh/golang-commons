@@ -9,14 +9,14 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/go-jose/go-jose/v4"
 	openfgav1 "github.com/openfga/api/proto/openfga/v1"
-	openmfpcontext "github.com/openmfp/golang-commons/context"
-	"github.com/openmfp/golang-commons/context/keys"
-	logger "github.com/openmfp/golang-commons/logger/testlogger"
+	pmcontext "github.com/platform-mesh/golang-commons/context"
+	"github.com/platform-mesh/golang-commons/context/keys"
+	logger "github.com/platform-mesh/golang-commons/logger/testlogger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 
-	"github.com/openmfp/golang-commons/directive/mocks"
+	"github.com/platform-mesh/golang-commons/directive/mocks"
 )
 
 const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
@@ -231,12 +231,12 @@ func TestAuthorized(t *testing.T) {
 			})
 
 			if test.isTechnicalUser {
-				ctx = openmfpcontext.AddIsTechnicalIssuerToContext(ctx)
+				ctx = pmcontext.AddIsTechnicalIssuerToContext(ctx)
 			} else {
-				ctx = openmfpcontext.AddTenantToContext(ctx, "tenant-id")
+				ctx = pmcontext.AddTenantToContext(ctx, "tenant-id")
 			}
-			ctx = openmfpcontext.AddWebTokenToContext(ctx, token, signatureAlgorithms)
-			ctx = openmfpcontext.AddAuthHeaderToContext(ctx, fmt.Sprintf("Bearer %s", token))
+			ctx = pmcontext.AddWebTokenToContext(ctx, token, signatureAlgorithms)
+			ctx = pmcontext.AddAuthHeaderToContext(ctx, fmt.Sprintf("Bearer %s", token))
 
 			_, err := Authorized(openfgaMock, log.Logger)(ctx, nil, nextFn, test.relation, test.entityType, test.entityTypeParamName, test.entityParamName)
 			assert.Equal(t, test.expectedError, err)
@@ -267,7 +267,7 @@ func TestAuthorizedWithSpiffeeHeader(t *testing.T) {
 
 	ctx := context.Background()
 
-	ctx = openmfpcontext.AddSpiffeToContext(ctx, "spiffe://cluster.local/test-spiffee")
+	ctx = pmcontext.AddSpiffeToContext(ctx, "spiffe://cluster.local/test-spiffee")
 	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
 		Args: map[string]any{
 			"tenantId":  "test",
@@ -349,12 +349,12 @@ func TestAuthorizedEdgeCases2(t *testing.T) {
 			})
 
 			if test.isTechnicalUser {
-				ctx = openmfpcontext.AddIsTechnicalIssuerToContext(ctx)
+				ctx = pmcontext.AddIsTechnicalIssuerToContext(ctx)
 			} else {
 				ctx = context.WithValue(ctx, keys.WebTokenCtxKey, "tenantId")
 			}
-			ctx = openmfpcontext.AddWebTokenToContext(ctx, token, signatureAlgorithms)
-			ctx = openmfpcontext.AddAuthHeaderToContext(ctx, fmt.Sprintf("Bearer %s", token))
+			ctx = pmcontext.AddWebTokenToContext(ctx, token, signatureAlgorithms)
+			ctx = pmcontext.AddAuthHeaderToContext(ctx, fmt.Sprintf("Bearer %s", token))
 
 			_, err := Authorized(openfgaMock, log.Logger)(ctx, nil, nextFn, test.relation, test.entityType, test.entityTypeParamName, test.entityParamName)
 			assert.Equal(t, test.expectedError, err)
@@ -407,12 +407,12 @@ func TestAuthorizedEdgeCases(t *testing.T) {
 			})
 
 			if test.isTechnicalUser {
-				ctx = openmfpcontext.AddIsTechnicalIssuerToContext(ctx)
+				ctx = pmcontext.AddIsTechnicalIssuerToContext(ctx)
 			} else {
-				ctx = openmfpcontext.AddTenantToContext(ctx, "tenant-id")
+				ctx = pmcontext.AddTenantToContext(ctx, "tenant-id")
 			}
-			ctx = openmfpcontext.AddWebTokenToContext(ctx, token, signatureAlgorithms)
-			ctx = openmfpcontext.AddAuthHeaderToContext(ctx, fmt.Sprintf("Bearer %s", token))
+			ctx = pmcontext.AddWebTokenToContext(ctx, token, signatureAlgorithms)
+			ctx = pmcontext.AddAuthHeaderToContext(ctx, fmt.Sprintf("Bearer %s", token))
 
 			_, err := Authorized(openfgaMock, log.Logger)(ctx, nil, nextFn, test.relation, test.entityType, test.entityTypeParamName, test.entityParamName)
 			assert.Equal(t, test.expectedError, err)
@@ -475,12 +475,12 @@ func TestAuthorizedEdgeCases(t *testing.T) {
 			})
 
 			if test.isTechnicalUser {
-				ctx = openmfpcontext.AddIsTechnicalIssuerToContext(ctx)
+				ctx = pmcontext.AddIsTechnicalIssuerToContext(ctx)
 			} else {
-				ctx = openmfpcontext.AddTenantToContext(ctx, "tenant-id")
+				ctx = pmcontext.AddTenantToContext(ctx, "tenant-id")
 			}
-			ctx = openmfpcontext.AddWebTokenToContext(ctx, token, signatureAlgorithms)
-			ctx = openmfpcontext.AddAuthHeaderToContext(ctx, fmt.Sprintf("Bearer %s", token))
+			ctx = pmcontext.AddWebTokenToContext(ctx, token, signatureAlgorithms)
+			ctx = pmcontext.AddAuthHeaderToContext(ctx, fmt.Sprintf("Bearer %s", token))
 
 			_, err := Authorized(nil, log.Logger)(ctx, nil, nextFn, test.relation, test.entityType, test.entityTypeParamName, test.entityParamName)
 			assert.Equal(t, test.expectedError.Error(), err.Error())

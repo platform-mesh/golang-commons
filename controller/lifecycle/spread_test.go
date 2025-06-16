@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/openmfp/golang-commons/controller/testSupport"
-	"github.com/openmfp/golang-commons/logger/testlogger"
+	"github.com/platform-mesh/golang-commons/controller/testSupport"
+	"github.com/platform-mesh/golang-commons/logger/testlogger"
 )
 
 func TestGetNextReconcilationTime(t *testing.T) {

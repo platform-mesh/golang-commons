@@ -9,9 +9,9 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 
-	openmfpctx "github.com/openmfp/golang-commons/context"
-	"github.com/openmfp/golang-commons/context/keys"
-	openmfpjwt "github.com/openmfp/golang-commons/jwt"
+	pmcontext "github.com/platform-mesh/golang-commons/context"
+	"github.com/platform-mesh/golang-commons/context/keys"
+	pmjwt "github.com/platform-mesh/golang-commons/jwt"
 )
 
 type astruct struct{}
@@ -22,9 +22,9 @@ func TestAddSpiffeToContext(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	ctx = openmfpctx.AddSpiffeToContext(ctx, "spiffe")
+	ctx = pmcontext.AddSpiffeToContext(ctx, "spiffe")
 
-	spiffe, err := openmfpctx.GetSpiffeFromContext(ctx)
+	spiffe, err := pmcontext.GetSpiffeFromContext(ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, "spiffe", spiffe)
 }
@@ -33,10 +33,10 @@ func TestWrongSpiffeToContext(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	key := openmfpctx.ContextKey(openmfpjwt.SpiffeCtxKey)
+	key := pmcontext.ContextKey(pmjwt.SpiffeCtxKey)
 	ctx = context.WithValue(ctx, key, astruct{})
 
-	_, err := openmfpctx.GetSpiffeFromContext(ctx)
+	_, err := pmcontext.GetSpiffeFromContext(ctx)
 	assert.Error(t, err, "someone stored a wrong value in the [spiffe] key with type [context.astruct], expected [string]")
 }
 
@@ -44,9 +44,9 @@ func TestAddTenantToContext(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	ctx = openmfpctx.AddTenantToContext(ctx, "tenant")
+	ctx = pmcontext.AddTenantToContext(ctx, "tenant")
 
-	tenant, err := openmfpctx.GetTenantFromContext(ctx)
+	tenant, err := pmcontext.GetTenantFromContext(ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, "tenant", tenant)
 }
@@ -55,10 +55,10 @@ func TestAddTenantToContextNegative(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	key := openmfpctx.ContextKey(openmfpjwt.TenantIdCtxKey)
+	key := pmcontext.ContextKey(pmjwt.TenantIdCtxKey)
 	ctx = context.WithValue(ctx, key, astruct{})
 
-	_, err := openmfpctx.GetTenantFromContext(ctx)
+	_, err := pmcontext.GetTenantFromContext(ctx)
 	assert.Error(t, err, "someone stored a wrong value in the [tenant] key with type [context.astruct], expected [string]")
 }
 
@@ -95,7 +95,7 @@ func TestAddAndGetAuthHeaderToContext(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			ctx := context.WithValue(context.Background(), keys.AuthHeaderCtxKey, test.authHeader)
 
-			val, err := openmfpctx.GetAuthHeaderFromContext(ctx)
+			val, err := pmcontext.GetAuthHeaderFromContext(ctx)
 			if test.expectError {
 				assert.Error(t, err)
 				return
@@ -117,9 +117,9 @@ func TestAddWebTokenToContext(t *testing.T) {
 	tokenString, err := generateJWT(issuer)
 	assert.NoError(t, err)
 
-	ctx = openmfpctx.AddWebTokenToContext(ctx, tokenString, signatureAlgorithms)
+	ctx = pmcontext.AddWebTokenToContext(ctx, tokenString, signatureAlgorithms)
 
-	token, err := openmfpctx.GetWebTokenFromContext(ctx)
+	token, err := pmcontext.GetWebTokenFromContext(ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, issuer, token.Issuer)
 }
@@ -130,7 +130,7 @@ func TestAddWebTokenToContextNegative(t *testing.T) {
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, keys.WebTokenCtxKey, nil)
 
-	_, err := openmfpctx.GetWebTokenFromContext(ctx)
+	_, err := pmcontext.GetWebTokenFromContext(ctx)
 	assert.ErrorContains(t, err, "someone stored a wrong value in the [webToken] key with type [<nil>], expected [jwt.WebToken]")
 }
 
@@ -140,7 +140,7 @@ func TestAddWebTokenToContextWrongToken(t *testing.T) {
 	initialContext := context.Background()
 	tokenString := "not-a-token"
 
-	ctx := openmfpctx.AddWebTokenToContext(initialContext, tokenString, signatureAlgorithms)
+	ctx := pmcontext.AddWebTokenToContext(initialContext, tokenString, signatureAlgorithms)
 
 	assert.Equal(t, initialContext, ctx)
 }
@@ -164,9 +164,9 @@ func TestAddIsTechnicalIssuerToContext(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	ctx = openmfpctx.AddIsTechnicalIssuerToContext(ctx)
+	ctx = pmcontext.AddIsTechnicalIssuerToContext(ctx)
 
-	isTechnicalIssuer := openmfpctx.GetIsTechnicalIssuerFromContext(ctx)
+	isTechnicalIssuer := pmcontext.GetIsTechnicalIssuerFromContext(ctx)
 	assert.True(t, isTechnicalIssuer)
 }
 
@@ -175,7 +175,7 @@ func TestAddIsTechnicalIssuerToContextNegative(t *testing.T) {
 
 	ctx := context.Background()
 
-	isTechnicalIssuer := openmfpctx.GetIsTechnicalIssuerFromContext(ctx)
+	isTechnicalIssuer := pmcontext.GetIsTechnicalIssuerFromContext(ctx)
 	assert.False(t, isTechnicalIssuer)
 }
 
@@ -183,9 +183,9 @@ func TestHasTenantInContext(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	ctx = openmfpctx.AddTenantToContext(ctx, "tenant")
+	ctx = pmcontext.AddTenantToContext(ctx, "tenant")
 
-	hasTenant := openmfpctx.HasTenantInContext(ctx)
+	hasTenant := pmcontext.HasTenantInContext(ctx)
 	assert.True(t, hasTenant)
 }
 
@@ -194,7 +194,7 @@ func TestHasTenantInContextNegative(t *testing.T) {
 
 	ctx := context.Background()
 
-	hasTenant := openmfpctx.HasTenantInContext(ctx)
+	hasTenant := pmcontext.HasTenantInContext(ctx)
 	assert.False(t, hasTenant)
 }
 
@@ -202,9 +202,9 @@ func TestAddUserIDToContextAndGetUserIDFromContext(t *testing.T) {
 	baseCtx := context.Background()
 	userID := "testUser123"
 
-	ctxWithUserID := openmfpctx.AddUserIDToContext(baseCtx, userID)
+	ctxWithUserID := pmcontext.AddUserIDToContext(baseCtx, userID)
 
-	retrievedUserID, err := openmfpctx.GetUserIDFromContext(ctxWithUserID)
+	retrievedUserID, err := pmcontext.GetUserIDFromContext(ctxWithUserID)
 	assert.NoError(t, err, "Expected no error when retrieving userID")
 	assert.Equal(t, userID, retrievedUserID, "Retrieved userID should match the added value")
 }
@@ -214,7 +214,7 @@ func TestGetUserIDFromContextWrongType(t *testing.T) {
 
 	ctxWithWrongType := context.WithValue(baseCtx, keys.UserIDCtxKey, 123)
 
-	retrievedUserID, err := openmfpctx.GetUserIDFromContext(ctxWithWrongType)
+	retrievedUserID, err := pmcontext.GetUserIDFromContext(ctxWithWrongType)
 	assert.Error(t, err, "Expected an error when retrieving userID with the wrong type")
 	expectedErrorMsg := fmt.Sprintf("someone stored a wrong value in the [%s] key with type [%T], expected [string]", keys.UserIDCtxKey, ctxWithWrongType.Value(keys.UserIDCtxKey))
 	assert.Equal(t, expectedErrorMsg, err.Error(), "Error message should match the expected message")
@@ -224,12 +224,11 @@ func TestGetUserIDFromContextWrongType(t *testing.T) {
 func TestHasUserIDInContext(t *testing.T) {
 	baseCtx := context.Background()
 
-	assert.False(t, openmfpctx.HasUserIDInContext(baseCtx), "Expected false when userID is not set in context")
+	assert.False(t, pmcontext.HasUserIDInContext(baseCtx), "Expected false when userID is not set in context")
 
-	ctxWithUserID := openmfpctx.AddUserIDToContext(baseCtx, "user123")
-	assert.True(t, openmfpctx.HasUserIDInContext(ctxWithUserID), "Expected true when a valid userID is set in context")
+	ctxWithUserID := pmcontext.AddUserIDToContext(baseCtx, "user123")
+	assert.True(t, pmcontext.HasUserIDInContext(ctxWithUserID), "Expected true when a valid userID is set in context")
 
 	ctxWithWrongType := context.WithValue(baseCtx, keys.UserIDCtxKey, 456)
-	assert.False(t, openmfpctx.HasUserIDInContext(ctxWithWrongType), "Expected false when the value stored is of the wrong type")
+	assert.False(t, pmcontext.HasUserIDInContext(ctxWithWrongType), "Expected false when the value stored is of the wrong type")
 }
-

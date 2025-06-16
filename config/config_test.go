@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/openmfp/golang-commons/config"
+	"github.com/platform-mesh/golang-commons/config"
 )
 
 func TestSetConfigInContext(t *testing.T) {

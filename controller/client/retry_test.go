@@ -9,7 +9,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/openmfp/golang-commons/controller/testSupport"
+	"github.com/platform-mesh/golang-commons/controller/testSupport"
 )
 
 func TestRetry(t *testing.T) {

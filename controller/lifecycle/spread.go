@@ -8,11 +8,11 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/openmfp/golang-commons/logger"
-	"github.com/openmfp/golang-commons/sentry"
+	"github.com/platform-mesh/golang-commons/logger"
+	"github.com/platform-mesh/golang-commons/sentry"
 )
 
-const SpreadReconcileRefreshLabel = "openmfp.io/refresh-reconcile"
+const SpreadReconcileRefreshLabel = "platform-mesh.io/refresh-reconcile"
 
 // WithSpreadingReconciles sets the LifecycleManager to spread out the reconciles
 func (l *LifecycleManager) WithSpreadingReconciles() *LifecycleManager {

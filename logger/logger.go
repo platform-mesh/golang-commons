@@ -13,7 +13,7 @@ import (
 	"github.com/go-logr/zerologr"
 	"github.com/rs/zerolog"
 
-	"github.com/openmfp/golang-commons/context/keys"
+	"github.com/platform-mesh/golang-commons/context/keys"
 )
 
 type Level zerolog.Level
@@ -98,7 +98,7 @@ func (l *Logger) MustChildLoggerWithAttributes(keyVal ...string) *Logger {
 	return logger
 }
 
-// Level wraps the underlying zerolog level func to openmfp logger level
+// Level wraps the underlying zerolog level func to Platform Mesh logger level
 func (l *Logger) Level(lvl Level) *Logger {
 	return NewFromZerolog(l.Logger.Level(zerolog.Level(lvl)))
 }

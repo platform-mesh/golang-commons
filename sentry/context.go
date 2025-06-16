@@ -3,7 +3,7 @@ package sentry
 import (
 	"context"
 
-	"github.com/openmfp/golang-commons/context/keys"
+	"github.com/platform-mesh/golang-commons/context/keys"
 )
 
 func GetSentryTagsFromContext(ctx context.Context) map[string]string {

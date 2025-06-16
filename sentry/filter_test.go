@@ -10,7 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	openmfperrors "github.com/openmfp/golang-commons/errors"
+	pmerrors "github.com/platform-mesh/golang-commons/errors"
 )
 
 func TestIsTerminatingNSError(t *testing.T) {
@@ -49,7 +49,7 @@ func TestShouldBeProcessedPositive(t *testing.T) {
 }
 
 func TestShouldBeProcessedSentryPositive(t *testing.T) {
-	err := openmfperrors.New("test error")
+	err := pmerrors.New("test error")
 	sentryError := SentryError(err)
 	shouldBeProcessed := ShouldBeProcessed(sentryError)
 	assert.True(t, shouldBeProcessed)

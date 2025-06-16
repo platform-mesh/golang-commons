@@ -10,9 +10,9 @@ import (
 	"github.com/machinebox/graphql"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
-	openmfpcontext "github.com/openmfp/golang-commons/context"
-	"github.com/openmfp/golang-commons/jwt"
-	"github.com/openmfp/golang-commons/logger"
+	pmcontext "github.com/platform-mesh/golang-commons/context"
+	"github.com/platform-mesh/golang-commons/jwt"
+	"github.com/platform-mesh/golang-commons/logger"
 )
 
 func createClient(ctx context.Context, iamApiUrl string) *graphql.Client {
@@ -28,7 +28,7 @@ func createClient(ctx context.Context, iamApiUrl string) *graphql.Client {
 }
 
 func run(ctx context.Context, client GraphqlClient, request *graphql.Request, resp interface{}, timeout time.Duration) error {
-	auth, err := openmfpcontext.GetAuthHeaderFromContext(ctx)
+	auth, err := pmcontext.GetAuthHeaderFromContext(ctx)
 	if err != nil || len(auth) == 0 {
 		return fmt.Errorf("the request context does not contain an auth header under the key %q. You can use authz.context to set it", jwt.AuthHeaderCtxKey)
 	}

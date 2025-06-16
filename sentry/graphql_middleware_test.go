@@ -6,21 +6,21 @@ import (
 	"testing"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/openmfp/golang-commons/logger"
+	"github.com/platform-mesh/golang-commons/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 
-	openmfpcontext "github.com/openmfp/golang-commons/context"
-	"github.com/openmfp/golang-commons/jwt"
-	testlogger "github.com/openmfp/golang-commons/logger/testlogger"
+	pmcontext "github.com/platform-mesh/golang-commons/context"
+	"github.com/platform-mesh/golang-commons/jwt"
+	testlogger "github.com/platform-mesh/golang-commons/logger/testlogger"
 )
 
 func TestGraphQLRecover(t *testing.T) {
 	// Given
 	log := testlogger.New()
 	recoverFunc := GraphQLRecover(log.Logger)
-	ctx := context.WithValue(context.Background(), openmfpcontext.ContextKey(jwt.TenantIdCtxKey), "test")
+	ctx := context.WithValue(context.Background(), pmcontext.ContextKey(jwt.TenantIdCtxKey), "test")
 	ctx = graphql.WithOperationContext(ctx, &graphql.OperationContext{
 		Operation: &ast.OperationDefinition{
 			Name:      "test",
@@ -49,7 +49,7 @@ func TestGraphQLErrorPresenter(t *testing.T) {
 	//Given
 	presenter := GraphQLErrorPresenter()
 	testError := errors.New("test error")
-	ctx := openmfpcontext.AddTenantToContext(context.Background(), "test")
+	ctx := pmcontext.AddTenantToContext(context.Background(), "test")
 
 	//When
 	err := presenter(ctx, testError)
@@ -90,7 +90,7 @@ func TestGraphQLErrorPresenterWithSkipTenants(t *testing.T) {
 	presenter := GraphQLErrorPresenter("test")
 	testError := SentryError(errors.New("test error"))
 	tl := testlogger.New()
-	ctx := openmfpcontext.AddTenantToContext(context.Background(), "test")
+	ctx := pmcontext.AddTenantToContext(context.Background(), "test")
 	ctx = logger.SetLoggerInContext(ctx, tl.Logger)
 
 	//When

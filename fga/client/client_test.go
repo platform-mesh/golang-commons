@@ -3,7 +3,7 @@ package client
 import (
 	"testing"
 
-	"github.com/openmfp/golang-commons/directive/mocks"
+	"github.com/platform-mesh/golang-commons/directive/mocks"
 	"github.com/stretchr/testify/assert"
 )
 

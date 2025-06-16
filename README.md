@@ -1,7 +1,7 @@
-# openMFP - golang-commons
-![Build Status](https://github.com/openmfp/golang-commons/actions/workflows/pipeline.yml/badge.svg)
+****# Platform Mesh - golang-commons
+![Build Status](https://github.com/platform-mesh/golang-commons/actions/workflows/pipeline.yml/badge.svg)
 [![REUSE status](
-https://api.reuse.software/badge/github.com/openmfp/golang-commons)](https://api.reuse.software/info/github.com/openmfp/golang-commons)
+https://api.reuse.software/badge/github.com/platform-mesh/golang-commons)](https://api.reuse.software/info/github.com/platform-mesh/golang-commons)
 ## Description
 
 golang-commons contains golang library packages to be reused across microservices and operators/controllers. The scope includes, but is not limited to:
@@ -12,13 +12,12 @@ golang-commons contains golang library packages to be reused across microservice
 - Logging
 - [Controllers](./controller/README.md)
 
-
 ## Getting started
 
 Add the dependency to your go module based project like so:
 
 ```
-go get github.com/openmfp/golang-commons
+go get github.com/platform-mesh/golang-commons
 ```
 
 ## Releasing
@@ -41,12 +40,12 @@ P.S. If you have golang installed, it automatically installs the mockery binary 
 
 ## Contributing
 
-Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file in this repository for instructions on how to contribute to openMFP.
+Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file in this repository for instructions on how to contribute to Platform Mesh.
 
 ## Code of Conduct
 
-Please refer to the [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) file in this repository informations on the expected Code of Conduct for contributing to openMFP.
+Please refer to the [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) file in this repository informations on the expected Code of Conduct for contributing to Platform Mesh.
 
 ## Licensing
 
-Copyright 2024 SAP SE or an SAP affiliate company and openMFP contributors. Please see our [LICENSE](LICENSE) for copyright and license information. Detailed information including third-party components and their licensing/copyright information is available [via the REUSE tool](https://api.reuse.software/info/github.com/openmfp/golang-commons).
+Copyright 2024 SAP SE or an SAP affiliate company and Platform Mesh contributors. Please see our [LICENSE](LICENSE) for copyright and license information. Detailed information including third-party components and their licensing/copyright information is available [via the REUSE tool](https://api.reuse.software/info/github.com/platform-mesh/golang-commons).

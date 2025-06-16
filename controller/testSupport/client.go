@@ -14,7 +14,7 @@ import (
 func CreateFakeClient(t *testing.T, objects ...client.Object) client.WithWatch {
 	builder := fake.NewClientBuilder()
 	s := runtime.NewScheme()
-	sBuilder := scheme.Builder{GroupVersion: schema.GroupVersion{Group: "test.openmfp.io", Version: "v1alpha1"}}
+	sBuilder := scheme.Builder{GroupVersion: schema.GroupVersion{Group: "test.platform-mesh.io", Version: "v1alpha1"}}
 	sBuilder.Register(&TestApiObject{})
 	for _, obj := range objects {
 		sBuilder.Register(obj)

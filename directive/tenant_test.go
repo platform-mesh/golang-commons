@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"k8s.io/utils/ptr"
 
-	openmfpcontext "github.com/openmfp/golang-commons/context"
-	"github.com/openmfp/golang-commons/logger"
+	pmcontext "github.com/platform-mesh/golang-commons/context"
+	"github.com/platform-mesh/golang-commons/logger"
 )
 
 func TestSetTenantToContextForTechnicalUsers(t *testing.T) {
@@ -22,7 +22,7 @@ func TestSetTenantToContextForTechnicalUsers(t *testing.T) {
 	}{
 		{
 			name: "Technical user with tenantId",
-			ctx:  openmfpcontext.AddIsTechnicalIssuerToContext(context.Background()),
+			ctx:  pmcontext.AddIsTechnicalIssuerToContext(context.Background()),
 			args: map[string]interface{}{
 				"tenantId": "tenant123",
 			},
@@ -31,7 +31,7 @@ func TestSetTenantToContextForTechnicalUsers(t *testing.T) {
 		},
 		{
 			name: "Technical user with nil tenantId",
-			ctx:  openmfpcontext.AddIsTechnicalIssuerToContext(context.Background()),
+			ctx:  pmcontext.AddIsTechnicalIssuerToContext(context.Background()),
 			args: map[string]interface{}{
 				"tenantId": (*string)(nil),
 			},
@@ -49,7 +49,7 @@ func TestSetTenantToContextForTechnicalUsers(t *testing.T) {
 		},
 		{
 			name: "Non-technical user with spiffee",
-			ctx:  openmfpcontext.AddSpiffeToContext(context.Background(), "spiffee123"),
+			ctx:  pmcontext.AddSpiffeToContext(context.Background(), "spiffee123"),
 			args: map[string]interface{}{
 				"tenantId": "tenant123",
 			},
@@ -58,7 +58,7 @@ func TestSetTenantToContextForTechnicalUsers(t *testing.T) {
 		},
 		{
 			name: "Non-technical user with spiffee (*string)",
-			ctx:  openmfpcontext.AddIsTechnicalIssuerToContext(context.Background()),
+			ctx:  pmcontext.AddIsTechnicalIssuerToContext(context.Background()),
 			args: map[string]interface{}{
 				"tenantId": ptr.To("tenant123"),
 			},
@@ -67,7 +67,7 @@ func TestSetTenantToContextForTechnicalUsers(t *testing.T) {
 		},
 		{
 			name: "Non-technical user with spiffee (*string empty)",
-			ctx:  openmfpcontext.AddIsTechnicalIssuerToContext(context.Background()),
+			ctx:  pmcontext.AddIsTechnicalIssuerToContext(context.Background()),
 			args: map[string]interface{}{
 				"tenantId": ptr.To(""),
 			},
@@ -95,7 +95,7 @@ func TestSetTenantToContextForTechnicalUsers(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				if tt.expectedTenant != "" {
-					tenantID, err := openmfpcontext.GetTenantFromContext(newCtx)
+					tenantID, err := pmcontext.GetTenantFromContext(newCtx)
 					assert.Nil(t, err)
 					assert.Equal(t, tt.expectedTenant, tenantID)
 				}

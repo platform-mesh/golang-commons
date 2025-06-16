@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	DebugLabel = "debug.openmfp.io"
+	DebugLabel = "debug.platform-mesh.io"
 )
 
 // DebugResourcesBehaviourPredicate returns whether a resource should be digested

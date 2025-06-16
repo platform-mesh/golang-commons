@@ -9,7 +9,7 @@ import (
 	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/machinebox/graphql"
-	openmfpcontext "github.com/openmfp/golang-commons/context"
+	pmcontext "github.com/platform-mesh/golang-commons/context"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,8 +52,8 @@ func TestTenantReader(t *testing.T) {
 		token, err := jwt.NewWithClaims(jwt.SigningMethodNone, claims).SignedString(jwt.UnsafeAllowNoneSignatureType)
 		assert.NoError(t, err)
 
-		ctx := openmfpcontext.AddAuthHeaderToContext(context.Background(), fmt.Sprintf("Bearer %s", token))
-		ctx = openmfpcontext.AddWebTokenToContext(ctx, token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm("none")})
+		ctx := pmcontext.AddAuthHeaderToContext(context.Background(), fmt.Sprintf("Bearer %s", token))
+		ctx = pmcontext.AddWebTokenToContext(ctx, token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm("none")})
 
 		t.Run("gets a tenant from a mocked client", func(t *testing.T) {
 			// Arrange

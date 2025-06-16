@@ -9,7 +9,7 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"github.com/openmfp/golang-commons/logger"
+	"github.com/platform-mesh/golang-commons/logger"
 )
 
 type TestLogger struct {

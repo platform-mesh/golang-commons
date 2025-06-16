@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
-	openmfpcontext "github.com/openmfp/golang-commons/context"
+	pmcontext "github.com/platform-mesh/golang-commons/context"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,7 +52,7 @@ func TestTenantRetriever(t *testing.T) {
 			claims := &jwt.RegisteredClaims{Audience: jwt.ClaimStrings{audience}}
 			token, _ := jwt.NewWithClaims(jwt.SigningMethodNone, claims).SignedString(jwt.UnsafeAllowNoneSignatureType)
 
-			ctx := openmfpcontext.AddAuthHeaderToContext(context.Background(), fmt.Sprintf("Bearer %s", token))
+			ctx := pmcontext.AddAuthHeaderToContext(context.Background(), fmt.Sprintf("Bearer %s", token))
 
 			id, err := retriever.RetrieveTenant(ctx)
 
@@ -65,7 +65,7 @@ func TestTenantRetriever(t *testing.T) {
 			claims := &jwt.RegisteredClaims{Issuer: issuer}
 			token, _ := jwt.NewWithClaims(jwt.SigningMethodNone, claims).SignedString(jwt.UnsafeAllowNoneSignatureType)
 
-			ctx := openmfpcontext.AddAuthHeaderToContext(context.Background(), fmt.Sprintf("Bearer %s", token))
+			ctx := pmcontext.AddAuthHeaderToContext(context.Background(), fmt.Sprintf("Bearer %s", token))
 
 			id, err := retriever.RetrieveTenant(ctx)
 
@@ -86,8 +86,8 @@ func TestTenantRetriever(t *testing.T) {
 			claims := &jwt.RegisteredClaims{Issuer: issuer, Audience: jwt.ClaimStrings{audience}}
 			token, err := jwt.NewWithClaims(jwt.SigningMethodNone, claims).SignedString(jwt.UnsafeAllowNoneSignatureType)
 			assert.NoError(t, err)
-			testContext = openmfpcontext.AddWebTokenToContext(testContext, token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm("none")})
-			testContext = openmfpcontext.AddAuthHeaderToContext(testContext, fmt.Sprintf("Bearer %s", token))
+			testContext = pmcontext.AddWebTokenToContext(testContext, token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm("none")})
+			testContext = pmcontext.AddAuthHeaderToContext(testContext, fmt.Sprintf("Bearer %s", token))
 			id, err := retriever.RetrieveTenant(testContext)
 
 			// Assert
@@ -103,8 +103,8 @@ func TestTenantRetriever(t *testing.T) {
 			claims := &jwt.RegisteredClaims{Issuer: issuer, Audience: jwt.ClaimStrings{audience}}
 			token, err := jwt.NewWithClaims(jwt.SigningMethodNone, claims).SignedString(jwt.UnsafeAllowNoneSignatureType)
 			assert.NoError(t, err)
-			testContext = openmfpcontext.AddWebTokenToContext(testContext, token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm("none")})
-			testContext = openmfpcontext.AddAuthHeaderToContext(testContext, fmt.Sprintf("Bearer %s", token))
+			testContext = pmcontext.AddWebTokenToContext(testContext, token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm("none")})
+			testContext = pmcontext.AddAuthHeaderToContext(testContext, fmt.Sprintf("Bearer %s", token))
 
 			id1, err1 := retriever.RetrieveTenant(testContext)
 			id2, err2 := retriever.RetrieveTenant(testContext)
@@ -125,8 +125,8 @@ func TestTenantRetriever(t *testing.T) {
 		claims := &jwt.RegisteredClaims{Issuer: issuer, Audience: jwt.ClaimStrings{audience}}
 		token, err := jwt.NewWithClaims(jwt.SigningMethodNone, claims).SignedString(jwt.UnsafeAllowNoneSignatureType)
 		assert.NoError(t, err)
-		testContext = openmfpcontext.AddWebTokenToContext(testContext, token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm("none")})
-		testContext = openmfpcontext.AddAuthHeaderToContext(testContext, fmt.Sprintf("Bearer %s", token))
+		testContext = pmcontext.AddWebTokenToContext(testContext, token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm("none")})
+		testContext = pmcontext.AddAuthHeaderToContext(testContext, fmt.Sprintf("Bearer %s", token))
 		retriever, mockClient := createRetrieverWithMock()
 		errMsg := "oh nose"
 		mockedErr := errors.New(errMsg)
@@ -158,7 +158,7 @@ func TestTenantRetriever(t *testing.T) {
 					claims := &jwt.RegisteredClaims{Issuer: issuer, Audience: jwt.ClaimStrings{audience + strconv.Itoa(in%3)}}
 					token, err := jwt.NewWithClaims(jwt.SigningMethodNone, claims).SignedString(jwt.UnsafeAllowNoneSignatureType)
 					assert.NoError(t, err)
-					ctx := openmfpcontext.AddAuthHeaderToContext(context.Background(), fmt.Sprintf("Bearer %s", token))
+					ctx := pmcontext.AddAuthHeaderToContext(context.Background(), fmt.Sprintf("Bearer %s", token))
 
 					_, _ = retriever.RetrieveTenant(ctx)
 				}(i)
@@ -182,8 +182,8 @@ func TestTenantRetriever(t *testing.T) {
 			claims := &jwt.RegisteredClaims{Issuer: issuer, Audience: jwt.ClaimStrings{audience}}
 			token, err := jwt.NewWithClaims(jwt.SigningMethodNone, claims).SignedString(jwt.UnsafeAllowNoneSignatureType)
 			assert.NoError(t, err)
-			testContext = openmfpcontext.AddWebTokenToContext(testContext, token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm("none")})
-			testContext = openmfpcontext.AddAuthHeaderToContext(testContext, fmt.Sprintf("Bearer %s", token))
+			testContext = pmcontext.AddWebTokenToContext(testContext, token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm("none")})
+			testContext = pmcontext.AddAuthHeaderToContext(testContext, fmt.Sprintf("Bearer %s", token))
 
 			// Act
 			id, err := r.RetrieveTenant(testContext)
@@ -202,8 +202,8 @@ func TestTenantRetriever(t *testing.T) {
 			claims := &jwt.RegisteredClaims{Issuer: issuer, Audience: jwt.ClaimStrings{audience}}
 			token, err := jwt.NewWithClaims(jwt.SigningMethodNone, claims).SignedString(jwt.UnsafeAllowNoneSignatureType)
 			assert.NoError(t, err)
-			testContext = openmfpcontext.AddWebTokenToContext(testContext, token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm("none")})
-			testContext = openmfpcontext.AddAuthHeaderToContext(testContext, fmt.Sprintf("Bearer %s", token))
+			testContext = pmcontext.AddWebTokenToContext(testContext, token, []jose.SignatureAlgorithm{jose.SignatureAlgorithm("none")})
+			testContext = pmcontext.AddAuthHeaderToContext(testContext, fmt.Sprintf("Bearer %s", token))
 
 			// Act
 			id, err := r.RetrieveTenant(testContext)

@@ -19,13 +19,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
-	operrors "github.com/openmfp/golang-commons/errors"
+	operrors "github.com/platform-mesh/golang-commons/errors"
 
-	"github.com/openmfp/golang-commons/controller/lifecycle/mocks"
-	"github.com/openmfp/golang-commons/controller/testSupport"
-	"github.com/openmfp/golang-commons/logger"
-	"github.com/openmfp/golang-commons/logger/testlogger"
-	"github.com/openmfp/golang-commons/sentry"
+	"github.com/platform-mesh/golang-commons/controller/lifecycle/mocks"
+	"github.com/platform-mesh/golang-commons/controller/testSupport"
+	"github.com/platform-mesh/golang-commons/logger"
+	"github.com/platform-mesh/golang-commons/logger/testlogger"
+	"github.com/platform-mesh/golang-commons/sentry"
 )
 
 func TestLifecycle(t *testing.T) {

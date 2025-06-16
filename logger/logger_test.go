@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/openmfp/golang-commons/context/keys"
+	"github.com/platform-mesh/golang-commons/context/keys"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 )

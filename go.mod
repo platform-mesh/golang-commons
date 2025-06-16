@@ -1,4 +1,4 @@
-module github.com/openmfp/golang-commons
+module github.com/platform-mesh/golang-commons
 
 go 1.24.3
 

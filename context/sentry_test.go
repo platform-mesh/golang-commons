@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	testlogger "github.com/openmfp/golang-commons/logger/testlogger"
+	testlogger "github.com/platform-mesh/golang-commons/logger/testlogger"
 )
 
 func TestRecover(t *testing.T) {

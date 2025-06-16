@@ -4,15 +4,16 @@ import (
 	"context"
 
 	"github.com/99designs/gqlgen/graphql"
-	openmfpcontext "github.com/openmfp/golang-commons/context"
-	"github.com/openmfp/golang-commons/logger"
 	"github.com/vektah/gqlparser/v2/gqlerror"
+
+	pmpcontext "github.com/platform-mesh/golang-commons/context"
+	"github.com/platform-mesh/golang-commons/logger"
 )
 
 func setTenantToContextForTechnicalUsers(ctx context.Context, l *logger.Logger) (context.Context, error) {
-	spiffee, err := openmfpcontext.GetSpiffeFromContext(ctx)
+	spiffee, err := pmpcontext.GetSpiffeFromContext(ctx)
 	hasSpiffee := err == nil && spiffee != ""
-	if isTechnicalIssuer := openmfpcontext.GetIsTechnicalIssuerFromContext(ctx); !isTechnicalIssuer && !hasSpiffee {
+	if isTechnicalIssuer := pmpcontext.GetIsTechnicalIssuerFromContext(ctx); !isTechnicalIssuer && !hasSpiffee {
 		return ctx, nil
 	}
 
@@ -32,7 +33,7 @@ func setTenantToContextForTechnicalUsers(ctx context.Context, l *logger.Logger) 
 		return ctx, nil
 	}
 
-	ctx = openmfpcontext.AddTenantToContext(ctx, tenantID)
+	ctx = pmpcontext.AddTenantToContext(ctx, tenantID)
 	l.Debug().Str("tenantId", tenantID).Msg("Added a tenant id for technical user to the context")
 	return ctx, nil
 }

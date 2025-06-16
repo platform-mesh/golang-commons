@@ -1,4 +1,4 @@
-# OpenMFP Sentry
+# Platform Mesh Sentry
 
 The `sentry` package implements some helper functions to use in applications that want to send error captures to Sentry.
 
@@ -84,9 +84,9 @@ But it uses provided tags and extras if the error is of `sentry.Error` type.
 ### Better Stack Traces
 
 If you create a SentryError from an existing error the current stack trace is added. This is done by wrapping it as an
-`ErrorWithStack` from `github.com/openmfp/golang-commons/errors`
+`ErrorWithStack` from `github.com/platform-mesh/golang-commons/errors`
 
-You can use the `github.com/openmfp/golang-commons/errors` package as a drop-in replacement for the stdlib `errors` package
+You can use the `github.com/platform-mesh/golang-commons/errors` package as a drop-in replacement for the stdlib `errors` package
 everywhere in your application. This way you get additional stack traces for every wrapped error in the Sentry UI. 
 
 ### GraphQL Error Presenter
@@ -96,7 +96,7 @@ It can be used in a GraphQL service like so:
 
 ```go
 import (
-    "github.com/openmfp/golang-commons/sentry"
+    "github.com/platform-mesh/golang-commons/sentry"
 )
 
 gqHandler.SetErrorPresenter(sentry.GraphQLErrorPresenter())
@@ -122,8 +122,8 @@ import (
 	"os/signal"
 	"syscall"
 	
-    "github.com/openmfp/golang-commons/sentry"
-    "github.com/openmfp/golang-commons/logger"
+    "github.com/platform-mesh/golang-commons/sentry"
+    "github.com/platform-mesh/golang-commons/logger"
 )
 
 func main() {

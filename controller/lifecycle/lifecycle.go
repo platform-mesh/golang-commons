@@ -21,10 +21,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/openmfp/golang-commons/controller/filter"
-	"github.com/openmfp/golang-commons/errors"
-	"github.com/openmfp/golang-commons/logger"
-	"github.com/openmfp/golang-commons/sentry"
+	"github.com/platform-mesh/golang-commons/controller/filter"
+	"github.com/platform-mesh/golang-commons/errors"
+	"github.com/platform-mesh/golang-commons/logger"
+	"github.com/platform-mesh/golang-commons/sentry"
 )
 
 type LifecycleManager struct {

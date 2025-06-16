@@ -10,8 +10,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 
-	"github.com/openmfp/golang-commons/controller/testSupport"
-	"github.com/openmfp/golang-commons/logger"
+	"github.com/platform-mesh/golang-commons/controller/testSupport"
+	"github.com/platform-mesh/golang-commons/logger"
 )
 
 // Test LifecycleManager.WithConditionManagement

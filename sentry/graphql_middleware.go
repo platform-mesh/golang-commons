@@ -8,8 +8,8 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 
-	openmfpcontext "github.com/openmfp/golang-commons/context"
-	"github.com/openmfp/golang-commons/logger"
+	pmcontext "github.com/platform-mesh/golang-commons/context"
+	"github.com/platform-mesh/golang-commons/logger"
 )
 
 // GraphQLErrorPresenter returns a function that can be used as GraphQL error presenter
@@ -23,9 +23,9 @@ func GraphQLErrorPresenter(skipTenants ...string) graphql.ErrorPresenterFunc {
 		if !IsSentryError(e) {
 			l := logger.LoadLoggerFromContext(ctx)
 
-			spiffe, err2 := openmfpcontext.GetSpiffeFromContext(ctx)
-			isTechnicalIssuer := openmfpcontext.GetIsTechnicalIssuerFromContext(ctx)
-			webToken, err3 := openmfpcontext.GetWebTokenFromContext(ctx)
+			spiffe, err2 := pmcontext.GetSpiffeFromContext(ctx)
+			isTechnicalIssuer := pmcontext.GetIsTechnicalIssuerFromContext(ctx)
+			webToken, err3 := pmcontext.GetWebTokenFromContext(ctx)
 
 			event := l.Debug().Err(err)
 			if err2 == nil {
@@ -39,11 +39,11 @@ func GraphQLErrorPresenter(skipTenants ...string) graphql.ErrorPresenterFunc {
 			return err
 		}
 
-		if !openmfpcontext.HasTenantInContext(ctx) {
+		if !pmcontext.HasTenantInContext(ctx) {
 			captureErrorForContext(ctx, err, "")
 		}
 
-		tenantID, _ := openmfpcontext.GetTenantFromContext(ctx)
+		tenantID, _ := pmcontext.GetTenantFromContext(ctx)
 
 		// return without sending to Sentry if tenant should be skipped
 		for _, tenant := range skipTenants {
@@ -65,7 +65,7 @@ func GraphQLRecover(log *logger.Logger) graphql.RecoverFunc {
 	return func(ctx context.Context, err interface{}) (userMessage error) {
 		log.Error().Interface("stack", debug.Stack()).Msgf("GraphQL panic: %v", err)
 
-		tenantID, ctxErr := openmfpcontext.GetTenantFromContext(ctx)
+		tenantID, ctxErr := pmcontext.GetTenantFromContext(ctx)
 		if ctxErr != nil {
 			captureErrorForContext(ctx, ctxErr, "")
 		}

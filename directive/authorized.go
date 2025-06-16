@@ -9,9 +9,9 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	openfgav1 "github.com/openfga/api/proto/openfga/v1"
-	openmfpcontext "github.com/openmfp/golang-commons/context"
-	"github.com/openmfp/golang-commons/fga/helpers"
-	"github.com/openmfp/golang-commons/logger"
+	pmcontext "github.com/platform-mesh/golang-commons/context"
+	"github.com/platform-mesh/golang-commons/fga/helpers"
+	"github.com/platform-mesh/golang-commons/logger"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"google.golang.org/grpc/metadata"
 )
@@ -72,7 +72,7 @@ func Authorized(openfgaClient openfgav1.OpenFGAServiceClient, log *logger.Logger
 			return nil, err
 		}
 
-		token, err := openmfpcontext.GetAuthHeaderFromContext(ctx)
+		token, err := pmcontext.GetAuthHeaderFromContext(ctx)
 		hasToken := err == nil
 
 		if hasToken {
@@ -86,7 +86,7 @@ func Authorized(openfgaClient openfgav1.OpenFGAServiceClient, log *logger.Logger
 			return nil, err
 		}
 
-		tenantID, err := openmfpcontext.GetTenantFromContext(ctx)
+		tenantID, err := pmcontext.GetTenantFromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -116,13 +116,13 @@ func Authorized(openfgaClient openfgav1.OpenFGAServiceClient, log *logger.Logger
 
 		var userID string
 		if hasToken {
-			user, err := openmfpcontext.GetWebTokenFromContext(ctx)
+			user, err := pmcontext.GetWebTokenFromContext(ctx)
 			if err != nil {
 				return nil, err
 			}
 			userID = user.Subject
 		} else {
-			spiffe, err := openmfpcontext.GetSpiffeFromContext(ctx)
+			spiffe, err := pmcontext.GetSpiffeFromContext(ctx)
 			if err != nil {
 				return nil, fmt.Errorf("authorized was invoked without a user token or a spiffe header")
 			}

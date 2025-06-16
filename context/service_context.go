@@ -6,9 +6,9 @@ import (
 
 	"github.com/go-jose/go-jose/v4"
 
-	"github.com/openmfp/golang-commons/context/keys"
-	"github.com/openmfp/golang-commons/jwt"
-	"github.com/openmfp/golang-commons/logger"
+	"github.com/platform-mesh/golang-commons/context/keys"
+	"github.com/platform-mesh/golang-commons/jwt"
+	"github.com/platform-mesh/golang-commons/logger"
 )
 
 type ContextKey string
@@ -104,4 +104,3 @@ func HasUserIDInContext(ctx context.Context) bool {
 	_, ok := ctx.Value(keys.UserIDCtxKey).(string)
 	return ok
 }
-

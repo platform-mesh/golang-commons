@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/openmfp/golang-commons/oauth"
+	"github.com/platform-mesh/golang-commons/oauth"
 	"github.com/stretchr/testify/assert"
 	authenticationv1 "k8s.io/api/authentication/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

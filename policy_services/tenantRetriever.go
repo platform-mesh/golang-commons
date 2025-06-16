@@ -7,8 +7,8 @@ import (
 
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/machinebox/graphql"
-	openmfpcontext "github.com/openmfp/golang-commons/context"
-	"github.com/openmfp/golang-commons/logger"
+	pmcontext "github.com/platform-mesh/golang-commons/context"
+	"github.com/platform-mesh/golang-commons/logger"
 )
 
 type GraphqlData struct {
@@ -57,7 +57,7 @@ type TenantRetriever interface {
 }
 
 func (tenantRetriever *TenantRetrieverService) RetrieveTenant(ctx context.Context) (string, error) {
-	webToken, err := openmfpcontext.GetWebTokenFromContext(ctx)
+	webToken, err := pmcontext.GetWebTokenFromContext(ctx)
 	if err != nil {
 		return "", nil
 	}

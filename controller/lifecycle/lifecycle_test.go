@@ -133,8 +133,8 @@ func TestLifecycle(t *testing.T) {
 
 		mgr, _ := createLifecycleManager([]Subroutine{
 			finalizerSubroutine{
-				client:  fakeClient,
-				requeue: true,
+				client:       fakeClient,
+				requeueAfter: 1 * time.Second,
 			},
 		}, fakeClient)
 
@@ -143,7 +143,7 @@ func TestLifecycle(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(instance.Finalizers))
-		assert.Equal(t, time.Duration(0), res.RequeueAfter)
+		assert.Equal(t, time.Duration(1*time.Second), res.RequeueAfter)
 	})
 
 	t.Run("Lifecycle with a finalizer - finalization(requeueAfter)", func(t *testing.T) {

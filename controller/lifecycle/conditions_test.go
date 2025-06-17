@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -177,7 +178,7 @@ func TestSubroutineCondition(t *testing.T) {
 		subroutine := changeStatusSubroutine{}
 
 		// When
-		setSubroutineCondition(&condition, subroutine, controllerruntime.Result{Requeue: true}, nil, false, log)
+		setSubroutineCondition(&condition, subroutine, controllerruntime.Result{RequeueAfter: 1 * time.Second}, nil, false, log)
 
 		// Then
 		assert.Equal(t, 1, len(condition))
@@ -219,7 +220,7 @@ func TestSubroutineCondition(t *testing.T) {
 		subroutine := changeStatusSubroutine{}
 
 		// When
-		setSubroutineCondition(&condition, subroutine, controllerruntime.Result{Requeue: true}, nil, true, log)
+		setSubroutineCondition(&condition, subroutine, controllerruntime.Result{RequeueAfter: 1 * time.Second}, nil, true, log)
 
 		// Then
 		assert.Equal(t, 1, len(condition))

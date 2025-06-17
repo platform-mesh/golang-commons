@@ -16,7 +16,6 @@ const subroutineFinalizer = "finalizer"
 type finalizerSubroutine struct {
 	client       client.Client
 	err          error
-	requeue      bool
 	requeueAfter time.Duration
 }
 
@@ -29,9 +28,6 @@ func (c finalizerSubroutine) Process(_ context.Context, runtimeObj RuntimeObject
 func (c finalizerSubroutine) Finalize(_ context.Context, _ RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
 	if c.err != nil {
 		return controllerruntime.Result{}, errors.NewOperatorError(c.err, true, true)
-	}
-	if c.requeue {
-		return controllerruntime.Result{Requeue: true}, nil
 	}
 	if c.requeueAfter > 0 {
 		return controllerruntime.Result{RequeueAfter: c.requeueAfter}, nil

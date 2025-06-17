@@ -79,9 +79,9 @@ type OpenFGAServiceClient_BatchCheck_Call struct {
 }
 
 // BatchCheck is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.BatchCheckRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) BatchCheck(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_BatchCheck_Call {
 	return &OpenFGAServiceClient_BatchCheck_Call{Call: _e.mock.On("BatchCheck",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -89,25 +89,8 @@ func (_e *OpenFGAServiceClient_Expecter) BatchCheck(ctx interface{}, in interfac
 
 func (_c *OpenFGAServiceClient_BatchCheck_Call) Run(run func(ctx context.Context, in *openfgav1.BatchCheckRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_BatchCheck_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.BatchCheckRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.BatchCheckRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.BatchCheckRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -162,9 +145,9 @@ type OpenFGAServiceClient_Check_Call struct {
 }
 
 // Check is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.CheckRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) Check(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_Check_Call {
 	return &OpenFGAServiceClient_Check_Call{Call: _e.mock.On("Check",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -172,25 +155,8 @@ func (_e *OpenFGAServiceClient_Expecter) Check(ctx interface{}, in interface{}, 
 
 func (_c *OpenFGAServiceClient_Check_Call) Run(run func(ctx context.Context, in *openfgav1.CheckRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_Check_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.CheckRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.CheckRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.CheckRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -245,9 +211,9 @@ type OpenFGAServiceClient_CreateStore_Call struct {
 }
 
 // CreateStore is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.CreateStoreRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) CreateStore(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_CreateStore_Call {
 	return &OpenFGAServiceClient_CreateStore_Call{Call: _e.mock.On("CreateStore",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -255,25 +221,8 @@ func (_e *OpenFGAServiceClient_Expecter) CreateStore(ctx interface{}, in interfa
 
 func (_c *OpenFGAServiceClient_CreateStore_Call) Run(run func(ctx context.Context, in *openfgav1.CreateStoreRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_CreateStore_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.CreateStoreRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.CreateStoreRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.CreateStoreRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -328,9 +277,9 @@ type OpenFGAServiceClient_DeleteStore_Call struct {
 }
 
 // DeleteStore is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.DeleteStoreRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) DeleteStore(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_DeleteStore_Call {
 	return &OpenFGAServiceClient_DeleteStore_Call{Call: _e.mock.On("DeleteStore",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -338,25 +287,8 @@ func (_e *OpenFGAServiceClient_Expecter) DeleteStore(ctx interface{}, in interfa
 
 func (_c *OpenFGAServiceClient_DeleteStore_Call) Run(run func(ctx context.Context, in *openfgav1.DeleteStoreRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_DeleteStore_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.DeleteStoreRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.DeleteStoreRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.DeleteStoreRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -411,9 +343,9 @@ type OpenFGAServiceClient_Expand_Call struct {
 }
 
 // Expand is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.ExpandRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) Expand(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_Expand_Call {
 	return &OpenFGAServiceClient_Expand_Call{Call: _e.mock.On("Expand",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -421,25 +353,8 @@ func (_e *OpenFGAServiceClient_Expecter) Expand(ctx interface{}, in interface{},
 
 func (_c *OpenFGAServiceClient_Expand_Call) Run(run func(ctx context.Context, in *openfgav1.ExpandRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_Expand_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.ExpandRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.ExpandRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.ExpandRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -494,9 +409,9 @@ type OpenFGAServiceClient_GetStore_Call struct {
 }
 
 // GetStore is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.GetStoreRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) GetStore(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_GetStore_Call {
 	return &OpenFGAServiceClient_GetStore_Call{Call: _e.mock.On("GetStore",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -504,25 +419,8 @@ func (_e *OpenFGAServiceClient_Expecter) GetStore(ctx interface{}, in interface{
 
 func (_c *OpenFGAServiceClient_GetStore_Call) Run(run func(ctx context.Context, in *openfgav1.GetStoreRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_GetStore_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.GetStoreRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.GetStoreRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.GetStoreRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -577,9 +475,9 @@ type OpenFGAServiceClient_ListObjects_Call struct {
 }
 
 // ListObjects is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.ListObjectsRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) ListObjects(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_ListObjects_Call {
 	return &OpenFGAServiceClient_ListObjects_Call{Call: _e.mock.On("ListObjects",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -587,25 +485,8 @@ func (_e *OpenFGAServiceClient_Expecter) ListObjects(ctx interface{}, in interfa
 
 func (_c *OpenFGAServiceClient_ListObjects_Call) Run(run func(ctx context.Context, in *openfgav1.ListObjectsRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_ListObjects_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.ListObjectsRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.ListObjectsRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.ListObjectsRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -660,9 +541,9 @@ type OpenFGAServiceClient_ListStores_Call struct {
 }
 
 // ListStores is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.ListStoresRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) ListStores(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_ListStores_Call {
 	return &OpenFGAServiceClient_ListStores_Call{Call: _e.mock.On("ListStores",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -670,25 +551,8 @@ func (_e *OpenFGAServiceClient_Expecter) ListStores(ctx interface{}, in interfac
 
 func (_c *OpenFGAServiceClient_ListStores_Call) Run(run func(ctx context.Context, in *openfgav1.ListStoresRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_ListStores_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.ListStoresRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.ListStoresRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.ListStoresRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -743,9 +607,9 @@ type OpenFGAServiceClient_ListUsers_Call struct {
 }
 
 // ListUsers is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.ListUsersRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) ListUsers(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_ListUsers_Call {
 	return &OpenFGAServiceClient_ListUsers_Call{Call: _e.mock.On("ListUsers",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -753,25 +617,8 @@ func (_e *OpenFGAServiceClient_Expecter) ListUsers(ctx interface{}, in interface
 
 func (_c *OpenFGAServiceClient_ListUsers_Call) Run(run func(ctx context.Context, in *openfgav1.ListUsersRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_ListUsers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.ListUsersRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.ListUsersRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.ListUsersRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -826,9 +673,9 @@ type OpenFGAServiceClient_Read_Call struct {
 }
 
 // Read is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.ReadRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) Read(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_Read_Call {
 	return &OpenFGAServiceClient_Read_Call{Call: _e.mock.On("Read",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -836,25 +683,8 @@ func (_e *OpenFGAServiceClient_Expecter) Read(ctx interface{}, in interface{}, o
 
 func (_c *OpenFGAServiceClient_Read_Call) Run(run func(ctx context.Context, in *openfgav1.ReadRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_Read_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.ReadRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.ReadRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.ReadRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -909,9 +739,9 @@ type OpenFGAServiceClient_ReadAssertions_Call struct {
 }
 
 // ReadAssertions is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.ReadAssertionsRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) ReadAssertions(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_ReadAssertions_Call {
 	return &OpenFGAServiceClient_ReadAssertions_Call{Call: _e.mock.On("ReadAssertions",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -919,25 +749,8 @@ func (_e *OpenFGAServiceClient_Expecter) ReadAssertions(ctx interface{}, in inte
 
 func (_c *OpenFGAServiceClient_ReadAssertions_Call) Run(run func(ctx context.Context, in *openfgav1.ReadAssertionsRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_ReadAssertions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.ReadAssertionsRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.ReadAssertionsRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.ReadAssertionsRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -992,9 +805,9 @@ type OpenFGAServiceClient_ReadAuthorizationModel_Call struct {
 }
 
 // ReadAuthorizationModel is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.ReadAuthorizationModelRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) ReadAuthorizationModel(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_ReadAuthorizationModel_Call {
 	return &OpenFGAServiceClient_ReadAuthorizationModel_Call{Call: _e.mock.On("ReadAuthorizationModel",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -1002,25 +815,8 @@ func (_e *OpenFGAServiceClient_Expecter) ReadAuthorizationModel(ctx interface{},
 
 func (_c *OpenFGAServiceClient_ReadAuthorizationModel_Call) Run(run func(ctx context.Context, in *openfgav1.ReadAuthorizationModelRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_ReadAuthorizationModel_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.ReadAuthorizationModelRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.ReadAuthorizationModelRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.ReadAuthorizationModelRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -1075,9 +871,9 @@ type OpenFGAServiceClient_ReadAuthorizationModels_Call struct {
 }
 
 // ReadAuthorizationModels is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.ReadAuthorizationModelsRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) ReadAuthorizationModels(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_ReadAuthorizationModels_Call {
 	return &OpenFGAServiceClient_ReadAuthorizationModels_Call{Call: _e.mock.On("ReadAuthorizationModels",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -1085,25 +881,8 @@ func (_e *OpenFGAServiceClient_Expecter) ReadAuthorizationModels(ctx interface{}
 
 func (_c *OpenFGAServiceClient_ReadAuthorizationModels_Call) Run(run func(ctx context.Context, in *openfgav1.ReadAuthorizationModelsRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_ReadAuthorizationModels_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.ReadAuthorizationModelsRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.ReadAuthorizationModelsRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.ReadAuthorizationModelsRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -1158,9 +937,9 @@ type OpenFGAServiceClient_ReadChanges_Call struct {
 }
 
 // ReadChanges is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.ReadChangesRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) ReadChanges(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_ReadChanges_Call {
 	return &OpenFGAServiceClient_ReadChanges_Call{Call: _e.mock.On("ReadChanges",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -1168,25 +947,8 @@ func (_e *OpenFGAServiceClient_Expecter) ReadChanges(ctx interface{}, in interfa
 
 func (_c *OpenFGAServiceClient_ReadChanges_Call) Run(run func(ctx context.Context, in *openfgav1.ReadChangesRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_ReadChanges_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.ReadChangesRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.ReadChangesRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.ReadChangesRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -1241,9 +1003,9 @@ type OpenFGAServiceClient_StreamedListObjects_Call struct {
 }
 
 // StreamedListObjects is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.StreamedListObjectsRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) StreamedListObjects(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_StreamedListObjects_Call {
 	return &OpenFGAServiceClient_StreamedListObjects_Call{Call: _e.mock.On("StreamedListObjects",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -1251,25 +1013,8 @@ func (_e *OpenFGAServiceClient_Expecter) StreamedListObjects(ctx interface{}, in
 
 func (_c *OpenFGAServiceClient_StreamedListObjects_Call) Run(run func(ctx context.Context, in *openfgav1.StreamedListObjectsRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_StreamedListObjects_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.StreamedListObjectsRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.StreamedListObjectsRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.StreamedListObjectsRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -1324,9 +1069,9 @@ type OpenFGAServiceClient_UpdateStore_Call struct {
 }
 
 // UpdateStore is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.UpdateStoreRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) UpdateStore(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_UpdateStore_Call {
 	return &OpenFGAServiceClient_UpdateStore_Call{Call: _e.mock.On("UpdateStore",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -1334,25 +1079,8 @@ func (_e *OpenFGAServiceClient_Expecter) UpdateStore(ctx interface{}, in interfa
 
 func (_c *OpenFGAServiceClient_UpdateStore_Call) Run(run func(ctx context.Context, in *openfgav1.UpdateStoreRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_UpdateStore_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.UpdateStoreRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.UpdateStoreRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.UpdateStoreRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -1407,9 +1135,9 @@ type OpenFGAServiceClient_Write_Call struct {
 }
 
 // Write is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.WriteRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) Write(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_Write_Call {
 	return &OpenFGAServiceClient_Write_Call{Call: _e.mock.On("Write",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -1417,25 +1145,8 @@ func (_e *OpenFGAServiceClient_Expecter) Write(ctx interface{}, in interface{}, 
 
 func (_c *OpenFGAServiceClient_Write_Call) Run(run func(ctx context.Context, in *openfgav1.WriteRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_Write_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.WriteRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.WriteRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.WriteRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -1490,9 +1201,9 @@ type OpenFGAServiceClient_WriteAssertions_Call struct {
 }
 
 // WriteAssertions is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.WriteAssertionsRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) WriteAssertions(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_WriteAssertions_Call {
 	return &OpenFGAServiceClient_WriteAssertions_Call{Call: _e.mock.On("WriteAssertions",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -1500,25 +1211,8 @@ func (_e *OpenFGAServiceClient_Expecter) WriteAssertions(ctx interface{}, in int
 
 func (_c *OpenFGAServiceClient_WriteAssertions_Call) Run(run func(ctx context.Context, in *openfgav1.WriteAssertionsRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_WriteAssertions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.WriteAssertionsRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.WriteAssertionsRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.WriteAssertionsRequest), variadicArgs...)
 	})
 	return _c
 }
@@ -1573,9 +1267,9 @@ type OpenFGAServiceClient_WriteAuthorizationModel_Call struct {
 }
 
 // WriteAuthorizationModel is a helper method to define mock.On call
-//   - ctx context.Context
-//   - in *openfgav1.WriteAuthorizationModelRequest
-//   - opts ...grpc.CallOption
+//   - ctx
+//   - in
+//   - opts
 func (_e *OpenFGAServiceClient_Expecter) WriteAuthorizationModel(ctx interface{}, in interface{}, opts ...interface{}) *OpenFGAServiceClient_WriteAuthorizationModel_Call {
 	return &OpenFGAServiceClient_WriteAuthorizationModel_Call{Call: _e.mock.On("WriteAuthorizationModel",
 		append([]interface{}{ctx, in}, opts...)...)}
@@ -1583,25 +1277,8 @@ func (_e *OpenFGAServiceClient_Expecter) WriteAuthorizationModel(ctx interface{}
 
 func (_c *OpenFGAServiceClient_WriteAuthorizationModel_Call) Run(run func(ctx context.Context, in *openfgav1.WriteAuthorizationModelRequest, opts ...grpc.CallOption)) *OpenFGAServiceClient_WriteAuthorizationModel_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *openfgav1.WriteAuthorizationModelRequest
-		if args[1] != nil {
-			arg1 = args[1].(*openfgav1.WriteAuthorizationModelRequest)
-		}
-		var arg2 []grpc.CallOption
-		var variadicArgs []grpc.CallOption
-		if len(args) > 2 {
-			variadicArgs = args[2].([]grpc.CallOption)
-		}
-		arg2 = variadicArgs
-		run(
-			arg0,
-			arg1,
-			arg2...,
-		)
+		variadicArgs := args[2].([]grpc.CallOption)
+		run(args[0].(context.Context), args[1].(*openfgav1.WriteAuthorizationModelRequest), variadicArgs...)
 	})
 	return _c
 }

@@ -69,20 +69,14 @@ type TenantIdReader_Read_Call struct {
 }
 
 // Read is a helper method to define mock.On call
-//   - parentCtx context.Context
+//   - parentCtx
 func (_e *TenantIdReader_Expecter) Read(parentCtx interface{}) *TenantIdReader_Read_Call {
 	return &TenantIdReader_Read_Call{Call: _e.mock.On("Read", parentCtx)}
 }
 
 func (_c *TenantIdReader_Read_Call) Run(run func(parentCtx context.Context)) *TenantIdReader_Read_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
+		run(args[0].(context.Context))
 	})
 	return _c
 }

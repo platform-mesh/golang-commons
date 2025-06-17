@@ -1,4 +1,4 @@
-****# Platform Mesh - golang-commons
+# Platform Mesh - golang-commons
 ![Build Status](https://github.com/platform-mesh/golang-commons/actions/workflows/pipeline.yml/badge.svg)
 [![REUSE status](
 https://api.reuse.software/badge/github.com/platform-mesh/golang-commons)](https://api.reuse.software/info/github.com/platform-mesh/golang-commons)

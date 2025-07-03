@@ -13,6 +13,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -26,21 +27,23 @@ import (
 	"github.com/platform-mesh/golang-commons/sentry"
 )
 
-func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.RuntimeObject, cl client.Client, l api.Lifecycle) (ctrl.Result, error) {
+func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtimeobject.RuntimeObject, cl client.Client, l Lifecycle) (ctrl.Result, error) {
 	ctx, span := otel.Tracer(l.Config().OperatorName).Start(ctx, fmt.Sprintf("%s.Reconcile", l.Config().ControllerName))
 	defer span.End()
 
 	result := ctrl.Result{}
 	reconcileId := uuid.New().String()
 
-	log := l.Log().MustChildLoggerWithAttributes("name", req.Name, "namespace", req.Namespace, "reconcile_id", reconcileId)
-	sentryTags := sentry.Tags{"namespace": req.Namespace, "name": req.Name}
+	log := l.Log().MustChildLoggerWithAttributes("name", nName.Name, "namespace", nName.Namespace, "reconcile_id", reconcileId)
+	sentryTags := sentry.Tags{"namespace": nName.Namespace, "name": nName.Name}
 
 	ctx = logger.SetLoggerInContext(ctx, log)
 	ctx = sentry.ContextWithSentryTags(ctx, sentryTags)
 
 	log.Info().Msg("start reconcile")
-	err := cl.Get(ctx, req.NamespacedName, instance)
+
+	nn := types.NamespacedName{Namespace: nName.Namespace, Name: nName.Name}
+	err := cl.Get(ctx, nn, instance)
 	if err != nil {
 		if kerrors.IsNotFound(err) {
 			log.Info().Msg("instance not found. It was likely deleted")
@@ -362,4 +365,20 @@ func HandleOperatorError(ctx context.Context, operatorError errors.OperatorError
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func ValidateInterfaces(instance runtimeobject.RuntimeObject, log *logger.Logger, l Lifecycle) error {
+	if l.Spreader() != nil {
+		_, err := l.Spreader().ToRuntimeObjectSpreadReconcileStatusInterface(instance, log)
+		if err != nil {
+			return err
+		}
+	}
+	if l.ConditionsManager() != nil {
+		_, err := l.ConditionsManager().ToRuntimeObjectConditionsInterface(instance, log)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

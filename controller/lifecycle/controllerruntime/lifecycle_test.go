@@ -388,7 +388,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := testSupport.CreateFakeClient(t, instance)
 
-		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{Retry: false, RequeAfter: false}}, fakeClient)
+		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{RequeAfter: false}}, fakeClient)
 		mgr.WithSpreadingReconciles()
 
 		// Act
@@ -473,13 +473,13 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := testSupport.CreateFakeClient(t, instance)
 
-		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{Retry: true, RequeAfter: false}}, fakeClient)
+		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{RequeAfter: true}}, fakeClient)
 		mgr.WithSpreadingReconciles()
 
 		// Act
 		_, err := mgr.Reconcile(ctx, request, instance)
 
-		assert.Error(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, int64(0), instance.Status.ObservedGeneration)
 	})
 
@@ -500,7 +500,7 @@ func TestLifecycle(t *testing.T) {
 		}
 		fakeClient := testSupport.CreateFakeClient(t, instance)
 
-		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{Retry: false, RequeAfter: true}}, fakeClient)
+		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{RequeAfter: true}}, fakeClient)
 		mgr.WithSpreadingReconciles()
 
 		// Act
@@ -550,7 +550,7 @@ func TestLifecycle(t *testing.T) {
 		})
 		assert.NoError(t, err)
 
-		lm, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{Retry: false, RequeAfter: true}}, fakeClient)
+		lm, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{RequeAfter: true}}, fakeClient)
 		tr := &testReconciler{
 			lifecycleManager: lm,
 		}
@@ -573,7 +573,7 @@ func TestLifecycle(t *testing.T) {
 		})
 		assert.NoError(t, err)
 
-		lm, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{Retry: false, RequeAfter: true}}, fakeClient)
+		lm, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{RequeAfter: true}}, fakeClient)
 		lm.WithSpreadingReconciles()
 		tr := &testReconciler{
 			lifecycleManager: lm,
@@ -594,7 +594,7 @@ func TestLifecycle(t *testing.T) {
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
-					Labels:     map[string]string{spread.SpreadReconcileRefreshLabel: "true"},
+					Labels:     map[string]string{spread.ReconcileRefreshLabel: "true"},
 				},
 				Status: testSupport.TestStatus{
 					Some:               "string",
@@ -622,7 +622,7 @@ func TestLifecycle(t *testing.T) {
 		err = fakeClient.Get(ctx, client.ObjectKey{Name: name, Namespace: namespace}, serverObject)
 		assert.NoError(t, err)
 		assert.Equal(t, serverObject.Status.Some, "other string")
-		_, ok := serverObject.Labels[spread.SpreadReconcileRefreshLabel]
+		_, ok := serverObject.Labels[spread.ReconcileRefreshLabel]
 		assert.False(t, ok)
 	})
 
@@ -975,7 +975,7 @@ func TestLifecycle(t *testing.T) {
 		fakeClient := testSupport.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
-			pmtesting.FailureScenarioSubroutine{Retry: false, RequeAfter: true}}, fakeClient)
+			pmtesting.FailureScenarioSubroutine{RequeAfter: true}}, fakeClient)
 		mgr.WithConditionManagement()
 
 		// Act
@@ -1007,7 +1007,7 @@ func TestLifecycle(t *testing.T) {
 		fakeClient := testSupport.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
-			pmtesting.FailureScenarioSubroutine{Retry: false, RequeAfter: false}}, fakeClient)
+			pmtesting.FailureScenarioSubroutine{RequeAfter: false}}, fakeClient)
 		mgr.WithConditionManagement()
 
 		// Act
@@ -1167,7 +1167,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := testSupport.CreateFakeClient(t, instance)
 
-		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{Retry: false, RequeAfter: false}}, fakeClient)
+		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{RequeAfter: false}}, fakeClient)
 		mgr.WithSpreadingReconciles()
 		mgr.WithConditionManagement()
 

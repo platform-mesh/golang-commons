@@ -13,7 +13,7 @@ import (
 	"github.com/platform-mesh/golang-commons/sentry"
 )
 
-const SpreadReconcileRefreshLabel = "platform-mesh.io/refresh-reconcile"
+const ReconcileRefreshLabel = "platform-mesh.io/refresh-reconcile"
 
 type Spreader struct {
 }
@@ -52,7 +52,7 @@ func (s *Spreader) OnNextReconcile(instanceStatusObj RuntimeObjectSpreadReconcil
 	return ctrl.Result{RequeueAfter: requeueAfter}, nil
 }
 
-// setNextReconcileTime calculates and sets the next reconcile time for the instance
+// SetNextReconcileTime calculates and sets the next reconcile time for the instance
 func (s *Spreader) SetNextReconcileTime(instanceStatusObj RuntimeObjectSpreadReconcileStatus, log *logger.Logger) {
 
 	var border = defaultMaxReconcileDuration
@@ -66,14 +66,14 @@ func (s *Spreader) SetNextReconcileTime(instanceStatusObj RuntimeObjectSpreadRec
 	instanceStatusObj.SetNextReconcileTime(v1.NewTime(time.Now().Add(nextReconcileTime)))
 }
 
-// updateObservedGeneration updates the observed generation of the instance struct
+// UpdateObservedGeneration updates the observed generation of the instance struct
 func (s *Spreader) UpdateObservedGeneration(instanceStatusObj RuntimeObjectSpreadReconcileStatus, log *logger.Logger) {
 	log.Debug().Int64("observed-generation", instanceStatusObj.GetObservedGeneration()).Int64("generation", instanceStatusObj.GetGeneration()).Msg("Updating observed generation")
 	instanceStatusObj.SetObservedGeneration(instanceStatusObj.GetGeneration())
 }
 func (s *Spreader) RemoveRefreshLabelIfExists(instance runtimeobject.RuntimeObject) bool {
 	keyCount := len(instance.GetLabels())
-	delete(instance.GetLabels(), SpreadReconcileRefreshLabel)
+	delete(instance.GetLabels(), ReconcileRefreshLabel)
 	return keyCount != len(instance.GetLabels())
 }
 

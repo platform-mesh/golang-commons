@@ -102,12 +102,12 @@ func TestRemoveRefreshLabel(t *testing.T) {
 	s := NewSpreader()
 	apiObject := &testSupport.TestApiObject{
 		ObjectMeta: v1.ObjectMeta{
-			Labels: map[string]string{SpreadReconcileRefreshLabel: ""},
+			Labels: map[string]string{ReconcileRefreshLabel: ""},
 		},
 	}
 	s.RemoveRefreshLabelIfExists(apiObject)
 
-	_, ok := apiObject.GetLabels()[SpreadReconcileRefreshLabel]
+	_, ok := apiObject.GetLabels()[ReconcileRefreshLabel]
 	assert.False(t, ok)
 }
 
@@ -115,12 +115,12 @@ func TestRemoveRefreshLabelFilledWithValue(t *testing.T) {
 	s := NewSpreader()
 	apiObject := &testSupport.TestApiObject{
 		ObjectMeta: v1.ObjectMeta{
-			Labels: map[string]string{SpreadReconcileRefreshLabel: "true"},
+			Labels: map[string]string{ReconcileRefreshLabel: "true"},
 		},
 	}
 	s.RemoveRefreshLabelIfExists(apiObject)
 
-	_, ok := apiObject.GetLabels()[SpreadReconcileRefreshLabel]
+	_, ok := apiObject.GetLabels()[ReconcileRefreshLabel]
 
 	assert.False(t, ok)
 }
@@ -132,7 +132,7 @@ func TestRemoveRefreshLabelNoLabels(t *testing.T) {
 	}
 	s.RemoveRefreshLabelIfExists(apiObject)
 
-	_, ok := apiObject.GetLabels()[SpreadReconcileRefreshLabel]
+	_, ok := apiObject.GetLabels()[ReconcileRefreshLabel]
 
 	assert.False(t, ok)
 }

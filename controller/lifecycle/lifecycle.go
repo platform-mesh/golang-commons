@@ -57,24 +57,24 @@ func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.Run
 	ctx = sentry.ContextWithSentryTags(ctx, sentryTags)
 
 	log.Info().Msg("start reconcile")
-	generationChanged := true
 	err := cl.Get(ctx, req.NamespacedName, instance)
 	if err != nil {
 		if kerrors.IsNotFound(err) {
 			log.Info().Msg("instance not found. It was likely deleted")
 			return ctrl.Result{}, nil
 		}
-		return HandleClientError("failed to retrieve instance", log, err, generationChanged, sentryTags)
+		return HandleClientError("failed to retrieve instance", log, err, true, sentryTags)
 	}
 
 	originalCopy := instance.DeepCopyObject()
 	inDeletion := instance.GetDeletionTimestamp() != nil
+	generationChanged := true
 
 	if l.Spreader() != nil && instance.GetDeletionTimestamp().IsZero() {
 		instanceStatusObj := l.Spreader().MustToRuntimeObjectSpreadReconcileStatusInterface(instance, log)
 		generationChanged = instance.GetGeneration() != instanceStatusObj.GetObservedGeneration()
 		isAfterNextReconcileTime := v1.Now().UTC().After(instanceStatusObj.GetNextReconcileTime().UTC())
-		refreshRequested := slices.Contains(maps.Keys(instance.GetLabels()), spread.SpreadReconcileRefreshLabel)
+		refreshRequested := slices.Contains(maps.Keys(instance.GetLabels()), spread.ReconcileRefreshLabel)
 
 		reconcileRequired := generationChanged || isAfterNextReconcileTime || refreshRequested
 		if !reconcileRequired {
@@ -111,23 +111,23 @@ func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.Run
 	}
 
 	// Continue with reconciliation
-	for _, subroutine := range subroutines {
+	for _, s := range subroutines {
 		if l.ConditionsManager() != nil {
-			l.ConditionsManager().SetSubroutineConditionToUnknownIfNotSet(&condArr, subroutine, inDeletion, log)
+			l.ConditionsManager().SetSubroutineConditionToUnknownIfNotSet(&condArr, s, inDeletion, log)
 		}
 
-		// Set current condArr before reconciling the subroutine
+		// Set current condArr before reconciling the s
 		if l.ConditionsManager() != nil {
 			l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).SetConditions(condArr)
 		}
-		subResult, retry, err := reconcileSubroutine(ctx, instance, subroutine, cl, l, log, generationChanged, sentryTags)
-		// Update condArr with any changes the subroutine did
+		subResult, retry, err := reconcileSubroutine(ctx, instance, s, cl, l, log, generationChanged, sentryTags)
+		// Update condArr with any changes the s did
 		if l.ConditionsManager() != nil {
 			condArr = l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).GetConditions()
 		}
 		if err != nil {
 			if l.ConditionsManager() != nil {
-				l.ConditionsManager().SetSubroutineCondition(&condArr, subroutine, result, err, inDeletion, log)
+				l.ConditionsManager().SetSubroutineCondition(&condArr, s, result, err, inDeletion, log)
 				l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
 				l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).SetConditions(condArr)
 			}
@@ -149,7 +149,7 @@ func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.Run
 		}
 		if l.ConditionsManager() != nil {
 			if subResult.RequeueAfter == 0 {
-				l.ConditionsManager().SetSubroutineCondition(&condArr, subroutine, subResult, err, inDeletion, log)
+				l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult, err, inDeletion, log)
 			}
 		}
 	}
@@ -340,9 +340,9 @@ func AddFinalizersIfNeeded(ctx context.Context, cl client.Client, instance runti
 
 	update := false
 	original := instance.DeepCopyObject().(client.Object)
-	for _, subroutine := range subroutines {
-		if len(subroutine.Finalizers()) > 0 {
-			needsUpdate := AddFinalizerIfNeeded(instance, subroutine)
+	for _, s := range subroutines {
+		if len(s.Finalizers()) > 0 {
+			needsUpdate := AddFinalizerIfNeeded(instance, s)
 			if needsUpdate {
 				update = true
 			}

@@ -163,10 +163,6 @@ func (f FailureScenarioSubroutine) Process(_ context.Context, _ runtimeobject.Ru
 }
 
 func (f FailureScenarioSubroutine) Finalize(_ context.Context, _ runtimeobject.RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
-	if f.Retry {
-		return controllerruntime.Result{Requeue: true}, nil
-	}
-
 	if f.RequeAfter {
 		return controllerruntime.Result{RequeueAfter: 10 * time.Second}, nil
 	}

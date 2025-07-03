@@ -56,16 +56,10 @@ func (l *LifecycleManager) PrepareContextFunc() lifecycle.PrepareContextFunc {
 	return l.prepareContextFunc
 }
 func (l *LifecycleManager) ConditionsManager() *conditions.ConditionManager {
-	if l.conditionsManager == nil {
-		l.log.Fatal().Msg("conditions management not enabled")
-	}
 	return l.conditionsManager
 }
 
 func (l *LifecycleManager) Spreader() *spread.Spreader {
-	if l.spreader == nil {
-		l.log.Fatal().Msg("spread reconciles not enabled")
-	}
 	return l.spreader
 }
 

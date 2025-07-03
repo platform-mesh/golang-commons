@@ -36,11 +36,9 @@ type Lifecycle interface {
 }
 
 type Config struct {
-	OperatorName     string
-	ControllerName   string
-	SpreadReconciles bool
-	ManageConditions bool
-	ReadOnly         bool
+	OperatorName   string
+	ControllerName string
+	ReadOnly       bool
 }
 
 type PrepareContextFunc func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, errors.OperatorError)
@@ -72,7 +70,7 @@ func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.Run
 	originalCopy := instance.DeepCopyObject()
 	inDeletion := instance.GetDeletionTimestamp() != nil
 
-	if l.Config().SpreadReconciles && instance.GetDeletionTimestamp().IsZero() {
+	if l.Spreader() != nil && instance.GetDeletionTimestamp().IsZero() {
 		instanceStatusObj := l.Spreader().MustToRuntimeObjectSpreadReconcileStatusInterface(instance, log)
 		generationChanged = instance.GetGeneration() != instanceStatusObj.GetObservedGeneration()
 		isAfterNextReconcileTime := v1.Now().UTC().After(instanceStatusObj.GetNextReconcileTime().UTC())
@@ -92,7 +90,7 @@ func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.Run
 	}
 
 	var condArr []v1.Condition
-	if l.Config().ManageConditions {
+	if l.ConditionsManager() != nil {
 		condArr = l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).GetConditions()
 		l.ConditionsManager().SetInstanceConditionUnknownIfNotSet(&condArr)
 	}
@@ -114,21 +112,21 @@ func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.Run
 
 	// Continue with reconciliation
 	for _, subroutine := range subroutines {
-		if l.Config().ManageConditions {
+		if l.ConditionsManager() != nil {
 			l.ConditionsManager().SetSubroutineConditionToUnknownIfNotSet(&condArr, subroutine, inDeletion, log)
 		}
 
 		// Set current condArr before reconciling the subroutine
-		if l.Config().ManageConditions {
+		if l.ConditionsManager() != nil {
 			l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).SetConditions(condArr)
 		}
 		subResult, retry, err := reconcileSubroutine(ctx, instance, subroutine, cl, l, log, generationChanged, sentryTags)
 		// Update condArr with any changes the subroutine did
-		if l.Config().ManageConditions {
+		if l.ConditionsManager() != nil {
 			condArr = l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).GetConditions()
 		}
 		if err != nil {
-			if l.Config().ManageConditions {
+			if l.ConditionsManager() != nil {
 				l.ConditionsManager().SetSubroutineCondition(&condArr, subroutine, result, err, inDeletion, log)
 				l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
 				l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).SetConditions(condArr)
@@ -149,7 +147,7 @@ func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.Run
 				result.RequeueAfter = subResult.RequeueAfter
 			}
 		}
-		if l.Config().ManageConditions {
+		if l.ConditionsManager() != nil {
 			if subResult.RequeueAfter == 0 {
 				l.ConditionsManager().SetSubroutineCondition(&condArr, subroutine, subResult, err, inDeletion, log)
 			}
@@ -160,12 +158,12 @@ func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.Run
 		// Reconciliation was successful
 		MarkResourceAsFinal(instance, log, condArr, v1.ConditionTrue, l)
 	} else {
-		if l.Config().ManageConditions {
+		if l.ConditionsManager() != nil {
 			l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
 		}
 	}
 
-	if l.Config().ManageConditions {
+	if l.ConditionsManager() != nil {
 		l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).SetConditions(condArr)
 	}
 
@@ -176,7 +174,7 @@ func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.Run
 		}
 	}
 
-	if l.Config().SpreadReconciles && instance.GetDeletionTimestamp().IsZero() {
+	if l.Spreader() != nil && instance.GetDeletionTimestamp().IsZero() {
 		original := instance.DeepCopyObject().(client.Object)
 		removed := l.Spreader().RemoveRefreshLabelIfExists(instance)
 		if removed {
@@ -320,13 +318,13 @@ func HandleClientError(msg string, log *logger.Logger, err error, generationChan
 }
 
 func MarkResourceAsFinal(instance runtimeobject.RuntimeObject, log *logger.Logger, conditions []v1.Condition, status v1.ConditionStatus, l Lifecycle) {
-	if l.Config().SpreadReconciles && instance.GetDeletionTimestamp().IsZero() {
+	if l.Spreader() != nil && instance.GetDeletionTimestamp().IsZero() {
 		instanceStatusObj := l.Spreader().MustToRuntimeObjectSpreadReconcileStatusInterface(instance, log)
 		l.Spreader().SetNextReconcileTime(instanceStatusObj, log)
 		l.Spreader().UpdateObservedGeneration(instanceStatusObj, log)
 	}
 
-	if l.Config().ManageConditions {
+	if l.ConditionsManager() != nil {
 		l.ConditionsManager().SetInstanceConditionReady(&conditions, status)
 	}
 }

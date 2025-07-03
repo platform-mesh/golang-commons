@@ -25,7 +25,7 @@ func TestUpdateStatus(t *testing.T) {
 
 	t.Run("Test UpdateStatus with no changes", func(t *testing.T) {
 		original := &pmtesting.ImplementingSpreadReconciles{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				Status: testSupport.TestStatus{
 					Some: "string",
 				},
@@ -40,13 +40,13 @@ func TestUpdateStatus(t *testing.T) {
 
 	t.Run("Test UpdateStatus with update error", func(t *testing.T) {
 		original := &pmtesting.ImplementingSpreadReconciles{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				Status: testSupport.TestStatus{
 					Some: "string",
 				},
 			}}
 		current := &pmtesting.ImplementingSpreadReconciles{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				Status: testSupport.TestStatus{
 					Some: "string1",
 				},

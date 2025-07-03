@@ -304,7 +304,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -336,7 +336,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles on deleted object", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:              name,
 					Namespace:         namespace,
@@ -372,7 +372,7 @@ func TestLifecycle(t *testing.T) {
 		// Arrange
 		nextReconcileTime := metav1.NewTime(time.Now().Add(1 * time.Hour))
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -402,7 +402,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles and processing fails (no-retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -430,7 +430,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles and processing fails (retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -458,7 +458,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles and processing needs requeue", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -486,7 +486,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles and processing needs requeueAfter", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -589,7 +589,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles and refresh label", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -643,7 +643,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles w/o subroutines", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -671,7 +671,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with subroutine", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -704,7 +704,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with subroutine that adds a condition", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -739,7 +739,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with subroutine that adds a condition", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -774,7 +774,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with subroutine that adds a condition with preexisting conditions (update)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -818,7 +818,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with subroutine that adds a condition with preexisting conditions", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -862,7 +862,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle w/o manage conditions reconciles with subroutine that adds a condition", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -890,7 +890,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with subroutine failing Status update", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -924,7 +924,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions finalizes with multiple subroutines partially succeeding", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:              name,
 					Namespace:         namespace,
@@ -962,7 +962,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with ReqeueAfter subroutine", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -994,7 +994,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with Error subroutine (no-retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -1026,7 +1026,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with Error subroutine (retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -1088,7 +1088,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions failing finalize", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:              name,
 					Namespace:         namespace,
@@ -1118,7 +1118,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles and manage conditions and processing fails (retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditionsAndSpreadReconciles{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -1152,7 +1152,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles and manage conditions and processing fails (no-retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditionsAndSpreadReconciles{
-			testSupport.TestApiObject{
+			TestApiObject: testSupport.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
@@ -1357,7 +1357,7 @@ func TestLifecycleManager_WithConditionManagement(t *testing.T) {
 	l := NewLifecycleManager(log.Logger, "test-operator", "test-controller", fakeClient, []subroutine.Subroutine{}).WithConditionManagement()
 
 	// Then
-	assert.True(t, true, l.Config().ManageConditions)
+	assert.True(t, true, l.ConditionsManager() != nil)
 }
 
 type testReconciler struct {

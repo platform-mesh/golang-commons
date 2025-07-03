@@ -38,7 +38,7 @@ func TestOnNextReconcile(t *testing.T) {
 		NextReconcileTime: v1.NewTime(nextReconcile),
 	}
 	s := NewSpreader()
-	apiObject := &pmtesting.ImplementingSpreadReconciles{testSupport.TestApiObject{Status: instanceStatusObj}}
+	apiObject := &pmtesting.ImplementingSpreadReconciles{TestApiObject: testSupport.TestApiObject{Status: instanceStatusObj}}
 	tl := testlogger.New()
 
 	requeueAfter, err := s.OnNextReconcile(apiObject, tl.Logger)
@@ -67,7 +67,7 @@ func (t *testInstance) GenerateNextReconcileTime() time.Duration {
 
 func TestGenerateNextReconcileTimer(t *testing.T) {
 	instance := &testInstance{
-		ImplementingSpreadReconciles: &pmtesting.ImplementingSpreadReconciles{testSupport.TestApiObject{}},
+		ImplementingSpreadReconciles: &pmtesting.ImplementingSpreadReconciles{},
 	}
 	s := NewSpreader()
 	instance.On("GenerateNextReconcileTime").Return(10 * time.Minute)
@@ -82,7 +82,7 @@ func TestUpdateObservedGeneration(t *testing.T) {
 	instanceStatusObj := testSupport.TestStatus{
 		ObservedGeneration: 0,
 	}
-	apiObject := &pmtesting.ImplementingSpreadReconciles{testSupport.TestApiObject{
+	apiObject := &pmtesting.ImplementingSpreadReconciles{TestApiObject: testSupport.TestApiObject{
 		Status: instanceStatusObj,
 		ObjectMeta: v1.ObjectMeta{
 			Generation: 1,

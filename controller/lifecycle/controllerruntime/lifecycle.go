@@ -37,9 +37,8 @@ func NewLifecycleManager(log *logger.Logger, operatorName string, controllerName
 		client:      client,
 		subroutines: subroutines,
 		config: lifecycle.Config{
-			OperatorName:     operatorName,
-			ControllerName:   controllerName,
-			SpreadReconciles: false,
+			OperatorName:   operatorName,
+			ControllerName: controllerName,
 		},
 	}
 }
@@ -57,14 +56,14 @@ func (l *LifecycleManager) PrepareContextFunc() lifecycle.PrepareContextFunc {
 	return l.prepareContextFunc
 }
 func (l *LifecycleManager) ConditionsManager() *conditions.ConditionManager {
-	if !l.config.ManageConditions {
+	if l.conditionsManager == nil {
 		l.log.Fatal().Msg("conditions management not enabled")
 	}
 	return l.conditionsManager
 }
 
 func (l *LifecycleManager) Spreader() *spread.Spreader {
-	if !l.config.SpreadReconciles {
+	if l.spreader == nil {
 		l.log.Fatal().Msg("spread reconciles not enabled")
 	}
 	return l.spreader
@@ -75,13 +74,13 @@ func (l *LifecycleManager) Reconcile(ctx context.Context, req ctrl.Request, inst
 }
 
 func (l *LifecycleManager) validateInterfaces(instance runtimeobject.RuntimeObject, log *logger.Logger) error {
-	if l.Config().SpreadReconciles {
+	if l.Spreader() != nil {
 		_, err := l.Spreader().ToRuntimeObjectSpreadReconcileStatusInterface(instance, log)
 		if err != nil {
 			return err
 		}
 	}
-	if l.Config().ManageConditions {
+	if l.ConditionsManager() != nil {
 		_, err := l.ConditionsManager().ToRuntimeObjectConditionsInterface(instance, log)
 		if err != nil {
 			return err
@@ -95,7 +94,7 @@ func (l *LifecycleManager) SetupWithManagerBuilder(mgr ctrl.Manager, maxReconcil
 		return nil, err
 	}
 
-	if (l.Config().ManageConditions || l.Config().SpreadReconciles) && l.Config().ReadOnly {
+	if (l.ConditionsManager() != nil || l.Spreader() != nil) && l.Config().ReadOnly {
 		return nil, fmt.Errorf("cannot use conditions or spread reconciles in read-only mode")
 	}
 
@@ -133,13 +132,11 @@ func (l *LifecycleManager) WithReadOnly() *LifecycleManager {
 
 // WithSpreadingReconciles sets the LifecycleManager to spread out the reconciles
 func (l *LifecycleManager) WithSpreadingReconciles() *LifecycleManager {
-	l.config.SpreadReconciles = true
 	l.spreader = spread.NewSpreader()
 	return l
 }
 
 func (l *LifecycleManager) WithConditionManagement() *LifecycleManager {
-	l.config.ManageConditions = true
 	l.conditionsManager = conditions.NewConditionManager()
 	return l
 }

@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	pmtesting "github.com/platform-mesh/golang-commons/controller/lifecycle/testing"
 	"github.com/platform-mesh/golang-commons/controller/testSupport"
+	pmtesting "github.com/platform-mesh/golang-commons/controller/testSupport"
 	"github.com/platform-mesh/golang-commons/logger/testlogger"
 )
 
@@ -135,4 +135,46 @@ func TestRemoveRefreshLabelNoLabels(t *testing.T) {
 	_, ok := apiObject.GetLabels()[ReconcileRefreshLabel]
 
 	assert.False(t, ok)
+}
+
+func TestToRuntimeObjectSpreadReconcileStatusInterface_Success(t *testing.T) {
+	s := NewSpreader()
+	tl := testlogger.New()
+	apiObject := &pmtesting.ImplementingSpreadReconciles{}
+	obj, err := s.ToRuntimeObjectSpreadReconcileStatusInterface(apiObject, tl.Logger)
+	assert.NoError(t, err)
+	assert.NotNil(t, obj)
+}
+
+func TestToRuntimeObjectSpreadReconcileStatusInterface_Failure(t *testing.T) {
+	s := NewSpreader()
+	tl := testlogger.New()
+	// DummyRuntimeObject does NOT implement RuntimeObjectSpreadReconcileStatus
+	apiObject := &pmtesting.DummyRuntimeObject{}
+	obj, err := s.ToRuntimeObjectSpreadReconcileStatusInterface(apiObject, tl.Logger)
+	assert.Error(t, err)
+	assert.Nil(t, obj)
+	messages, logErr := tl.GetLogMessages()
+	assert.NoError(t, logErr)
+	assert.Contains(t, messages[0].Message, "Failed to cast instance to RuntimeObjectSpreadReconcileStatus")
+}
+
+func TestMustToRuntimeObjectSpreadReconcileStatusInterface_Success(t *testing.T) {
+	s := NewSpreader()
+	tl := testlogger.New()
+	apiObject := &pmtesting.ImplementingSpreadReconciles{}
+	obj := s.MustToRuntimeObjectSpreadReconcileStatusInterface(apiObject, tl.Logger)
+	assert.NotNil(t, obj)
+}
+
+func TestMustToRuntimeObjectSpreadReconcileStatusInterface_Panic(t *testing.T) {
+	s := NewSpreader()
+	tl := testlogger.New()
+	apiObject := &pmtesting.DummyRuntimeObject{}
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic but did not panic")
+		}
+	}()
+	_ = s.MustToRuntimeObjectSpreadReconcileStatusInterface(apiObject, tl.Logger)
 }

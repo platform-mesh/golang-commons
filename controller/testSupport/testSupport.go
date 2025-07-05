@@ -1,4 +1,4 @@
-package testing
+package testSupport
 
 import (
 	"context"
@@ -15,7 +15,6 @@ import (
 	controllerruntime "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/platform-mesh/golang-commons/controller/testSupport"
 	"github.com/platform-mesh/golang-commons/errors"
 )
 
@@ -23,7 +22,7 @@ const FailureScenarioSubroutineFinalizer = "failuresubroutine"
 const ChangeStatusSubroutineFinalizer = "changestatus"
 
 type ImplementConditions struct {
-	testSupport.TestApiObject `json:",inline"`
+	TestApiObject `json:",inline"`
 }
 
 func (m *ImplementConditions) GetConditions() []metav1.Condition {
@@ -35,7 +34,7 @@ func (m *ImplementConditions) SetConditions(conditions []metav1.Condition) {
 }
 
 type ImplementingSpreadReconciles struct {
-	testSupport.TestApiObject `json:",inline"`
+	TestApiObject `json:",inline"`
 }
 
 func (m *ImplementingSpreadReconciles) GetGeneration() int64 {
@@ -62,7 +61,7 @@ type NotImplementingSpreadReconciles struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Status testSupport.TestStatus `json:"status,omitempty"`
+	Status TestStatus `json:"status,omitempty"`
 }
 
 func (m *NotImplementingSpreadReconciles) DeepCopyObject() runtime.Object {
@@ -92,7 +91,7 @@ type ChangeStatusSubroutine struct {
 }
 
 func (c ChangeStatusSubroutine) Process(_ context.Context, runtimeObj runtimeobject.RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
-	if instance, ok := runtimeObj.(*testSupport.TestApiObject); ok {
+	if instance, ok := runtimeObj.(*TestApiObject); ok {
 		instance.Status.Some = "other string"
 	}
 	if instance, ok := runtimeObj.(*ImplementingSpreadReconciles); ok {
@@ -179,7 +178,7 @@ func (c FailureScenarioSubroutine) GetName() string {
 }
 
 type ImplementConditionsAndSpreadReconciles struct {
-	testSupport.TestApiObject `json:",inline"`
+	TestApiObject `json:",inline"`
 }
 
 func (m *ImplementConditionsAndSpreadReconciles) GetConditions() []metav1.Condition {
@@ -211,7 +210,7 @@ type ContextValueSubroutine struct {
 const ContextValueKey = keys.ContextKey("ContextValueKey")
 
 func (f ContextValueSubroutine) Process(ctx context.Context, r runtimeobject.RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
-	if instance, ok := r.(*testSupport.TestApiObject); ok {
+	if instance, ok := r.(*TestApiObject); ok {
 		instance.Status.Some = ctx.Value(ContextValueKey).(string)
 	}
 	return controllerruntime.Result{}, nil

@@ -11,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 
-	pmtesting "github.com/platform-mesh/golang-commons/controller/lifecycle/testing"
+	pmtesting "github.com/platform-mesh/golang-commons/controller/testSupport"
 	"github.com/platform-mesh/golang-commons/logger"
 )
 
@@ -238,5 +238,46 @@ func TestSubroutineCondition(t *testing.T) {
 		// Then
 		assert.Equal(t, 1, len(condition))
 		assert.Equal(t, metav1.ConditionFalse, condition[0].Status)
+	})
+}
+
+// Dummy types for testing interface conversion
+
+func TestToRuntimeObjectConditionsInterface(t *testing.T) {
+	log, err := logger.New(logger.DefaultConfig())
+	require.NoError(t, err)
+	cm := NewConditionManager()
+
+	t.Run("Implements interface", func(t *testing.T) {
+		obj := pmtesting.DummyRuntimeObjectWithConditions{}
+		res, err := cm.ToRuntimeObjectConditionsInterface(obj, log)
+		assert.NoError(t, err)
+		assert.NotNil(t, res)
+	})
+
+	t.Run("Does not implement interface", func(t *testing.T) {
+		obj := pmtesting.DummyRuntimeObject{}
+		res, err := cm.ToRuntimeObjectConditionsInterface(obj, log)
+		assert.Error(t, err)
+		assert.Nil(t, res)
+	})
+}
+
+func TestMustToRuntimeObjectConditionsInterface(t *testing.T) {
+	log, err := logger.New(logger.DefaultConfig())
+	require.NoError(t, err)
+	cm := NewConditionManager()
+
+	t.Run("Implements interface", func(t *testing.T) {
+		obj := pmtesting.DummyRuntimeObjectWithConditions{}
+		res := cm.MustToRuntimeObjectConditionsInterface(obj, log)
+		assert.NotNil(t, res)
+	})
+
+	t.Run("Does not implement interface panics", func(t *testing.T) {
+		obj := pmtesting.DummyRuntimeObject{}
+		assert.Panics(t, func() {
+			cm.MustToRuntimeObjectConditionsInterface(obj, log)
+		})
 	})
 }

@@ -24,8 +24,8 @@ import (
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/subroutine"
 	operrors "github.com/platform-mesh/golang-commons/errors"
 
-	pmtesting "github.com/platform-mesh/golang-commons/controller/lifecycle/testing"
 	"github.com/platform-mesh/golang-commons/controller/testSupport"
+	pmtesting "github.com/platform-mesh/golang-commons/controller/testSupport"
 	"github.com/platform-mesh/golang-commons/logger"
 	"github.com/platform-mesh/golang-commons/logger/testlogger"
 	"github.com/platform-mesh/golang-commons/sentry"

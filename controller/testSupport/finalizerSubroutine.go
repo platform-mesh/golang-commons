@@ -1,4 +1,4 @@
-package testing
+package testSupport
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
-	"github.com/platform-mesh/golang-commons/controller/testSupport"
 	"github.com/platform-mesh/golang-commons/errors"
 )
 
@@ -21,7 +20,7 @@ type FinalizerSubroutine struct {
 }
 
 func (c FinalizerSubroutine) Process(_ context.Context, runtimeObj runtimeobject.RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
-	instance := runtimeObj.(*testSupport.TestApiObject)
+	instance := runtimeObj.(*TestApiObject)
 	instance.Status.Some = "other string"
 	return controllerruntime.Result{}, nil
 }

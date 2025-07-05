@@ -9,8 +9,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/mocks"
-	pmtesting "github.com/platform-mesh/golang-commons/controller/lifecycle/testing"
 	"github.com/platform-mesh/golang-commons/controller/testSupport"
+	pmtesting "github.com/platform-mesh/golang-commons/controller/testSupport"
 	"github.com/platform-mesh/golang-commons/logger"
 )
 

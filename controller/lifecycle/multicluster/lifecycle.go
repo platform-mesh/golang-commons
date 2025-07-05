@@ -15,6 +15,7 @@ import (
 
 	"github.com/platform-mesh/golang-commons/controller/filter"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle"
+	"github.com/platform-mesh/golang-commons/controller/lifecycle/api"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/conditions"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/spread"
@@ -29,11 +30,11 @@ type ClusterGetter interface {
 type LifecycleManager struct {
 	log                *logger.Logger
 	mgr                ClusterGetter
-	config             lifecycle.Config
+	config             api.Config
 	subroutines        []subroutine.Subroutine
 	spreader           *spread.Spreader
 	conditionsManager  *conditions.ConditionManager
-	prepareContextFunc lifecycle.PrepareContextFunc
+	prepareContextFunc api.PrepareContextFunc
 }
 
 func NewLifecycleManager(log *logger.Logger, operatorName string, controllerName string, mgr ClusterGetter, subroutines []subroutine.Subroutine) *LifecycleManager {
@@ -42,14 +43,14 @@ func NewLifecycleManager(log *logger.Logger, operatorName string, controllerName
 		log:         log,
 		mgr:         mgr,
 		subroutines: subroutines,
-		config: lifecycle.Config{
+		config: api.Config{
 			OperatorName:   operatorName,
 			ControllerName: controllerName,
 		},
 	}
 }
 
-func (l *LifecycleManager) Config() lifecycle.Config {
+func (l *LifecycleManager) Config() api.Config {
 	return l.config
 }
 func (l *LifecycleManager) Log() *logger.Logger {
@@ -58,13 +59,20 @@ func (l *LifecycleManager) Log() *logger.Logger {
 func (l *LifecycleManager) Subroutines() []subroutine.Subroutine {
 	return l.subroutines
 }
-func (l *LifecycleManager) PrepareContextFunc() lifecycle.PrepareContextFunc {
+func (l *LifecycleManager) PrepareContextFunc() api.PrepareContextFunc {
 	return l.prepareContextFunc
 }
-func (l *LifecycleManager) ConditionsManager() *conditions.ConditionManager {
+func (l *LifecycleManager) ConditionsManager() api.ConditionManager {
+	// it is important to return nil unsted of a nil pointer to the interface to avoid misbehaving nil checks
+	if l.conditionsManager == nil {
+		return nil
+	}
 	return l.conditionsManager
 }
-func (l *LifecycleManager) Spreader() *spread.Spreader {
+func (l *LifecycleManager) Spreader() api.SpreadManager { // it is important to return nil unsted of a nil pointer to the interface to avoid misbehaving nil checks
+	if l.spreader == nil {
+		return nil
+	}
 	return l.spreader
 }
 func (l *LifecycleManager) Reconcile(ctx context.Context, req mcreconcile.Request, instance runtimeobject.RuntimeObject) (ctrl.Result, error) {
@@ -106,7 +114,7 @@ func (l *LifecycleManager) SetupWithManager(mgr mcmanager.Manager, maxReconciles
 // WithPrepareContextFunc allows to set a function that prepares the context before each reconciliation
 // This can be used to add additional information to the context that is needed by the subroutines
 // You need to return a new context and an OperatorError in case of an error
-func (l *LifecycleManager) WithPrepareContextFunc(prepareFunction lifecycle.PrepareContextFunc) *LifecycleManager {
+func (l *LifecycleManager) WithPrepareContextFunc(prepareFunction api.PrepareContextFunc) *LifecycleManager {
 	l.prepareContextFunc = prepareFunction
 	return l
 }

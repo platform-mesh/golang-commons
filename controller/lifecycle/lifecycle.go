@@ -27,7 +27,7 @@ import (
 	"github.com/platform-mesh/golang-commons/sentry"
 )
 
-func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtimeobject.RuntimeObject, cl client.Client, l Lifecycle) (ctrl.Result, error) {
+func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtimeobject.RuntimeObject, cl client.Client, l api.Lifecycle) (ctrl.Result, error) {
 	ctx, span := otel.Tracer(l.Config().OperatorName).Start(ctx, fmt.Sprintf("%s.Reconcile", l.Config().ControllerName))
 	defer span.End()
 
@@ -367,7 +367,7 @@ func HandleOperatorError(ctx context.Context, operatorError errors.OperatorError
 	return ctrl.Result{}, nil
 }
 
-func ValidateInterfaces(instance runtimeobject.RuntimeObject, log *logger.Logger, l Lifecycle) error {
+func ValidateInterfaces(instance runtimeobject.RuntimeObject, log *logger.Logger, l api.Lifecycle) error {
 	if l.Spreader() != nil {
 		_, err := l.Spreader().ToRuntimeObjectSpreadReconcileStatusInterface(instance, log)
 		if err != nil {

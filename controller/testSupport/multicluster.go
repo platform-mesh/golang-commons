@@ -15,7 +15,7 @@ import (
 
 type FakeManager struct{ Client client.Client }
 
-func (f *FakeManager) GetCluster(ctx context.Context, clusterName string) (cluster.Cluster, error) {
+func (f *FakeManager) GetCluster(context.Context, string) (cluster.Cluster, error) {
 	return &FakeCluster{client: f.Client}, nil
 }
 
@@ -47,7 +47,7 @@ func (f FakeCluster) GetFieldIndexer() client.FieldIndexer {
 	return nil
 }
 
-func (f FakeCluster) GetEventRecorderFor(name string) record.EventRecorder {
+func (f FakeCluster) GetEventRecorderFor(string) record.EventRecorder {
 	return nil
 }
 
@@ -59,6 +59,6 @@ func (f FakeCluster) GetAPIReader() client.Reader {
 	return nil
 }
 
-func (f FakeCluster) Start(ctx context.Context) error {
+func (f FakeCluster) Start(context.Context) error {
 	return nil
 }

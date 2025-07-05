@@ -17,7 +17,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	"github.com/platform-mesh/golang-commons/controller/lifecycle/conditions"
+	"github.com/platform-mesh/golang-commons/controller/lifecycle/api"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/spread"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/subroutine"
@@ -26,24 +26,7 @@ import (
 	"github.com/platform-mesh/golang-commons/sentry"
 )
 
-type Lifecycle interface {
-	Config() Config
-	Log() *logger.Logger
-	Spreader() *spread.Spreader
-	ConditionsManager() *conditions.ConditionManager
-	PrepareContextFunc() PrepareContextFunc
-	Subroutines() []subroutine.Subroutine
-}
-
-type Config struct {
-	OperatorName   string
-	ControllerName string
-	ReadOnly       bool
-}
-
-type PrepareContextFunc func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, errors.OperatorError)
-
-func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.RuntimeObject, cl client.Client, l Lifecycle) (ctrl.Result, error) {
+func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.RuntimeObject, cl client.Client, l api.Lifecycle) (ctrl.Result, error) {
 	ctx, span := otel.Tracer(l.Config().OperatorName).Start(ctx, fmt.Sprintf("%s.Reconcile", l.Config().ControllerName))
 	defer span.End()
 
@@ -189,7 +172,7 @@ func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.Run
 	return result, nil
 }
 
-func reconcileSubroutine(ctx context.Context, instance runtimeobject.RuntimeObject, subroutine subroutine.Subroutine, cl client.Client, l Lifecycle, log *logger.Logger, generationChanged bool, sentryTags map[string]string) (ctrl.Result, bool, error) {
+func reconcileSubroutine(ctx context.Context, instance runtimeobject.RuntimeObject, subroutine subroutine.Subroutine, cl client.Client, l api.Lifecycle, log *logger.Logger, generationChanged bool, sentryTags map[string]string) (ctrl.Result, bool, error) {
 	subroutineLogger := log.ChildLogger("subroutine", subroutine.GetName())
 	ctx = logger.SetLoggerInContext(ctx, subroutineLogger)
 	subroutineLogger.Debug().Msg("start subroutine")
@@ -317,7 +300,7 @@ func HandleClientError(msg string, log *logger.Logger, err error, generationChan
 	return ctrl.Result{}, err
 }
 
-func MarkResourceAsFinal(instance runtimeobject.RuntimeObject, log *logger.Logger, conditions []v1.Condition, status v1.ConditionStatus, l Lifecycle) {
+func MarkResourceAsFinal(instance runtimeobject.RuntimeObject, log *logger.Logger, conditions []v1.Condition, status v1.ConditionStatus, l api.Lifecycle) {
 	if l.Spreader() != nil && instance.GetDeletionTimestamp().IsZero() {
 		instanceStatusObj := l.Spreader().MustToRuntimeObjectSpreadReconcileStatusInterface(instance, log)
 		l.Spreader().SetNextReconcileTime(instanceStatusObj, log)

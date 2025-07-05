@@ -7,6 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 
+	"github.com/platform-mesh/golang-commons/controller/lifecycle/api"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/subroutine"
 	"github.com/platform-mesh/golang-commons/logger"
@@ -36,11 +37,6 @@ type ConditionManager struct{}
 
 func NewConditionManager() *ConditionManager {
 	return &ConditionManager{}
-}
-
-type RuntimeObjectConditions interface {
-	GetConditions() []metav1.Condition
-	SetConditions([]metav1.Condition)
 }
 
 // Set the Condition of the instance to be ready
@@ -123,8 +119,8 @@ func (c *ConditionManager) SetSubroutineCondition(conditions *[]metav1.Condition
 	return changed
 }
 
-func (c *ConditionManager) ToRuntimeObjectConditionsInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) (RuntimeObjectConditions, error) {
-	if obj, ok := instance.(RuntimeObjectConditions); ok {
+func (c *ConditionManager) ToRuntimeObjectConditionsInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) (api.RuntimeObjectConditions, error) {
+	if obj, ok := instance.(api.RuntimeObjectConditions); ok {
 		return obj, nil
 	}
 	err := fmt.Errorf("ManageConditions is enabled, but instance does not implement RuntimeObjectConditions interface. This is a programming error")
@@ -133,7 +129,7 @@ func (c *ConditionManager) ToRuntimeObjectConditionsInterface(instance runtimeob
 	return nil, err
 }
 
-func (c *ConditionManager) MustToRuntimeObjectConditionsInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) RuntimeObjectConditions {
+func (c *ConditionManager) MustToRuntimeObjectConditionsInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) api.RuntimeObjectConditions {
 	obj, err := c.ToRuntimeObjectConditionsInterface(instance, log)
 	if err == nil {
 		return obj

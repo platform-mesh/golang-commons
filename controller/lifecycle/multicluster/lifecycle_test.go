@@ -21,8 +21,7 @@ import (
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/spread"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/subroutine"
-	pmtesting "github.com/platform-mesh/golang-commons/controller/lifecycle/testing"
-	"github.com/platform-mesh/golang-commons/controller/testSupport"
+	pmtesting "github.com/platform-mesh/golang-commons/controller/testSupport"
 	operrors "github.com/platform-mesh/golang-commons/errors"
 	"github.com/platform-mesh/golang-commons/logger/testlogger"
 	"github.com/platform-mesh/golang-commons/sentry"
@@ -39,7 +38,7 @@ func TestLifecycle(t *testing.T) {
 			},
 		},
 	}
-	testApiObject := &testSupport.TestApiObject{
+	testApiObject := &pmtesting.TestApiObject{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
@@ -49,12 +48,12 @@ func TestLifecycle(t *testing.T) {
 
 	t.Run("Lifecycle with a not found object", func(t *testing.T) {
 		// Arrange
-		fakeClient := testSupport.CreateFakeClient(t, &testSupport.TestApiObject{})
+		fakeClient := pmtesting.CreateFakeClient(t, &pmtesting.TestApiObject{})
 
 		mgr, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
 
 		// Act
-		result, err := mgr.Reconcile(ctx, request, &testSupport.TestApiObject{})
+		result, err := mgr.Reconcile(ctx, request, &pmtesting.TestApiObject{})
 
 		// Assert
 		assert.NoError(t, err)
@@ -67,14 +66,14 @@ func TestLifecycle(t *testing.T) {
 	})
 	t.Run("Lifecycle with a finalizer - add finalizer", func(t *testing.T) {
 		// Arrange
-		instance := &testSupport.TestApiObject{
+		instance := &pmtesting.TestApiObject{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,
 				Namespace: namespace,
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.FinalizerSubroutine{
@@ -92,7 +91,7 @@ func TestLifecycle(t *testing.T) {
 		// Arrange
 		now := &metav1.Time{Time: time.Now()}
 		finalizers := []string{pmtesting.SubroutineFinalizer}
-		instance := &testSupport.TestApiObject{
+		instance := &pmtesting.TestApiObject{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:              name,
 				Namespace:         namespace,
@@ -101,7 +100,7 @@ func TestLifecycle(t *testing.T) {
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.FinalizerSubroutine{
@@ -119,7 +118,7 @@ func TestLifecycle(t *testing.T) {
 		// Arrange
 		now := &metav1.Time{Time: time.Now()}
 		finalizers := []string{pmtesting.SubroutineFinalizer}
-		instance := &testSupport.TestApiObject{
+		instance := &pmtesting.TestApiObject{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:              name,
 				Namespace:         namespace,
@@ -128,7 +127,7 @@ func TestLifecycle(t *testing.T) {
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.FinalizerSubroutine{
@@ -148,7 +147,7 @@ func TestLifecycle(t *testing.T) {
 		// Arrange
 		now := &metav1.Time{Time: time.Now()}
 		finalizers := []string{pmtesting.SubroutineFinalizer}
-		instance := &testSupport.TestApiObject{
+		instance := &pmtesting.TestApiObject{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:              name,
 				Namespace:         namespace,
@@ -157,7 +156,7 @@ func TestLifecycle(t *testing.T) {
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.FinalizerSubroutine{
@@ -177,7 +176,7 @@ func TestLifecycle(t *testing.T) {
 		// Arrange
 		now := &metav1.Time{Time: time.Now()}
 		finalizers := []string{"other-finalizer"}
-		instance := &testSupport.TestApiObject{
+		instance := &pmtesting.TestApiObject{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:              name,
 				Namespace:         namespace,
@@ -186,7 +185,7 @@ func TestLifecycle(t *testing.T) {
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.FinalizerSubroutine{
@@ -204,7 +203,7 @@ func TestLifecycle(t *testing.T) {
 		// Arrange
 		now := &metav1.Time{Time: time.Now()}
 		finalizers := []string{pmtesting.SubroutineFinalizer}
-		instance := &testSupport.TestApiObject{
+		instance := &pmtesting.TestApiObject{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:              name,
 				Namespace:         namespace,
@@ -213,7 +212,7 @@ func TestLifecycle(t *testing.T) {
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.FinalizerSubroutine{
@@ -230,14 +229,14 @@ func TestLifecycle(t *testing.T) {
 	})
 	t.Run("Lifecycle without changing status", func(t *testing.T) {
 		// Arrange
-		instance := &testSupport.TestApiObject{
+		instance := &pmtesting.TestApiObject{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,
 				Namespace: namespace,
 			},
-			Status: testSupport.TestStatus{Some: "string"},
+			Status: pmtesting.TestStatus{Some: "string"},
 		}
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
 
@@ -256,15 +255,15 @@ func TestLifecycle(t *testing.T) {
 	})
 	t.Run("Lifecycle with changing status", func(t *testing.T) {
 		// Arrange
-		instance := &testSupport.TestApiObject{
+		instance := &pmtesting.TestApiObject{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,
 				Namespace: namespace,
 			},
-			Status: testSupport.TestStatus{Some: "string"},
+			Status: pmtesting.TestStatus{Some: "string"},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, log := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.ChangeStatusSubroutine{
@@ -287,7 +286,7 @@ func TestLifecycle(t *testing.T) {
 		assert.Equal(t, logMessages[3].Message, "processed instance")
 		assert.Equal(t, logMessages[4].Message, "end subroutine")
 
-		serverObject := &testSupport.TestApiObject{}
+		serverObject := &pmtesting.TestApiObject{}
 		err = fakeClient.Get(ctx, client.ObjectKey{Name: name, Namespace: namespace}, serverObject)
 		assert.NoError(t, err)
 		assert.Equal(t, serverObject.Status.Some, "other string")
@@ -295,20 +294,20 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{
+				Status: pmtesting.TestStatus{
 					Some:               "string",
 					ObservedGeneration: 0,
 				},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.ChangeStatusSubroutine{
@@ -326,7 +325,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles on deleted object", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:              name,
 					Namespace:         namespace,
@@ -334,7 +333,7 @@ func TestLifecycle(t *testing.T) {
 					DeletionTimestamp: &metav1.Time{Time: time.Now()},
 					Finalizers:        []string{pmtesting.ChangeStatusSubroutineFinalizer},
 				},
-				Status: testSupport.TestStatus{
+				Status: pmtesting.TestStatus{
 					Some:               "string",
 					ObservedGeneration: 2,
 					NextReconcileTime:  metav1.Time{Time: time.Now().Add(2 * time.Hour)},
@@ -342,7 +341,7 @@ func TestLifecycle(t *testing.T) {
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.ChangeStatusSubroutine{
@@ -361,13 +360,13 @@ func TestLifecycle(t *testing.T) {
 		// Arrange
 		nextReconcileTime := metav1.NewTime(time.Now().Add(1 * time.Hour))
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{
+				Status: pmtesting.TestStatus{
 					Some:               "string",
 					ObservedGeneration: 1,
 					NextReconcileTime:  nextReconcileTime,
@@ -375,7 +374,7 @@ func TestLifecycle(t *testing.T) {
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{RequeAfter: false}}, fakeClient)
 		mgr.WithSpreadingReconciles()
@@ -390,20 +389,20 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles and processing fails (no-retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{
+				Status: pmtesting.TestStatus{
 					Some:               "string",
 					ObservedGeneration: 0,
 				},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{Retry: false, RequeAfter: false}}, fakeClient)
 		mgr.WithSpreadingReconciles()
@@ -417,20 +416,20 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles and processing fails (retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{
+				Status: pmtesting.TestStatus{
 					Some:               "string",
 					ObservedGeneration: 0,
 				},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{Retry: true, RequeAfter: false}}, fakeClient)
 		mgr.WithSpreadingReconciles()
@@ -444,20 +443,20 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles and processing needs requeue", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{
+				Status: pmtesting.TestStatus{
 					Some:               "string",
 					ObservedGeneration: 0,
 				},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{RequeAfter: true}}, fakeClient)
 		mgr.WithSpreadingReconciles()
@@ -471,19 +470,19 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles and processing needs requeueAfter", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{
+				Status: pmtesting.TestStatus{
 					Some:               "string",
 					ObservedGeneration: 0,
 				},
 			},
 		}
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{RequeAfter: true}}, fakeClient)
 		mgr.WithSpreadingReconciles()
@@ -502,13 +501,13 @@ func TestLifecycle(t *testing.T) {
 				Namespace:  namespace,
 				Generation: 1,
 			},
-			Status: testSupport.TestStatus{
+			Status: pmtesting.TestStatus{
 				Some:               "string",
 				ObservedGeneration: 0,
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.ChangeStatusSubroutine{
@@ -525,8 +524,8 @@ func TestLifecycle(t *testing.T) {
 
 	//t.Run("Should setup with manager", func(t *testing.T) {
 	//	// Arrange
-	//	instance := &testSupport.TestApiObject{}
-	//	fakeClient := testSupport.CreateFakeClient(t, instance)
+	//	instance := &pmtesting.TestApiObject{}
+	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
 	//	log, err := logger.New(logger.DefaultConfig())
 	//	assert.NoError(t, err)
 	//	provider, err := apiexport.New(&rest.Config{}, apiexport.Options{})
@@ -549,7 +548,7 @@ func TestLifecycle(t *testing.T) {
 	//t.Run("Should setup with manager not implementing interface", func(t *testing.T) {
 	//	// Arrange
 	//	instance := &pmtesting.NotImplementingSpreadReconciles{}
-	//	fakeClient := testSupport.CreateFakeClient(t, instance)
+	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
 	//	log, err := logger.New(logger.DefaultConfig())
 	//	assert.NoError(t, err)
 	//	m, err := manager.New(&rest.Config{}, manager.Options{
@@ -573,21 +572,21 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles and refresh label", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementingSpreadReconciles{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 					Labels:     map[string]string{spread.ReconcileRefreshLabel: "true"},
 				},
-				Status: testSupport.TestStatus{
+				Status: pmtesting.TestStatus{
 					Some:               "string",
 					ObservedGeneration: 1,
 				},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		lm, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.ChangeStatusSubroutine{
@@ -627,17 +626,17 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles w/o subroutines", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{},
+				Status: pmtesting.TestStatus{},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
 		mgr.WithConditionManagement()
@@ -655,17 +654,17 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with subroutine", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{},
+				Status: pmtesting.TestStatus{},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.ChangeStatusSubroutine{
 			Client: fakeClient,
@@ -688,17 +687,17 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with subroutine that adds a condition", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{},
+				Status: pmtesting.TestStatus{},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.AddConditionSubroutine{Ready: metav1.ConditionTrue}}, fakeClient)
 		mgr.WithConditionManagement()
@@ -723,17 +722,17 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with subroutine that adds a condition", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{},
+				Status: pmtesting.TestStatus{},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.AddConditionSubroutine{Ready: metav1.ConditionTrue}}, fakeClient)
 		mgr.WithConditionManagement()
@@ -758,13 +757,13 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with subroutine that adds a condition with preexisting conditions (update)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{
+				Status: pmtesting.TestStatus{
 					Conditions: []metav1.Condition{
 						{
 							Type:    "test",
@@ -777,7 +776,7 @@ func TestLifecycle(t *testing.T) {
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.AddConditionSubroutine{Ready: metav1.ConditionTrue}}, fakeClient)
 		mgr.WithConditionManagement()
@@ -802,13 +801,13 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with subroutine that adds a condition with preexisting conditions", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{
+				Status: pmtesting.TestStatus{
 					Conditions: []metav1.Condition{
 						{
 							Type:    conditions.ConditionReady,
@@ -821,7 +820,7 @@ func TestLifecycle(t *testing.T) {
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.AddConditionSubroutine{Ready: metav1.ConditionTrue}}, fakeClient)
 		mgr.WithConditionManagement()
@@ -846,17 +845,17 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle w/o manage conditions reconciles with subroutine that adds a condition", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{},
+				Status: pmtesting.TestStatus{},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.AddConditionSubroutine{Ready: metav1.ConditionTrue}}, fakeClient)
 
@@ -874,17 +873,17 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with subroutine failing Status update", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{},
+				Status: pmtesting.TestStatus{},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.ChangeStatusSubroutine{
@@ -908,7 +907,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions finalizes with multiple subroutines partially succeeding", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:              name,
 					Namespace:         namespace,
@@ -916,11 +915,11 @@ func TestLifecycle(t *testing.T) {
 					DeletionTimestamp: &metav1.Time{Time: time.Now()},
 					Finalizers:        []string{pmtesting.FailureScenarioSubroutineFinalizer, pmtesting.ChangeStatusSubroutineFinalizer},
 				},
-				Status: testSupport.TestStatus{},
+				Status: pmtesting.TestStatus{},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.FailureScenarioSubroutine{},
@@ -946,17 +945,17 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with ReqeueAfter subroutine", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{},
+				Status: pmtesting.TestStatus{},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.FailureScenarioSubroutine{RequeAfter: true}}, fakeClient)
@@ -978,17 +977,17 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with Error subroutine (no-retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{},
+				Status: pmtesting.TestStatus{},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.FailureScenarioSubroutine{RequeAfter: false}}, fakeClient)
@@ -1010,17 +1009,17 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions reconciles with Error subroutine (retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{},
+				Status: pmtesting.TestStatus{},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.FailureScenarioSubroutine{Retry: true, RequeAfter: false}}, fakeClient)
@@ -1047,13 +1046,13 @@ func TestLifecycle(t *testing.T) {
 				Namespace:  namespace,
 				Generation: 1,
 			},
-			Status: testSupport.TestStatus{
+			Status: pmtesting.TestStatus{
 				Some:               "string",
 				ObservedGeneration: 0,
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{
 			pmtesting.ChangeStatusSubroutine{
@@ -1072,7 +1071,7 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with manage conditions failing finalize", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:              name,
 					Namespace:         namespace,
@@ -1080,14 +1079,14 @@ func TestLifecycle(t *testing.T) {
 					Finalizers:        []string{pmtesting.FailureScenarioSubroutineFinalizer},
 					DeletionTimestamp: &metav1.Time{Time: time.Now()},
 				},
-				Status: testSupport.TestStatus{
+				Status: pmtesting.TestStatus{
 					Some:               "string",
 					ObservedGeneration: 0,
 				},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{}}, fakeClient)
 		mgr.WithConditionManagement()
@@ -1102,20 +1101,20 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles and manage conditions and processing fails (retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditionsAndSpreadReconciles{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{
+				Status: pmtesting.TestStatus{
 					Some:               "string",
 					ObservedGeneration: 0,
 				},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{Retry: true, RequeAfter: false}}, fakeClient)
 		mgr.WithSpreadingReconciles()
@@ -1136,20 +1135,20 @@ func TestLifecycle(t *testing.T) {
 	t.Run("Lifecycle with spread reconciles and manage conditions and processing fails (no-retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditionsAndSpreadReconciles{
-			TestApiObject: testSupport.TestApiObject{
+			TestApiObject: pmtesting.TestApiObject{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
 					Namespace:  namespace,
 					Generation: 1,
 				},
-				Status: testSupport.TestStatus{
+				Status: pmtesting.TestStatus{
 					Some:               "string",
 					ObservedGeneration: 0,
 				},
 			},
 		}
 
-		fakeClient := testSupport.CreateFakeClient(t, instance)
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 		mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{RequeAfter: false}}, fakeClient)
 		mgr.WithSpreadingReconciles()
@@ -1170,7 +1169,7 @@ func TestLifecycle(t *testing.T) {
 	//t.Run("Test Lifecycle setupWithManager /w conditions and expecting no error", func(t *testing.T) {
 	//	// Arrange
 	//	instance := &pmtesting.ImplementConditions{}
-	//	fakeClient := testSupport.CreateFakeClient(t, instance)
+	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
 	//
 	//	m, err := manager.New(&rest.Config{}, manager.Options{Scheme: fakeClient.Scheme()})
 	//	assert.NoError(t, err)
@@ -1189,7 +1188,7 @@ func TestLifecycle(t *testing.T) {
 	//t.Run("Test Lifecycle setupWithManager /w conditions and expecting error", func(t *testing.T) {
 	//	// Arrange
 	//	instance := &pmtesting.NotImplementingSpreadReconciles{}
-	//	fakeClient := testSupport.CreateFakeClient(t, instance)
+	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
 	//
 	//	m, err := manager.New(&rest.Config{}, manager.Options{Scheme: fakeClient.Scheme()})
 	//	assert.NoError(t, err)
@@ -1208,7 +1207,7 @@ func TestLifecycle(t *testing.T) {
 	//t.Run("Test Lifecycle setupWithManager /w spread and expecting no error", func(t *testing.T) {
 	//	// Arrange
 	//	instance := &pmtesting.ImplementingSpreadReconciles{}
-	//	fakeClient := testSupport.CreateFakeClient(t, instance)
+	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
 	//
 	//	m, err := manager.New(&rest.Config{}, manager.Options{Scheme: fakeClient.Scheme()})
 	//	assert.NoError(t, err)
@@ -1227,7 +1226,7 @@ func TestLifecycle(t *testing.T) {
 	//t.Run("Test Lifecycle setupWithManager /w spread and expecting a error", func(t *testing.T) {
 	//	// Arrange
 	//	instance := &pmtesting.NotImplementingSpreadReconciles{}
-	//	fakeClient := testSupport.CreateFakeClient(t, instance)
+	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
 	//
 	//	m, err := manager.New(&rest.Config{}, manager.Options{Scheme: fakeClient.Scheme()})
 	//	assert.NoError(t, err)
@@ -1248,7 +1247,7 @@ func TestLifecycle(t *testing.T) {
 		t.Run("Should handle an operator error with retry and sentry", func(t *testing.T) {
 			// Arrange
 			instance := &pmtesting.ImplementConditions{}
-			fakeClient := testSupport.CreateFakeClient(t, instance)
+			fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 			_, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
 			ctx = sentry.ContextWithSentryTags(ctx, map[string]string{})
@@ -1269,7 +1268,7 @@ func TestLifecycle(t *testing.T) {
 		t.Run("Should handle an operator error without retry", func(t *testing.T) {
 			// Arrange
 			instance := &pmtesting.ImplementConditions{}
-			fakeClient := testSupport.CreateFakeClient(t, instance)
+			fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 			_, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
 
@@ -1291,7 +1290,7 @@ func TestLifecycle(t *testing.T) {
 			// Arrange
 			ctx := context.Background()
 
-			fakeClient := testSupport.CreateFakeClient(t, testApiObject)
+			fakeClient := pmtesting.CreateFakeClient(t, testApiObject)
 
 			lm, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.ContextValueSubroutine{}}, fakeClient)
 			lm = lm.WithPrepareContextFunc(func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, operrors.OperatorError) {
@@ -1317,7 +1316,7 @@ func TestLifecycle(t *testing.T) {
 			// Arrange
 			ctx := context.Background()
 
-			fakeClient := testSupport.CreateFakeClient(t, testApiObject)
+			fakeClient := pmtesting.CreateFakeClient(t, testApiObject)
 
 			lm, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.ContextValueSubroutine{}}, fakeClient)
 			lm = lm.WithPrepareContextFunc(func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, operrors.OperatorError) {
@@ -1341,7 +1340,7 @@ func TestLifecycle(t *testing.T) {
 // Test LifecycleManager.WithConditionManagement
 func TestLifecycleManager_WithConditionManagement(t *testing.T) {
 	// Given
-	fakeClient := testSupport.CreateFakeClient(t, &testSupport.TestApiObject{})
+	fakeClient := pmtesting.CreateFakeClient(t, &pmtesting.TestApiObject{})
 	clusterGetter := &pmtesting.FakeManager{Client: fakeClient}
 	_, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
 
@@ -1357,7 +1356,7 @@ type testReconciler struct {
 }
 
 func (r *testReconciler) Reconcile(ctx context.Context, req mcreconcile.Request) (controllerruntime.Result, error) {
-	return r.lifecycleManager.Reconcile(ctx, req, &testSupport.TestApiObject{})
+	return r.lifecycleManager.Reconcile(ctx, req, &pmtesting.TestApiObject{})
 }
 
 func createLifecycleManager(subroutines []subroutine.Subroutine, client client.Client) (*LifecycleManager, *testlogger.TestLogger) {

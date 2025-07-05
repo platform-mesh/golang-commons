@@ -43,7 +43,7 @@ func TestLifecycle(t *testing.T) {
 		mgr := pmtesting.TestLifecycleManager{Logger: log}
 
 		// Act
-		result, err := Reconcile(ctx, request, &pmtesting.TestApiObject{}, fakeClient, mgr)
+		result, err := Reconcile(ctx, request.NamespacedName, &pmtesting.TestApiObject{}, fakeClient, mgr)
 
 		// Assert
 		assert.NoError(t, err)

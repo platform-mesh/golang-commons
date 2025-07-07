@@ -2,6 +2,7 @@ module github.com/platform-mesh/golang-commons
 
 go 1.24.3
 
+// This is currently necessary due to the version used in https://github.com/kcp-dev/multicluster-provider/blob/main/go.mod
 replace sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.20.4
 
 require (

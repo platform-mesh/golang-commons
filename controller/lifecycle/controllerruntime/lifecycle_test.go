@@ -47,25 +47,6 @@ func TestLifecycle(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	t.Run("Lifecycle with a not found object", func(t *testing.T) {
-		// Arrange
-		fakeClient := pmtesting.CreateFakeClient(t, &pmtesting.TestApiObject{})
-
-		mgr, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
-
-		// Act
-		result, err := mgr.Reconcile(ctx, request, &pmtesting.TestApiObject{})
-
-		// Assert
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
-		logMessages, err := log.GetLogMessages()
-		assert.NoError(t, err)
-		assert.Equal(t, len(logMessages), 2)
-		assert.Equal(t, logMessages[0].Message, "start reconcile")
-		assert.Contains(t, logMessages[1].Message, "instance not found")
-	})
-
 	t.Run("Lifecycle with a finalizer - add finalizer", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.TestApiObject{

@@ -127,12 +127,12 @@ func (l *LifecycleManager) WithReadOnly() *LifecycleManager {
 }
 
 // WithSpreadingReconciles sets the LifecycleManager to spread out the reconciles
-func (l *LifecycleManager) WithSpreadingReconciles() *LifecycleManager {
+func (l *LifecycleManager) WithSpreadingReconciles() api.Lifecycle {
 	l.spreader = spread.NewSpreader()
 	return l
 }
 
-func (l *LifecycleManager) WithConditionManagement() *LifecycleManager {
+func (l *LifecycleManager) WithConditionManagement() api.Lifecycle {
 	l.conditionsManager = conditions.NewConditionManager()
 	return l
 }

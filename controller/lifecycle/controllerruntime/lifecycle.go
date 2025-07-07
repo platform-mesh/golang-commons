@@ -63,7 +63,6 @@ func (l *LifecycleManager) ConditionsManager() api.ConditionManager {
 	}
 	return l.conditionsManager
 }
-
 func (l *LifecycleManager) Spreader() api.SpreadManager {
 	// it is important to return nil unsted of a nil pointer to the interface to avoid misbehaving nil checks
 	if l.spreader == nil {
@@ -71,11 +70,9 @@ func (l *LifecycleManager) Spreader() api.SpreadManager {
 	}
 	return l.spreader
 }
-
 func (l *LifecycleManager) Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.RuntimeObject) (ctrl.Result, error) {
 	return lifecycle.Reconcile(ctx, req.NamespacedName, instance, l.client, l)
 }
-
 func (l *LifecycleManager) SetupWithManagerBuilder(mgr ctrl.Manager, maxReconciles int, reconcilerName string, instance runtimeobject.RuntimeObject, debugLabelValue string, log *logger.Logger, eventPredicates ...predicate.Predicate) (*builder.Builder, error) {
 	if err := lifecycle.ValidateInterfaces(instance, log, l); err != nil {
 		return nil, err
@@ -92,7 +89,6 @@ func (l *LifecycleManager) SetupWithManagerBuilder(mgr ctrl.Manager, maxReconcil
 		WithOptions(controller.Options{MaxConcurrentReconciles: maxReconciles}).
 		WithEventFilter(predicate.And(eventPredicates...)), nil
 }
-
 func (l *LifecycleManager) SetupWithManager(mgr ctrl.Manager, maxReconciles int, reconcilerName string, instance runtimeobject.RuntimeObject, debugLabelValue string, r reconcile.Reconciler, log *logger.Logger, eventPredicates ...predicate.Predicate) error {
 	b, err := l.SetupWithManagerBuilder(mgr, maxReconciles, reconcilerName, instance, debugLabelValue, log, eventPredicates...)
 	if err != nil {

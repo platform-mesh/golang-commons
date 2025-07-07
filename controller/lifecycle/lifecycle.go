@@ -7,7 +7,6 @@ import (
 
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
-	"golang.org/x/exp/maps"
 	"k8s.io/apimachinery/pkg/api/equality"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,8 +19,8 @@ import (
 
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/api"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
-	"github.com/platform-mesh/golang-commons/controller/lifecycle/spread"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/subroutine"
+	"github.com/platform-mesh/golang-commons/controller/lifecycle/util"
 	"github.com/platform-mesh/golang-commons/errors"
 	"github.com/platform-mesh/golang-commons/logger"
 	"github.com/platform-mesh/golang-commons/sentry"
@@ -57,15 +56,10 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 	generationChanged := true
 
 	if l.Spreader() != nil && instance.GetDeletionTimestamp().IsZero() {
-		instanceStatusObj := l.Spreader().MustToRuntimeObjectSpreadReconcileStatusInterface(instance, log)
-		generationChanged = instance.GetGeneration() != instanceStatusObj.GetObservedGeneration()
-		isAfterNextReconcileTime := v1.Now().UTC().After(instanceStatusObj.GetNextReconcileTime().UTC())
-		refreshRequested := slices.Contains(maps.Keys(instance.GetLabels()), spread.ReconcileRefreshLabel)
-
-		reconcileRequired := generationChanged || isAfterNextReconcileTime || refreshRequested
+		reconcileRequired := l.Spreader().ReconcileRequired(instance, log)
 		if !reconcileRequired {
 			log.Info().Msg("skipping reconciliation, spread reconcile is active. No processing needed")
-			return l.Spreader().OnNextReconcile(instanceStatusObj, log)
+			return l.Spreader().OnNextReconcile(instance, log)
 		}
 	}
 
@@ -305,7 +299,7 @@ func HandleClientError(msg string, log *logger.Logger, err error, generationChan
 
 func MarkResourceAsFinal(instance runtimeobject.RuntimeObject, log *logger.Logger, conditions []v1.Condition, status v1.ConditionStatus, l api.Lifecycle) {
 	if l.Spreader() != nil && instance.GetDeletionTimestamp().IsZero() {
-		instanceStatusObj := l.Spreader().MustToRuntimeObjectSpreadReconcileStatusInterface(instance, log)
+		instanceStatusObj := util.MustToInterface[api.RuntimeObjectSpreadReconcileStatus](instance, log)
 		l.Spreader().SetNextReconcileTime(instanceStatusObj, log)
 		l.Spreader().UpdateObservedGeneration(instanceStatusObj, log)
 	}
@@ -369,7 +363,7 @@ func HandleOperatorError(ctx context.Context, operatorError errors.OperatorError
 
 func ValidateInterfaces(instance runtimeobject.RuntimeObject, log *logger.Logger, l api.Lifecycle) error {
 	if l.Spreader() != nil {
-		_, err := l.Spreader().ToRuntimeObjectSpreadReconcileStatusInterface(instance, log)
+		_, err := util.ToInterface[api.RuntimeObjectSpreadReconcileStatus](instance, log)
 		if err != nil {
 			return err
 		}

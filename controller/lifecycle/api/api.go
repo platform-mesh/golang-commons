@@ -44,9 +44,8 @@ type RuntimeObjectConditions interface {
 }
 
 type SpreadManager interface {
-	ToRuntimeObjectSpreadReconcileStatusInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) (RuntimeObjectSpreadReconcileStatus, error)
-	MustToRuntimeObjectSpreadReconcileStatusInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) RuntimeObjectSpreadReconcileStatus
-	OnNextReconcile(instanceStatusObj RuntimeObjectSpreadReconcileStatus, log *logger.Logger) (ctrl.Result, error)
+	ReconcileRequired(instance runtimeobject.RuntimeObject, log *logger.Logger) bool
+	OnNextReconcile(instance runtimeobject.RuntimeObject, log *logger.Logger) (ctrl.Result, error)
 	RemoveRefreshLabelIfExists(instance runtimeobject.RuntimeObject) bool
 	SetNextReconcileTime(instanceStatusObj RuntimeObjectSpreadReconcileStatus, log *logger.Logger)
 	UpdateObservedGeneration(instanceStatusObj RuntimeObjectSpreadReconcileStatus, log *logger.Logger)

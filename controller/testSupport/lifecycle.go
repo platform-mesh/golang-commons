@@ -37,15 +37,14 @@ func (l *TestLifecycleManager) PrepareContextFunc() api.PrepareContextFunc {
 	return l.prepareContextFunc
 }
 func (l *TestLifecycleManager) Subroutines() []subroutine.Subroutine { return l.SubroutinesArr }
-func (l *TestLifecycleManager) WithSpreadingReconciles() *TestLifecycleManager {
+func (l *TestLifecycleManager) WithSpreadingReconciles() api.Lifecycle {
 	l.spreader = &TestSpreader{ShouldReconcile: l.ShouldReconcile}
 	return l
 }
-func (l *TestLifecycleManager) WithConditionManagement() *TestLifecycleManager {
+func (l *TestLifecycleManager) WithConditionManagement() api.Lifecycle {
 	l.conditionsManager = &TestConditionManager{}
 	return l
 }
-
 func (l *TestLifecycleManager) WithPrepareContextFunc(prepareFunction api.PrepareContextFunc) *TestLifecycleManager {
 	l.prepareContextFunc = prepareFunction
 	return l

@@ -37,8 +37,9 @@ func TestLifecycle(t *testing.T) {
 		m, err := manager.New(&rest.Config{}, manager.Options{Scheme: fakeClient.Scheme()})
 		assert.NoError(t, err)
 
-		lm, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
-		lm = lm.WithSpreadingReconciles()
+		log := testlogger.New()
+		lm := NewLifecycleManager([]subroutine.Subroutine{}, "test-operator", "test-controller", fakeClient, log.Logger)
+		lm.WithSpreadingReconciles()
 		tr := &testReconciler{lifecycleManager: lm}
 
 		// Act
@@ -56,7 +57,7 @@ func TestLifecycle(t *testing.T) {
 		assert.NoError(t, err)
 
 		lm, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
-		lm = lm.WithSpreadingReconciles()
+		lm.WithSpreadingReconciles()
 		tr := &testReconciler{lifecycleManager: lm}
 
 		// Act
@@ -74,7 +75,8 @@ func TestLifecycle(t *testing.T) {
 		assert.NoError(t, err)
 
 		lm, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
-		lm.WithSpreadingReconciles().WithReadOnly()
+		lm.WithSpreadingReconciles()
+		lm.WithReadOnly()
 		tr := &testReconciler{lifecycleManager: lm}
 
 		// Act
@@ -133,7 +135,7 @@ func TestLifecycle(t *testing.T) {
 		_, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
 
 		// When
-		l := NewLifecycleManager(log.Logger, "test-operator", "test-controller", fakeClient, []subroutine.Subroutine{}).WithConditionManagement()
+		l := NewLifecycleManager([]subroutine.Subroutine{}, "test-operator", "test-controller", fakeClient, log.Logger).WithConditionManagement()
 
 		// Then
 		assert.True(t, true, l.ConditionsManager() != nil)
@@ -144,7 +146,7 @@ func TestLifecycle(t *testing.T) {
 		_, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
 
 		// When
-		l := NewLifecycleManager(log.Logger, "test-operator", "test-controller", fakeClient, []subroutine.Subroutine{}).WithReadOnly()
+		l := NewLifecycleManager([]subroutine.Subroutine{}, "test-operator", "test-controller", fakeClient, log.Logger).WithReadOnly()
 
 		// Then
 		assert.True(t, true, l.ConditionsManager() != nil)
@@ -162,6 +164,6 @@ func (r *testReconciler) Reconcile(ctx context.Context, req controllerruntime.Re
 
 func createLifecycleManager(subroutines []subroutine.Subroutine, c client.Client) (*LifecycleManager, *testlogger.TestLogger) {
 	log := testlogger.New()
-	mgr := NewLifecycleManager(log.Logger, "test-operator", "test-controller", c, subroutines)
+	mgr := NewLifecycleManager(subroutines, "test-operator", "test-controller", c, log.Logger)
 	return mgr, log
 }

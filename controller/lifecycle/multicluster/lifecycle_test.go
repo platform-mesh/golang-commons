@@ -185,7 +185,7 @@ func TestLifecycleManager_WithConditionManagement(t *testing.T) {
 	_, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
 
 	// When
-	l := NewLifecycleManager(log.Logger, "test-operator", "test-controller", clusterGetter, []subroutine.Subroutine{}).WithConditionManagement()
+	l := NewLifecycleManager([]subroutine.Subroutine{}, "test-operator", "test-controller", clusterGetter, log.Logger).WithConditionManagement()
 
 	// Then
 	assert.True(t, true, l.ConditionsManager() != nil)
@@ -202,6 +202,6 @@ func (r *testReconciler) Reconcile(ctx context.Context, req mcreconcile.Request)
 func createLifecycleManager(subroutines []subroutine.Subroutine, client client.Client) (*LifecycleManager, *testlogger.TestLogger) {
 	log := testlogger.New()
 	clusterGetter := &pmtesting.FakeManager{Client: client}
-	m := NewLifecycleManager(log.Logger, "test-operator", "test-controller", clusterGetter, subroutines)
+	m := NewLifecycleManager(subroutines, "test-operator", "test-controller", clusterGetter, log.Logger)
 	return m, log
 }

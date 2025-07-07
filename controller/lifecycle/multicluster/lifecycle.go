@@ -37,7 +37,7 @@ type LifecycleManager struct {
 	prepareContextFunc api.PrepareContextFunc
 }
 
-func NewLifecycleManager(log *logger.Logger, operatorName string, controllerName string, mgr ClusterGetter, subroutines []subroutine.Subroutine) *LifecycleManager {
+func NewLifecycleManager(subroutines []subroutine.Subroutine, operatorName string, controllerName string, mgr ClusterGetter, log *logger.Logger) *LifecycleManager {
 	log = log.MustChildLoggerWithAttributes("operator", operatorName, "controller", controllerName)
 	return &LifecycleManager{
 		log:         log,

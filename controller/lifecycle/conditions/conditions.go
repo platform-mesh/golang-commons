@@ -7,11 +7,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/platform-mesh/golang-commons/controller/lifecycle/api"
-	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/subroutine"
 	"github.com/platform-mesh/golang-commons/logger"
-	"github.com/platform-mesh/golang-commons/sentry"
 )
 
 const (
@@ -117,23 +114,4 @@ func (c *ConditionManager) SetSubroutineCondition(conditions *[]metav1.Condition
 		log.Info().Str("type", conditionName).Msg("updated condition")
 	}
 	return changed
-}
-
-func (c *ConditionManager) ToRuntimeObjectConditionsInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) (api.RuntimeObjectConditions, error) {
-	if obj, ok := instance.(api.RuntimeObjectConditions); ok {
-		return obj, nil
-	}
-	err := fmt.Errorf("ManageConditions is enabled, but instance does not implement RuntimeObjectConditions interface. This is a programming error")
-	log.Error().Err(err).Msg("instance does not implement RuntimeObjectConditions interface")
-	sentry.CaptureError(err, nil)
-	return nil, err
-}
-
-func (c *ConditionManager) MustToRuntimeObjectConditionsInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) api.RuntimeObjectConditions {
-	obj, err := c.ToRuntimeObjectConditionsInterface(instance, log)
-	if err == nil {
-		return obj
-	}
-	log.Panic().Err(err).Msg("instance does not implement RuntimeObjectConditions interface")
-	return nil
 }

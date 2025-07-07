@@ -30,12 +30,10 @@ type Config struct {
 }
 
 type ConditionManager interface {
-	MustToRuntimeObjectConditionsInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) RuntimeObjectConditions
 	SetInstanceConditionUnknownIfNotSet(conditions *[]metav1.Condition) bool
 	SetSubroutineConditionToUnknownIfNotSet(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, isFinalize bool, log *logger.Logger) bool
 	SetSubroutineCondition(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, subroutineResult ctrl.Result, subroutineErr error, isFinalize bool, log *logger.Logger) bool
 	SetInstanceConditionReady(conditions *[]metav1.Condition, status metav1.ConditionStatus) bool
-	ToRuntimeObjectConditionsInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) (RuntimeObjectConditions, error)
 }
 
 type RuntimeObjectConditions interface {

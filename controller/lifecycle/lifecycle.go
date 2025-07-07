@@ -71,7 +71,8 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 
 	var condArr []v1.Condition
 	if l.ConditionsManager() != nil {
-		condArr = l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).GetConditions()
+		roc := util.MustToInterface[api.RuntimeObjectConditions](instance, log)
+		condArr = roc.GetConditions()
 		l.ConditionsManager().SetInstanceConditionUnknownIfNotSet(&condArr)
 	}
 
@@ -98,18 +99,18 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 
 		// Set current condArr before reconciling the s
 		if l.ConditionsManager() != nil {
-			l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).SetConditions(condArr)
+			util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
 		}
 		subResult, retry, err := reconcileSubroutine(ctx, instance, s, cl, l, log, generationChanged, sentryTags)
 		// Update condArr with any changes the s did
 		if l.ConditionsManager() != nil {
-			condArr = l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).GetConditions()
+			condArr = util.MustToInterface[api.RuntimeObjectConditions](instance, log).GetConditions()
 		}
 		if err != nil {
 			if l.ConditionsManager() != nil {
 				l.ConditionsManager().SetSubroutineCondition(&condArr, s, result, err, inDeletion, log)
 				l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
-				l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).SetConditions(condArr)
+				util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
 			}
 			if !retry {
 				MarkResourceAsFinal(instance, log, condArr, v1.ConditionFalse, l)
@@ -144,7 +145,7 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 	}
 
 	if l.ConditionsManager() != nil {
-		l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).SetConditions(condArr)
+		util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
 	}
 
 	if !l.Config().ReadOnly {
@@ -369,7 +370,8 @@ func ValidateInterfaces(instance runtimeobject.RuntimeObject, log *logger.Logger
 		}
 	}
 	if l.ConditionsManager() != nil {
-		_, err := l.ConditionsManager().ToRuntimeObjectConditionsInterface(instance, log)
+		util.ToInterface[api.RuntimeObjectConditions](instance, log)
+		_, err := util.ToInterface[api.RuntimeObjectConditions](instance, log)
 		if err != nil {
 			return err
 		}

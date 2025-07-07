@@ -1,8 +1,10 @@
 package testSupport
 
 import (
+	"fmt"
 	"time"
 
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 
@@ -13,25 +15,28 @@ import (
 )
 
 type TestLifecycleManager struct {
-	Logger            *logger.Logger
-	SubroutinesArr    []subroutine.Subroutine
-	spreader          api.SpreadManager
-	conditionsManager api.ConditionManager
-	ShouldReconcile   bool
+	Logger             *logger.Logger
+	SubroutinesArr     []subroutine.Subroutine
+	spreader           api.SpreadManager
+	conditionsManager  api.ConditionManager
+	ShouldReconcile    bool
+	prepareContextFunc api.PrepareContextFunc
 }
 
-func (t TestLifecycleManager) Config() api.Config {
+func (l *TestLifecycleManager) Config() api.Config {
 	return api.Config{
 		ControllerName: "test-controller",
 		OperatorName:   "test-operator",
 		ReadOnly:       false,
 	}
 }
-func (t TestLifecycleManager) Log() *logger.Logger                        { return t.Logger }
-func (t TestLifecycleManager) Spreader() api.SpreadManager                { return t.spreader }
-func (t TestLifecycleManager) ConditionsManager() api.ConditionManager    { return t.conditionsManager }
-func (t TestLifecycleManager) PrepareContextFunc() api.PrepareContextFunc { return nil }
-func (t TestLifecycleManager) Subroutines() []subroutine.Subroutine       { return t.SubroutinesArr }
+func (l *TestLifecycleManager) Log() *logger.Logger                     { return l.Logger }
+func (l *TestLifecycleManager) Spreader() api.SpreadManager             { return l.spreader }
+func (l *TestLifecycleManager) ConditionsManager() api.ConditionManager { return l.conditionsManager }
+func (l *TestLifecycleManager) PrepareContextFunc() api.PrepareContextFunc {
+	return l.prepareContextFunc
+}
+func (l *TestLifecycleManager) Subroutines() []subroutine.Subroutine { return l.SubroutinesArr }
 func (l *TestLifecycleManager) WithSpreadingReconciles() *TestLifecycleManager {
 	l.spreader = &TestSpreader{ShouldReconcile: l.ShouldReconcile}
 	return l
@@ -41,69 +46,86 @@ func (l *TestLifecycleManager) WithConditionManagement() *TestLifecycleManager {
 	return l
 }
 
+func (l *TestLifecycleManager) WithPrepareContextFunc(prepareFunction api.PrepareContextFunc) *TestLifecycleManager {
+	l.prepareContextFunc = prepareFunction
+	return l
+}
+
 type TestSpreader struct {
 	ShouldReconcile bool
 }
 
-func (t TestSpreader) ReconcileRequired(instance runtimeobject.RuntimeObject, log *logger.Logger) bool {
+func (t TestSpreader) ReconcileRequired(runtimeobject.RuntimeObject, *logger.Logger) bool {
 	return t.ShouldReconcile
 }
 
-func (t TestSpreader) ToRuntimeObjectSpreadReconcileStatusInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) (api.RuntimeObjectSpreadReconcileStatus, error) {
+func (t TestSpreader) ToRuntimeObjectSpreadReconcileStatusInterface() (api.RuntimeObjectSpreadReconcileStatus, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (t TestSpreader) MustToRuntimeObjectSpreadReconcileStatusInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) api.RuntimeObjectSpreadReconcileStatus {
+func (t TestSpreader) MustToRuntimeObjectSpreadReconcileStatusInterface() api.RuntimeObjectSpreadReconcileStatus {
 
 	//TODO implement me
 	panic("implement me")
 }
 
-func (t TestSpreader) OnNextReconcile(instance runtimeobject.RuntimeObject, log *logger.Logger) (ctrl.Result, error) {
+func (t TestSpreader) OnNextReconcile(runtimeobject.RuntimeObject, *logger.Logger) (ctrl.Result, error) {
 	return ctrl.Result{RequeueAfter: 10 * time.Minute}, nil
 }
 
 func (t TestSpreader) RemoveRefreshLabelIfExists(instance runtimeobject.RuntimeObject) bool {
+	lbs := instance.GetLabels()
+	if _, ok := lbs["platform-mesh.io/refresh-reconcile"]; ok {
+		delete(lbs, "platform-mesh.io/refresh-reconcile")
+		instance.SetLabels(lbs)
+		return true
+	}
 	return false
 }
 
-func (t TestSpreader) SetNextReconcileTime(instanceStatusObj api.RuntimeObjectSpreadReconcileStatus, log *logger.Logger) {
+func (t TestSpreader) SetNextReconcileTime(instanceStatusObj api.RuntimeObjectSpreadReconcileStatus, _ *logger.Logger) {
 	instanceStatusObj.SetNextReconcileTime(metav1.NewTime(time.Now().Add(10 * time.Hour)))
 }
 
-func (t TestSpreader) UpdateObservedGeneration(instanceStatusObj api.RuntimeObjectSpreadReconcileStatus, log *logger.Logger) {
+func (t TestSpreader) UpdateObservedGeneration(instanceStatusObj api.RuntimeObjectSpreadReconcileStatus, _ *logger.Logger) {
 	instanceStatusObj.SetObservedGeneration(instanceStatusObj.GetGeneration())
 }
 
 type TestConditionManager struct{}
 
-func (t TestConditionManager) MustToRuntimeObjectConditionsInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) api.RuntimeObjectConditions {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (t TestConditionManager) SetInstanceConditionUnknownIfNotSet(conditions *[]metav1.Condition) bool {
-	//TODO implement me
-	panic("implement me")
+	return meta.SetStatusCondition(conditions, metav1.Condition{
+		Type:    "Ready",
+		Status:  metav1.ConditionUnknown,
+		Message: "The resource is in an unknown state",
+		Reason:  "Unknown",
+	})
 }
 
-func (t TestConditionManager) SetSubroutineConditionToUnknownIfNotSet(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, isFinalize bool, log *logger.Logger) bool {
-	//TODO implement me
-	panic("implement me")
+func (t TestConditionManager) SetSubroutineConditionToUnknownIfNotSet(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, _ bool, _ *logger.Logger) bool {
+	return meta.SetStatusCondition(conditions, metav1.Condition{
+		Type:    fmt.Sprintf("%s_Ready", subroutine.GetName()),
+		Status:  metav1.ConditionUnknown,
+		Message: "The resource is in an unknown state",
+		Reason:  "Unknown",
+	})
 }
 
-func (t TestConditionManager) SetSubroutineCondition(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, subroutineResult ctrl.Result, subroutineErr error, isFinalize bool, log *logger.Logger) bool {
-	//TODO implement me
-	panic("implement me")
+func (t TestConditionManager) SetSubroutineCondition(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, _ ctrl.Result, _ error, _ bool, _ *logger.Logger) bool {
+	return meta.SetStatusCondition(conditions, metav1.Condition{
+		Type:    fmt.Sprintf("%s_Ready", subroutine.GetName()),
+		Status:  metav1.ConditionTrue,
+		Message: "The subroutine is complete",
+		Reason:  "ok",
+	})
 }
 
-func (t TestConditionManager) SetInstanceConditionReady(conditions *[]metav1.Condition, status metav1.ConditionStatus) bool {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t TestConditionManager) ToRuntimeObjectConditionsInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) (api.RuntimeObjectConditions, error) {
-	//TODO implement me
-	panic("implement me")
+func (t TestConditionManager) SetInstanceConditionReady(conditions *[]metav1.Condition, _ metav1.ConditionStatus) bool {
+	return meta.SetStatusCondition(conditions, metav1.Condition{
+		Type:    "Ready",
+		Status:  metav1.ConditionTrue,
+		Message: "The resource is ready",
+		Reason:  "ok",
+	})
 }

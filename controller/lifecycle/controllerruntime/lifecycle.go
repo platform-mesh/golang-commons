@@ -64,7 +64,7 @@ func (l *LifecycleManager) ConditionsManager() api.ConditionManager {
 	return l.conditionsManager
 }
 func (l *LifecycleManager) Spreader() api.SpreadManager {
-	// it is important to return nil unsted of a nil pointer to the interface to avoid misbehaving nil checks
+	// it is important to return nil instead of a nil pointer to the interface to avoid misbehaving nil checks
 	if l.spreader == nil {
 		return nil
 	}

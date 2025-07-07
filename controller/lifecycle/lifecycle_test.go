@@ -566,7 +566,6 @@ func TestLifecycle(t *testing.T) {
 		assert.Equal(t, testErr, err)
 		assert.Equal(t, ctrl.Result{}, result)
 	})
-
 	t.Run("Lifecycle with manage conditions reconciles w/o subroutines", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
@@ -594,7 +593,6 @@ func TestLifecycle(t *testing.T) {
 		assert.Equal(t, instance.Status.Conditions[0].Status, metav1.ConditionTrue)
 		assert.Equal(t, instance.Status.Conditions[0].Message, "The resource is ready")
 	})
-
 	t.Run("Lifecycle with manage conditions reconciles with subroutine", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
@@ -629,193 +627,6 @@ func TestLifecycle(t *testing.T) {
 		assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[1].Status)
 		assert.Equal(t, "The subroutine is complete", instance.Status.Conditions[1].Message)
 	})
-
-	//t.Run("Lifecycle with manage conditions reconciles with subroutine that adds a condition", func(t *testing.T) {
-	//	// Arrange
-	//	instance := &pmtesting.ImplementConditions{
-	//		TestApiObject: pmtesting.TestApiObject{
-	//			ObjectMeta: metav1.ObjectMeta{
-	//				Name:       name,
-	//				Namespace:  namespace,
-	//				Generation: 1,
-	//			},
-	//			Status: pmtesting.TestStatus{},
-	//		},
-	//	}
-	//
-	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
-	//
-	//	mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.AddConditionSubroutine{Ready: metav1.ConditionTrue}}, fakeClient)
-	//	mgr.WithConditionManagement()
-	//
-	//	// Act
-	//	_, err := mgr.Reconcile(ctx, request, instance)
-	//
-	//	assert.NoError(t, err)
-	//	require.Len(t, instance.Status.Conditions, 3)
-	//	assert.Equal(t, conditions.ConditionReady, instance.Status.Conditions[0].Type)
-	//	assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[0].Status)
-	//	assert.Equal(t, "The resource is ready", instance.Status.Conditions[0].Message)
-	//	assert.Equal(t, "addCondition_Ready", instance.Status.Conditions[1].Type)
-	//	assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[1].Status)
-	//	assert.Equal(t, "The subroutine is complete", instance.Status.Conditions[1].Message)
-	//	assert.Equal(t, "test", instance.Status.Conditions[2].Type)
-	//	assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[2].Status)
-	//	assert.Equal(t, "test", instance.Status.Conditions[2].Message)
-	//
-	//})
-	//
-	//t.Run("Lifecycle with manage conditions reconciles with subroutine that adds a condition", func(t *testing.T) {
-	//	// Arrange
-	//	instance := &pmtesting.ImplementConditions{
-	//		TestApiObject: pmtesting.TestApiObject{
-	//			ObjectMeta: metav1.ObjectMeta{
-	//				Name:       name,
-	//				Namespace:  namespace,
-	//				Generation: 1,
-	//			},
-	//			Status: pmtesting.TestStatus{},
-	//		},
-	//	}
-	//
-	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
-	//
-	//	mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.AddConditionSubroutine{Ready: metav1.ConditionTrue}}, fakeClient)
-	//	mgr.WithConditionManagement()
-	//
-	//	// Act
-	//	_, err := mgr.Reconcile(ctx, request, instance)
-	//
-	//	assert.NoError(t, err)
-	//	require.Len(t, instance.Status.Conditions, 3)
-	//	assert.Equal(t, conditions.ConditionReady, instance.Status.Conditions[0].Type)
-	//	assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[0].Status)
-	//	assert.Equal(t, "The resource is ready", instance.Status.Conditions[0].Message)
-	//	assert.Equal(t, "addCondition_Ready", instance.Status.Conditions[1].Type)
-	//	assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[1].Status)
-	//	assert.Equal(t, "The subroutine is complete", instance.Status.Conditions[1].Message)
-	//	assert.Equal(t, "test", instance.Status.Conditions[2].Type)
-	//	assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[2].Status)
-	//	assert.Equal(t, "test", instance.Status.Conditions[2].Message)
-	//
-	//})
-	//
-	//t.Run("Lifecycle with manage conditions reconciles with subroutine that adds a condition with preexisting conditions (update)", func(t *testing.T) {
-	//	// Arrange
-	//	instance := &pmtesting.ImplementConditions{
-	//		TestApiObject: pmtesting.TestApiObject{
-	//			ObjectMeta: metav1.ObjectMeta{
-	//				Name:       name,
-	//				Namespace:  namespace,
-	//				Generation: 1,
-	//			},
-	//			Status: pmtesting.TestStatus{
-	//				Conditions: []metav1.Condition{
-	//					{
-	//						Type:    "test",
-	//						Status:  metav1.ConditionFalse,
-	//						Reason:  "test",
-	//						Message: "test",
-	//					},
-	//				},
-	//			},
-	//		},
-	//	}
-	//
-	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
-	//
-	//	mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.AddConditionSubroutine{Ready: metav1.ConditionTrue}}, fakeClient)
-	//	mgr.WithConditionManagement()
-	//
-	//	// Act
-	//	_, err := mgr.Reconcile(ctx, request, instance)
-	//
-	//	assert.NoError(t, err)
-	//	require.Len(t, instance.Status.Conditions, 3)
-	//	assert.Equal(t, "test", instance.Status.Conditions[0].Type)
-	//	assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[0].Status)
-	//	assert.Equal(t, "test", instance.Status.Conditions[0].Message)
-	//	assert.Equal(t, conditions.ConditionReady, instance.Status.Conditions[1].Type)
-	//	assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[1].Status)
-	//	assert.Equal(t, "The resource is ready", instance.Status.Conditions[1].Message)
-	//	assert.Equal(t, "addCondition_Ready", instance.Status.Conditions[2].Type)
-	//	assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[2].Status)
-	//	assert.Equal(t, "The subroutine is complete", instance.Status.Conditions[2].Message)
-	//
-	//})
-	//
-	//t.Run("Lifecycle with manage conditions reconciles with subroutine that adds a condition with preexisting conditions", func(t *testing.T) {
-	//	// Arrange
-	//	instance := &pmtesting.ImplementConditions{
-	//		TestApiObject: pmtesting.TestApiObject{
-	//			ObjectMeta: metav1.ObjectMeta{
-	//				Name:       name,
-	//				Namespace:  namespace,
-	//				Generation: 1,
-	//			},
-	//			Status: pmtesting.TestStatus{
-	//				Conditions: []metav1.Condition{
-	//					{
-	//						Type:    conditions.ConditionReady,
-	//						Status:  metav1.ConditionTrue,
-	//						Message: "The resource is ready!!",
-	//						Reason:  conditions.ConditionReady,
-	//					},
-	//				},
-	//			},
-	//		},
-	//	}
-	//
-	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
-	//
-	//	mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.AddConditionSubroutine{Ready: metav1.ConditionTrue}}, fakeClient)
-	//	mgr.WithConditionManagement()
-	//
-	//	// Act
-	//	_, err := mgr.Reconcile(ctx, request, instance)
-	//
-	//	assert.NoError(t, err)
-	//	require.Len(t, instance.Status.Conditions, 3)
-	//	assert.Equal(t, conditions.ConditionReady, instance.Status.Conditions[0].Type)
-	//	assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[0].Status)
-	//	assert.Equal(t, "The resource is ready", instance.Status.Conditions[0].Message)
-	//	assert.Equal(t, "addCondition_Ready", instance.Status.Conditions[1].Type)
-	//	assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[1].Status)
-	//	assert.Equal(t, "The subroutine is complete", instance.Status.Conditions[1].Message)
-	//	assert.Equal(t, "test", instance.Status.Conditions[2].Type)
-	//	assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[2].Status)
-	//	assert.Equal(t, "test", instance.Status.Conditions[2].Message)
-	//
-	//})
-	//
-	//t.Run("Lifecycle w/o manage conditions reconciles with subroutine that adds a condition", func(t *testing.T) {
-	//	// Arrange
-	//	instance := &pmtesting.ImplementConditions{
-	//		TestApiObject: pmtesting.TestApiObject{
-	//			ObjectMeta: metav1.ObjectMeta{
-	//				Name:       name,
-	//				Namespace:  namespace,
-	//				Generation: 1,
-	//			},
-	//			Status: pmtesting.TestStatus{},
-	//		},
-	//	}
-	//
-	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
-	//
-	//	mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.AddConditionSubroutine{Ready: metav1.ConditionTrue}}, fakeClient)
-	//
-	//	// Act
-	//	_, err := mgr.Reconcile(ctx, request, instance)
-	//
-	//	assert.NoError(t, err)
-	//	require.Len(t, instance.Status.Conditions, 1)
-	//	assert.Equal(t, "test", instance.Status.Conditions[0].Type)
-	//	assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[0].Status)
-	//	assert.Equal(t, "test", instance.Status.Conditions[0].Message)
-	//
-	//})
-	//
 	t.Run("Lifecycle with manage conditions reconciles with subroutine failing Status update", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
@@ -850,7 +661,6 @@ func TestLifecycle(t *testing.T) {
 		assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[1].Status)
 		assert.Equal(t, "The subroutine is complete", instance.Status.Conditions[1].Message)
 	})
-
 	t.Run("Lifecycle with manage conditions finalizes with multiple subroutines partially succeeding", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
@@ -879,39 +689,6 @@ func TestLifecycle(t *testing.T) {
 		assert.Error(t, err)
 		require.Len(t, instance.Status.Conditions, 3)
 	})
-
-	//t.Run("Lifecycle with manage conditions reconciles with ReqeueAfter subroutine", func(t *testing.T) {
-	//	// Arrange
-	//	instance := &pmtesting.ImplementConditions{
-	//		TestApiObject: pmtesting.TestApiObject{
-	//			ObjectMeta: metav1.ObjectMeta{
-	//				Name:       name,
-	//				Namespace:  namespace,
-	//				Generation: 1,
-	//			},
-	//			Status: pmtesting.TestStatus{},
-	//		},
-	//	}
-	//
-	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
-	//
-	//	mgr, _ := createLifecycleManager([]subroutine.Subroutine{
-	//		pmtesting.FailureScenarioSubroutine{RequeAfter: true}}, fakeClient)
-	//	mgr.WithConditionManagement()
-	//
-	//	// Act
-	//	_, err := mgr.Reconcile(ctx, request, instance)
-	//
-	//	assert.NoError(t, err)
-	//	assert.Len(t, instance.Status.Conditions, 2)
-	//	assert.Equal(t, conditions.ConditionReady, instance.Status.Conditions[0].Type)
-	//	assert.Equal(t, metav1.ConditionFalse, instance.Status.Conditions[0].Status)
-	//	assert.Equal(t, "The resource is not ready", instance.Status.Conditions[0].Message)
-	//	assert.Equal(t, "FailureScenarioSubroutine_Ready", instance.Status.Conditions[1].Type)
-	//	assert.Equal(t, metav1.ConditionUnknown, instance.Status.Conditions[1].Status)
-	//	assert.Equal(t, "The subroutine is processing", instance.Status.Conditions[1].Message)
-	//})
-	//
 	t.Run("Lifecycle with manage conditions reconciles with Error subroutine (no-retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
@@ -938,7 +715,6 @@ func TestLifecycle(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, instance.Status.Conditions, 2)
 	})
-
 	t.Run("Lifecycle with manage conditions reconciles with Error subroutine (retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
@@ -965,101 +741,6 @@ func TestLifecycle(t *testing.T) {
 		assert.Error(t, err)
 		assert.Len(t, instance.Status.Conditions, 2)
 	})
-	//
-	//t.Run("Lifecycle with manage conditions not implementing the interface", func(t *testing.T) {
-	//	// Arrange
-	//	instance := &pmtesting.NotImplementingSpreadReconciles{
-	//		ObjectMeta: metav1.ObjectMeta{
-	//			Name:       name,
-	//			Namespace:  namespace,
-	//			Generation: 1,
-	//		},
-	//		Status: pmtesting.TestStatus{
-	//			Some:               "string",
-	//			ObservedGeneration: 0,
-	//		},
-	//	}
-	//
-	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
-	//
-	//	mgr, _ := createLifecycleManager([]subroutine.Subroutine{
-	//		pmtesting.ChangeStatusSubroutine{
-	//			Client: fakeClient,
-	//		},
-	//	}, fakeClient)
-	//	mgr.WithConditionManagement()
-	//
-	//	// Act
-	//	// So the validation is already happening in SetupWithManager. So we can panic in the reconcile.
-	//	assert.Panics(t, func() {
-	//		_, _ = mgr.Reconcile(ctx, request, instance)
-	//	})
-	//})
-	//
-	//t.Run("Lifecycle with manage conditions failing finalize", func(t *testing.T) {
-	//	// Arrange
-	//	instance := &pmtesting.ImplementConditions{
-	//		TestApiObject: pmtesting.TestApiObject{
-	//			ObjectMeta: metav1.ObjectMeta{
-	//				Name:              name,
-	//				Namespace:         namespace,
-	//				Generation:        1,
-	//				Finalizers:        []string{pmtesting.FailureScenarioSubroutineFinalizer},
-	//				DeletionTimestamp: &metav1.Time{Time: time.Now()},
-	//			},
-	//			Status: pmtesting.TestStatus{
-	//				Some:               "string",
-	//				ObservedGeneration: 0,
-	//			},
-	//		},
-	//	}
-	//
-	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
-	//
-	//	mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{}}, fakeClient)
-	//	mgr.WithConditionManagement()
-	//
-	//	// Act
-	//	_, err := mgr.Reconcile(ctx, request, instance)
-	//
-	//	assert.Error(t, err)
-	//	assert.Equal(t, "FailureScenarioSubroutine", err.Error())
-	//})
-	//
-	//t.Run("Lifecycle with spread reconciles and manage conditions and processing fails (retry)", func(t *testing.T) {
-	//	// Arrange
-	//	instance := &pmtesting.ImplementConditionsAndSpreadReconciles{
-	//		TestApiObject: pmtesting.TestApiObject{
-	//			ObjectMeta: metav1.ObjectMeta{
-	//				Name:       name,
-	//				Namespace:  namespace,
-	//				Generation: 1,
-	//			},
-	//			Status: pmtesting.TestStatus{
-	//				Some:               "string",
-	//				ObservedGeneration: 0,
-	//			},
-	//		},
-	//	}
-	//
-	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
-	//
-	//	mgr, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.FailureScenarioSubroutine{Retry: true, RequeAfter: false}}, fakeClient)
-	//	mgr.WithSpreadingReconciles()
-	//	mgr.WithConditionManagement()
-	//
-	//	// Act
-	//	_, err := mgr.Reconcile(ctx, request, instance)
-	//
-	//	assert.Error(t, err)
-	//	assert.Len(t, instance.Status.Conditions, 2)
-	//	assert.Equal(t, conditions.ConditionReady, instance.Status.Conditions[0].Type)
-	//	assert.Equal(t, string(v1.ConditionFalse), string(instance.Status.Conditions[0].Status))
-	//	assert.Equal(t, "FailureScenarioSubroutine_Ready", instance.Status.Conditions[1].Type)
-	//	assert.Equal(t, string(v1.ConditionFalse), string(instance.Status.Conditions[1].Status))
-	//	assert.Equal(t, int64(0), instance.Status.ObservedGeneration)
-	//})
-	//
 	t.Run("Lifecycle with spread reconciles and manage conditions and processing fails (no-retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditionsAndSpreadReconciles{
@@ -1090,106 +771,7 @@ func TestLifecycle(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, instance.Status.Conditions, 2)
 	})
-	//
-	//t.Run("Test Lifecycle setupWithManager /w conditions and expecting no error", func(t *testing.T) {
-	//	// Arrange
-	//	instance := &pmtesting.ImplementConditions{}
-	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
-	//
-	//	m, err := manager.New(&rest.Config{}, manager.Options{Scheme: fakeClient.Scheme()})
-	//	assert.NoError(t, err)
-	//
-	//	lm, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
-	//	lm = lm.WithConditionManagement()
-	//	tr := &testReconciler{lifecycleManager: lm}
-	//
-	//	// Act
-	//	err = lm.SetupWithManager(m, 0, "testReconciler1", instance, "test", tr, log.Logger)
-	//
-	//	// Assert
-	//	assert.NoError(t, err)
-	//})
-	//
-	//t.Run("Test Lifecycle setupWithManager /w conditions and expecting error", func(t *testing.T) {
-	//	// Arrange
-	//	instance := &pmtesting.NotImplementingSpreadReconciles{}
-	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
-	//
-	//	m, err := manager.New(&rest.Config{}, manager.Options{Scheme: fakeClient.Scheme()})
-	//	assert.NoError(t, err)
-	//
-	//	lm, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
-	//	lm = lm.WithConditionManagement()
-	//	tr := &testReconciler{lifecycleManager: lm}
-	//
-	//	// Act
-	//	err = lm.SetupWithManager(m, 0, "testReconciler2", instance, "test", tr, log.Logger)
-	//
-	//	// Assert
-	//	assert.Error(t, err)
-	//})
-	//
-	//t.Run("Test Lifecycle setupWithManager /w spread and expecting no error", func(t *testing.T) {
-	//	// Arrange
-	//	instance := &pmtesting.ImplementingSpreadReconciles{}
-	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
-	//
-	//	m, err := manager.New(&rest.Config{}, manager.Options{Scheme: fakeClient.Scheme()})
-	//	assert.NoError(t, err)
-	//
-	//	lm, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
-	//	lm = lm.WithSpreadingReconciles()
-	//	tr := &testReconciler{lifecycleManager: lm}
-	//
-	//	// Act
-	//	err = lm.SetupWithManager(m, 0, "testReconciler3", instance, "test", tr, log.Logger)
-	//
-	//	// Assert
-	//	assert.NoError(t, err)
-	//})
-	//
-	//t.Run("Test Lifecycle setupWithManager /w spread and expecting a error", func(t *testing.T) {
-	//	// Arrange
-	//	instance := &pmtesting.NotImplementingSpreadReconciles{}
-	//	fakeClient := pmtesting.CreateFakeClient(t, instance)
-	//
-	//	m, err := manager.New(&rest.Config{}, manager.Options{Scheme: fakeClient.Scheme()})
-	//	assert.NoError(t, err)
-	//
-	//	lm, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
-	//	lm = lm.WithSpreadingReconciles()
-	//	tr := &testReconciler{lifecycleManager: lm}
-	//
-	//	// Act
-	//	err = lm.SetupWithManager(m, 0, "testReconciler", instance, "test", tr, log.Logger)
-	//
-	//	// Assert
-	//	assert.Error(t, err)
-	//})
-	//
 	errorMessage := "oh nose"
-	//t.Run("handleOperatorError", func(t *testing.T) {
-	//	t.Run("Should handle an operator error with retry and sentry", func(t *testing.T) {
-	//		// Arrange
-	//		instance := &pmtesting.ImplementConditions{}
-	//		fakeClient := pmtesting.CreateFakeClient(t, instance)
-	//
-	//		_, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
-	//		ctx = sentry.ContextWithSentryTags(ctx, map[string]string{})
-	//
-	//		// Act
-	//		result, err := lifecycle.HandleOperatorError(ctx, operrors.NewOperatorError(goerrors.New(errorMessage), true, true), "handle op error", true, log.Logger)
-	//
-	//		// Assert
-	//		assert.Error(t, err)
-	//		assert.NotNil(t, result)
-	//		assert.Equal(t, errorMessage, err.Error())
-	//
-	//		errorMessages, err := log.GetErrorMessages()
-	//		assert.NoError(t, err)
-	//		assert.Equal(t, errorMessage, *errorMessages[0].Error)
-	//	})
-	//
 	t.Run("Should handle an operator error without retry", func(t *testing.T) {
 		// Arrange
 		testLog := testlogger.New()
@@ -1205,8 +787,6 @@ func TestLifecycle(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, errorMessage, *errorMessages[0].Error)
 	})
-
-	//
 	t.Run("Prepare Context", func(t *testing.T) {
 		t.Run("Sets a context that can be used in the subroutine", func(t *testing.T) {
 			// Arrange

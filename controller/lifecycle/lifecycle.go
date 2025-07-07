@@ -370,7 +370,6 @@ func ValidateInterfaces(instance runtimeobject.RuntimeObject, log *logger.Logger
 		}
 	}
 	if l.ConditionsManager() != nil {
-		util.ToInterface[api.RuntimeObjectConditions](instance, log)
 		_, err := util.ToInterface[api.RuntimeObjectConditions](instance, log)
 		if err != nil {
 			return err

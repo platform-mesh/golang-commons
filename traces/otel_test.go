@@ -15,6 +15,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 	collectortrace "go.opentelemetry.io/proto/otlp/collector/trace/v1"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type mockExporter struct {
@@ -129,7 +130,7 @@ func TestInitProvider_GRPCClientError(t *testing.T) {
 	defer func() { grpcNewClientFunc = orig }()
 
 	// Patch InitProvider to use grpcNewClientFunc
-	client, err := grpcNewClientFunc(cfg.CollectorEndpoint, grpc.WithInsecure())
+	client, err := grpcNewClientFunc(cfg.CollectorEndpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err == nil || client != nil {
 		t.Error("expected error and nil client when grpc.NewClient fails")
 	}

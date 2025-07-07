@@ -1327,3 +1327,107 @@ func TestUpdateStatus(t *testing.T) {
 		assert.Equal(t, "status field not found in current object", err.Error())
 	})
 }
+
+func TestAddFinalizersIfNeeded(t *testing.T) {
+	instance := &pmtesting.TestApiObject{ObjectMeta: metav1.ObjectMeta{Name: "instance1"}}
+	fakeClient := pmtesting.CreateFakeClient(t, instance)
+	sub := pmtesting.FinalizerSubroutine{Client: fakeClient}
+	// Should add finalizer
+	err := AddFinalizersIfNeeded(context.Background(), fakeClient, instance, []subroutine.Subroutine{sub}, false)
+	assert.NoError(t, err)
+	assert.Contains(t, instance.Finalizers, pmtesting.SubroutineFinalizer)
+
+	// Should not add if readonly
+	instance2 := &pmtesting.TestApiObject{}
+	err = AddFinalizersIfNeeded(context.Background(), fakeClient, instance2, []subroutine.Subroutine{sub}, true)
+	assert.NoError(t, err)
+	assert.NotContains(t, instance2.Finalizers, pmtesting.SubroutineFinalizer)
+
+	// Should not add if deletion timestamp is set
+	now := metav1.Now()
+	instance3 := &pmtesting.TestApiObject{ObjectMeta: metav1.ObjectMeta{DeletionTimestamp: &now}}
+	err = AddFinalizersIfNeeded(context.Background(), fakeClient, instance3, []subroutine.Subroutine{sub}, false)
+	assert.NoError(t, err)
+}
+
+func TestAddFinalizerIfNeeded(t *testing.T) {
+	instance := &pmtesting.TestApiObject{}
+	sub := pmtesting.FinalizerSubroutine{}
+	// Should add and return true
+	added := AddFinalizerIfNeeded(instance, sub)
+	assert.True(t, added)
+	// Should not add again
+	added = AddFinalizerIfNeeded(instance, sub)
+	assert.False(t, added)
+}
+
+func TestRemoveFinalizerIfNeeded(t *testing.T) {
+	instance := &pmtesting.TestApiObject{ObjectMeta: metav1.ObjectMeta{Name: "instance1"}}
+	sub := pmtesting.FinalizerSubroutine{}
+	AddFinalizerIfNeeded(instance, sub)
+	fakeClient := pmtesting.CreateFakeClient(t, instance)
+	// Should remove finalizer if not readonly and RequeueAfter == 0
+	res := ctrl.Result{}
+	err := removeFinalizerIfNeeded(context.Background(), instance, sub, res, false, fakeClient)
+	assert.Nil(t, err)
+	assert.NotContains(t, instance.Finalizers, pmtesting.SubroutineFinalizer)
+
+	// Should not remove if readonly
+	AddFinalizerIfNeeded(instance, sub)
+	err = removeFinalizerIfNeeded(context.Background(), instance, sub, res, true, fakeClient)
+	assert.Nil(t, err)
+	assert.Contains(t, instance.Finalizers, pmtesting.SubroutineFinalizer)
+
+	// Should not remove if RequeueAfter > 0
+	res = ctrl.Result{RequeueAfter: 1}
+	err = removeFinalizerIfNeeded(context.Background(), instance, sub, res, false, fakeClient)
+	assert.Nil(t, err)
+}
+
+func TestContainsFinalizer(t *testing.T) {
+	instance := &pmtesting.TestApiObject{}
+	sub := pmtesting.FinalizerSubroutine{}
+	assert.False(t, containsFinalizer(instance, sub.Finalizers()))
+	AddFinalizerIfNeeded(instance, sub)
+	assert.True(t, containsFinalizer(instance, sub.Finalizers()))
+}
+
+func TestMarkResourceAsFinal(t *testing.T) {
+	instance := &pmtesting.ImplementingSpreadReconciles{}
+	logcfg := logger.DefaultConfig()
+	logcfg.NoJSON = true
+	log, _ := logger.New(logcfg)
+	conds := []metav1.Condition{}
+	mgr := &pmtesting.TestLifecycleManager{Logger: log}
+	MarkResourceAsFinal(instance, log, conds, metav1.ConditionTrue, mgr)
+	assert.Equal(t, instance.Status.ObservedGeneration, instance.Generation)
+}
+
+func TestHandleClientError(t *testing.T) {
+	log := testlogger.New().Logger
+	result, err := HandleClientError("msg", log, fmt.Errorf("err"), true, sentry.Tags{})
+	assert.Error(t, err)
+	assert.Equal(t, ctrl.Result{}, result)
+}
+
+func TestHandleOperatorError(t *testing.T) {
+	log := testlogger.New().Logger
+	opErr := operrors.NewOperatorError(fmt.Errorf("err"), false, false)
+	result, err := HandleOperatorError(context.Background(), opErr, "msg", true, log)
+	assert.Nil(t, err)
+	assert.Equal(t, ctrl.Result{}, result)
+
+	ctx := sentry.ContextWithSentryTags(context.Background(), sentry.Tags{"test": "tag"})
+	opErr = operrors.NewOperatorError(fmt.Errorf("err"), true, true)
+	result, err = HandleOperatorError(ctx, opErr, "msg", true, log)
+	assert.Error(t, err)
+	assert.Equal(t, ctrl.Result{}, result)
+}
+
+func TestValidateInterfaces(t *testing.T) {
+	log := testlogger.New().Logger
+	instance := &pmtesting.ImplementingSpreadReconciles{}
+	mgr := &pmtesting.TestLifecycleManager{Logger: log}
+	err := ValidateInterfaces(instance, log, mgr)
+	assert.NoError(t, err)
+}

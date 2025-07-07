@@ -212,6 +212,17 @@ func BindConfigToFlags(v *viper.Viper, cmd *cobra.Command, config any) error {
 	return nil
 }
 
+// GenerateFlagSet is exported for testing.
+func GenerateFlagSet(config any) (*pflag.FlagSet, error) {
+	return generateFlagSet(config)
+}
+
+// UnmarshalIntoStruct is exported for testing.
+func UnmarshalIntoStruct(v *viper.Viper, cfg any) func() {
+	return unmarshalIntoStruct(v, cfg)
+}
+
+// unmarshalIntoStruct returns a function that unmarshals viper config into cfg and panics on error.
 func unmarshalIntoStruct(v *viper.Viper, cfg any) func() {
 	return func() {
 		if err := v.Unmarshal(cfg); err != nil {

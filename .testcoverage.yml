@@ -3,4 +3,5 @@ exclude:
     - ^controller/testSupport	# exclude test support files
     - mocks	# exclude generated mock files
     - ^test/openfga
+    - logger/testlogger
  

@@ -16,7 +16,7 @@ import (
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/subroutine"
 	pmtesting "github.com/platform-mesh/golang-commons/controller/testSupport"
-	operrors "github.com/platform-mesh/golang-commons/errors"
+	"github.com/platform-mesh/golang-commons/errors"
 	"github.com/platform-mesh/golang-commons/logger/testlogger"
 )
 
@@ -92,7 +92,7 @@ func TestLifecycle(t *testing.T) {
 			fakeClient := pmtesting.CreateFakeClient(t, testApiObject)
 
 			lm, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.ContextValueSubroutine{}}, fakeClient)
-			lm = lm.WithPrepareContextFunc(func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, operrors.OperatorError) {
+			lm = lm.WithPrepareContextFunc(func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, errors.OperatorError) {
 				return context.WithValue(ctx, pmtesting.ContextValueKey, "valueFromContext"), nil
 			})
 			tr := &testReconciler{lifecycleManager: lm}
@@ -115,8 +115,8 @@ func TestLifecycle(t *testing.T) {
 			fakeClient := pmtesting.CreateFakeClient(t, testApiObject)
 
 			lm, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.ContextValueSubroutine{}}, fakeClient)
-			lm = lm.WithPrepareContextFunc(func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, operrors.OperatorError) {
-				return nil, operrors.NewOperatorError(goerrors.New(errorMessage), true, false)
+			lm = lm.WithPrepareContextFunc(func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, errors.OperatorError) {
+				return nil, errors.NewOperatorError(goerrors.New(errorMessage), true, false)
 			})
 			tr := &testReconciler{lifecycleManager: lm}
 			result, err := tr.Reconcile(ctx, controllerruntime.Request{NamespacedName: types.NamespacedName{Name: name, Namespace: namespace}})

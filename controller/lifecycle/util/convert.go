@@ -25,6 +25,6 @@ func MustToInterface[T any](instance any, log *logger.Logger) T {
 	if err == nil {
 		return obj
 	}
-	log.Panic().Err(err).Msg("Failed to cast instance to RuntimeObjectSpreadReconcileStatus")
+	log.Panic().Err(err).Msg("Failed to cast instance to target interface")
 	panic(err)
 }

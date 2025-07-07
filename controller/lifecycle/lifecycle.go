@@ -41,8 +41,7 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 
 	log.Info().Msg("start reconcile")
 
-	nn := types.NamespacedName{Namespace: nName.Namespace, Name: nName.Name}
-	err := cl.Get(ctx, nn, instance)
+	err := cl.Get(ctx, nName, instance)
 	if err != nil {
 		if kerrors.IsNotFound(err) {
 			log.Info().Msg("instance not found. It was likely deleted")
@@ -71,8 +70,7 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 
 	var condArr []v1.Condition
 	if l.ConditionsManager() != nil {
-		roc := util.MustToInterface[api.RuntimeObjectConditions](instance, log)
-		condArr = roc.GetConditions()
+		condArr = util.MustToInterface[api.RuntimeObjectConditions](instance, log).GetConditions()
 		l.ConditionsManager().SetInstanceConditionUnknownIfNotSet(&condArr)
 	}
 

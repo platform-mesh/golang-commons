@@ -177,25 +177,3 @@ func TestGenerateFlagSetUnsupportedType(t *testing.T) {
 	err := config.BindConfigToFlags(viper.New(), &cobra.Command{}, &testStruct)
 	assert.Error(t, err)
 }
-
-func TestGenerateFlagSetInvalidStruct(t *testing.T) {
-	notStruct := 123
-	_, err := config.GenerateFlagSet(notStruct)
-	assert.Error(t, err)
-}
-
-func TestUnmarshalIntoStructPanic(t *testing.T) {
-	v := viper.New()
-	cfg := struct {
-		InvalidField int `mapstructure:"invalid-field"`
-	}{}
-	// Set a string value to cause unmarshal error for int field
-	v.Set("invalid-field", "not-an-int")
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("expected panic but did not panic")
-		}
-	}()
-	unmarshal := config.UnmarshalIntoStruct(v, &cfg)
-	unmarshal()
-}

@@ -1,4 +1,4 @@
-package openfga
+package test
 
 import (
 	"context"

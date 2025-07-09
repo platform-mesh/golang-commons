@@ -30,19 +30,27 @@ type Config struct {
 	CollectorEndpoint string `mapstructure:"tracing-config-collector-endpoint" description:"Set the tracing collector endpoint used to send traces to the collector"`
 }
 
+// --- Wrappers for patching (default to real functions) ---
+var (
+	resourceNewFunc      = resource.New
+	grpcNewClientFunc    = grpc.NewClient
+	otlptracegrpcNewFunc = otlptracegrpc.New // type: func(ctx context.Context, opts ...otlptracegrpc.Option) (*otlptrace.Exporter, error)
+	stdouttraceNewFunc   = stdouttrace.New   // type: func(opts ...stdouttrace.Option) (*stdouttrace.Exporter, error)
+)
+
 // InitProvider creates an OpenTelemetry provider for the concrete service.
 // If the collector in the destination endpoint isn't reachable, then the init function will return an error.
 func InitProvider(ctx context.Context, config Config) (func(ctx context.Context) error, error) {
 	connCtx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
-	client, err := grpc.NewClient(config.CollectorEndpoint,
+	client, err := grpcNewClientFunc(config.CollectorEndpoint,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gRPC connection to collector: %w", err)
 	}
 
-	traceExporter, err := otlptracegrpc.New(connCtx, otlptracegrpc.WithGRPCConn(client))
+	traceExporter, err := otlptracegrpcNewFunc(connCtx, otlptracegrpc.WithGRPCConn(client))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create trace exporter: %w", err)
 	}
@@ -58,7 +66,7 @@ func InitLocalProvider(ctx context.Context, config Config, exportToConsole bool)
 		fileTarget = os.Stdout
 	}
 
-	traceExporter, err := stdouttrace.New(
+	traceExporter, err := stdouttraceNewFunc(
 		stdouttrace.WithWriter(fileTarget),
 		stdouttrace.WithPrettyPrint(),
 	)
@@ -70,7 +78,7 @@ func InitLocalProvider(ctx context.Context, config Config, exportToConsole bool)
 }
 
 func (c Config) initProvider(ctx context.Context, exporter sdkTrace.SpanExporter) (func(ctx context.Context) error, error) {
-	res, err := resource.New(ctx,
+	res, err := resourceNewFunc(ctx,
 		resource.WithAttributes(
 			semconv.ServiceName(c.ServiceName),
 			semconv.ServiceVersion(c.ServiceVersion),

@@ -1,15 +1,17 @@
-package controllerruntime
+package multicluster
 
 import (
 	"context"
 	"fmt"
 
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/cluster"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	mcbuilder "sigs.k8s.io/multicluster-runtime/pkg/builder"
+	mcmanager "sigs.k8s.io/multicluster-runtime/pkg/manager"
+	mcreconcile "sigs.k8s.io/multicluster-runtime/pkg/reconcile"
 
 	"github.com/platform-mesh/golang-commons/controller/filter"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle"
@@ -21,9 +23,13 @@ import (
 	"github.com/platform-mesh/golang-commons/logger"
 )
 
+type ClusterGetter interface {
+	GetCluster(ctx context.Context, clusterName string) (cluster.Cluster, error)
+}
+
 type LifecycleManager struct {
 	log                *logger.Logger
-	client             client.Client
+	mgr                ClusterGetter
 	config             api.Config
 	subroutines        []subroutine.Subroutine
 	spreader           *spread.Spreader
@@ -31,11 +37,11 @@ type LifecycleManager struct {
 	prepareContextFunc api.PrepareContextFunc
 }
 
-func NewLifecycleManager(subroutines []subroutine.Subroutine, operatorName string, controllerName string, client client.Client, log *logger.Logger) *LifecycleManager {
+func NewLifecycleManager(subroutines []subroutine.Subroutine, operatorName string, controllerName string, mgr ClusterGetter, log *logger.Logger) *LifecycleManager {
 	log = log.MustChildLoggerWithAttributes("operator", operatorName, "controller", controllerName)
 	return &LifecycleManager{
 		log:         log,
-		client:      client,
+		mgr:         mgr,
 		subroutines: subroutines,
 		config: api.Config{
 			OperatorName:   operatorName,
@@ -57,23 +63,27 @@ func (l *LifecycleManager) PrepareContextFunc() api.PrepareContextFunc {
 	return l.prepareContextFunc
 }
 func (l *LifecycleManager) ConditionsManager() api.ConditionManager {
-	// it is important to return nil instead of a nil pointer to the interface to avoid misbehaving nil checks
+	// it is important to return nil unsted of a nil pointer to the interface to avoid misbehaving nil checks
 	if l.conditionsManager == nil {
 		return nil
 	}
 	return l.conditionsManager
 }
-func (l *LifecycleManager) Spreader() api.SpreadManager {
-	// it is important to return nil instead of a nil pointer to the interface to avoid misbehaving nil checks
+func (l *LifecycleManager) Spreader() api.SpreadManager { // it is important to return nil unsted of a nil pointer to the interface to avoid misbehaving nil checks
 	if l.spreader == nil {
 		return nil
 	}
 	return l.spreader
 }
-func (l *LifecycleManager) Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.RuntimeObject) (ctrl.Result, error) {
-	return lifecycle.Reconcile(ctx, req.NamespacedName, instance, l.client, l)
+func (l *LifecycleManager) Reconcile(ctx context.Context, req mcreconcile.Request, instance runtimeobject.RuntimeObject) (ctrl.Result, error) {
+	cl, err := l.mgr.GetCluster(ctx, req.ClusterName)
+	if err != nil {
+		return reconcile.Result{}, fmt.Errorf("failed to get cluster: %w", err)
+	}
+	client := cl.GetClient()
+	return lifecycle.Reconcile(ctx, req.NamespacedName, instance, client, l)
 }
-func (l *LifecycleManager) SetupWithManagerBuilder(mgr ctrl.Manager, maxReconciles int, reconcilerName string, instance runtimeobject.RuntimeObject, debugLabelValue string, log *logger.Logger, eventPredicates ...predicate.Predicate) (*builder.Builder, error) {
+func (l *LifecycleManager) SetupWithManagerBuilder(mgr mcmanager.Manager, maxReconciles int, reconcilerName string, instance runtimeobject.RuntimeObject, debugLabelValue string, log *logger.Logger, eventPredicates ...predicate.Predicate) (*mcbuilder.Builder, error) {
 	if err := lifecycle.ValidateInterfaces(instance, log, l); err != nil {
 		return nil, err
 	}
@@ -83,13 +93,16 @@ func (l *LifecycleManager) SetupWithManagerBuilder(mgr ctrl.Manager, maxReconcil
 	}
 
 	eventPredicates = append([]predicate.Predicate{filter.DebugResourcesBehaviourPredicate(debugLabelValue)}, eventPredicates...)
-	return ctrl.NewControllerManagedBy(mgr).
+	opts := controller.TypedOptions[mcreconcile.Request]{
+		MaxConcurrentReconciles: maxReconciles,
+	}
+	return mcbuilder.ControllerManagedBy(mgr).
 		Named(reconcilerName).
 		For(instance).
-		WithOptions(controller.Options{MaxConcurrentReconciles: maxReconciles}).
+		WithOptions(opts).
 		WithEventFilter(predicate.And(eventPredicates...)), nil
 }
-func (l *LifecycleManager) SetupWithManager(mgr ctrl.Manager, maxReconciles int, reconcilerName string, instance runtimeobject.RuntimeObject, debugLabelValue string, r reconcile.Reconciler, log *logger.Logger, eventPredicates ...predicate.Predicate) error {
+func (l *LifecycleManager) SetupWithManager(mgr mcmanager.Manager, maxReconciles int, reconcilerName string, instance runtimeobject.RuntimeObject, debugLabelValue string, r mcreconcile.Reconciler, log *logger.Logger, eventPredicates ...predicate.Predicate) error {
 	b, err := l.SetupWithManagerBuilder(mgr, maxReconciles, reconcilerName, instance, debugLabelValue, log, eventPredicates...)
 	if err != nil {
 		return err
@@ -114,12 +127,12 @@ func (l *LifecycleManager) WithReadOnly() *LifecycleManager {
 }
 
 // WithSpreadingReconciles sets the LifecycleManager to spread out the reconciles
-func (l *LifecycleManager) WithSpreadingReconciles() *LifecycleManager {
+func (l *LifecycleManager) WithSpreadingReconciles() api.Lifecycle {
 	l.spreader = spread.NewSpreader()
 	return l
 }
 
-func (l *LifecycleManager) WithConditionManagement() *LifecycleManager {
+func (l *LifecycleManager) WithConditionManagement() api.Lifecycle {
 	l.conditionsManager = conditions.NewConditionManager()
 	return l
 }

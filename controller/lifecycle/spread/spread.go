@@ -1,17 +1,18 @@
 package spread
 
 import (
-	"fmt"
 	"math/rand/v2"
+	"slices"
 	"time"
 
+	"golang.org/x/exp/maps"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/api"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
+	"github.com/platform-mesh/golang-commons/controller/lifecycle/util"
 	"github.com/platform-mesh/golang-commons/logger"
-	"github.com/platform-mesh/golang-commons/sentry"
 )
 
 const ReconcileRefreshLabel = "platform-mesh.io/refresh-reconcile"
@@ -39,7 +40,8 @@ func getNextReconcileTime(maxReconcileTime time.Duration) time.Duration {
 	return time.Duration(jitter+int64(minTime)) * time.Minute
 }
 
-func (s *Spreader) OnNextReconcile(instanceStatusObj api.RuntimeObjectSpreadReconcileStatus, log *logger.Logger) (ctrl.Result, error) {
+func (s *Spreader) OnNextReconcile(instance runtimeobject.RuntimeObject, log *logger.Logger) (ctrl.Result, error) {
+	instanceStatusObj := util.MustToInterface[api.RuntimeObjectSpreadReconcileStatus](instance, log)
 	requeueAfter := time.Until(instanceStatusObj.GetNextReconcileTime().UTC())
 	log.Debug().Int64("minutes-till-next-execution", int64(requeueAfter.Minutes())).Msg("Completed reconciliation, no processing needed")
 	return ctrl.Result{RequeueAfter: requeueAfter}, nil
@@ -70,21 +72,11 @@ func (s *Spreader) RemoveRefreshLabelIfExists(instance runtimeobject.RuntimeObje
 	return keyCount != len(instance.GetLabels())
 }
 
-func (s *Spreader) ToRuntimeObjectSpreadReconcileStatusInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) (api.RuntimeObjectSpreadReconcileStatus, error) {
-	if obj, ok := instance.(api.RuntimeObjectSpreadReconcileStatus); ok {
-		return obj, nil
-	}
-	err := fmt.Errorf("SpreadReconciles is enabled, but instance does not implement RuntimeObjectSpreadReconcileStatus interface. This is a programming error")
-	log.Error().Err(err).Msg("Failed to cast instance to RuntimeObjectSpreadReconcileStatus")
-	sentry.CaptureError(err, nil)
-	return nil, err
-}
+func (s *Spreader) ReconcileRequired(instance runtimeobject.RuntimeObject, log *logger.Logger) bool {
+	instanceStatusObj := util.MustToInterface[api.RuntimeObjectSpreadReconcileStatus](instance, log)
+	generationChanged := instance.GetGeneration() != instanceStatusObj.GetObservedGeneration()
+	isAfterNextReconcileTime := v1.Now().UTC().After(instanceStatusObj.GetNextReconcileTime().UTC())
+	refreshRequested := slices.Contains(maps.Keys(instance.GetLabels()), ReconcileRefreshLabel)
 
-func (s *Spreader) MustToRuntimeObjectSpreadReconcileStatusInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) api.RuntimeObjectSpreadReconcileStatus {
-	obj, err := s.ToRuntimeObjectSpreadReconcileStatusInterface(instance, log)
-	if err == nil {
-		return obj
-	}
-	log.Panic().Err(err).Msg("Failed to cast instance to RuntimeObjectSpreadReconcileStatus")
-	return nil
+	return generationChanged || isAfterNextReconcileTime || refreshRequested
 }

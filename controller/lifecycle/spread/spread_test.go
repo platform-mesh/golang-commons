@@ -136,44 +136,68 @@ func TestRemoveRefreshLabelNoLabels(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestToRuntimeObjectSpreadReconcileStatusInterface_Success(t *testing.T) {
+func TestReconcileRequired(t *testing.T) {
 	s := NewSpreader()
 	tl := testlogger.New()
-	apiObject := &pmtesting.ImplementingSpreadReconciles{}
-	obj, err := s.ToRuntimeObjectSpreadReconcileStatusInterface(apiObject, tl.Logger)
-	assert.NoError(t, err)
-	assert.NotNil(t, obj)
-}
 
-func TestToRuntimeObjectSpreadReconcileStatusInterface_Failure(t *testing.T) {
-	s := NewSpreader()
-	tl := testlogger.New()
-	// DummyRuntimeObject does NOT implement RuntimeObjectSpreadReconcileStatus
-	apiObject := &pmtesting.DummyRuntimeObject{}
-	obj, err := s.ToRuntimeObjectSpreadReconcileStatusInterface(apiObject, tl.Logger)
-	assert.Error(t, err)
-	assert.Nil(t, obj)
-	messages, logErr := tl.GetLogMessages()
-	assert.NoError(t, logErr)
-	assert.Contains(t, messages[0].Message, "Failed to cast instance to RuntimeObjectSpreadReconcileStatus")
-}
+	now := time.Now()
+	past := now.Add(-1 * time.Hour)
+	future := now.Add(1 * time.Hour)
 
-func TestMustToRuntimeObjectSpreadReconcileStatusInterface_Success(t *testing.T) {
-	s := NewSpreader()
-	tl := testlogger.New()
-	apiObject := &pmtesting.ImplementingSpreadReconciles{}
-	obj := s.MustToRuntimeObjectSpreadReconcileStatusInterface(apiObject, tl.Logger)
-	assert.NotNil(t, obj)
-}
+	// Case 1: Generation changed
+	apiObject1 := &pmtesting.ImplementingSpreadReconciles{
+		TestApiObject: pmtesting.TestApiObject{
+			ObjectMeta: v1.ObjectMeta{
+				Generation: 2,
+			},
+			Status: pmtesting.TestStatus{
+				ObservedGeneration: 1,
+				NextReconcileTime:  v1.NewTime(future),
+			},
+		},
+	}
+	assert.True(t, s.ReconcileRequired(apiObject1, tl.Logger), "Should require reconcile when generation changed")
 
-func TestMustToRuntimeObjectSpreadReconcileStatusInterface_Panic(t *testing.T) {
-	s := NewSpreader()
-	tl := testlogger.New()
-	apiObject := &pmtesting.DummyRuntimeObject{}
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("Expected panic but did not panic")
-		}
-	}()
-	_ = s.MustToRuntimeObjectSpreadReconcileStatusInterface(apiObject, tl.Logger)
+	// Case 2: After next reconcile time
+	apiObject2 := &pmtesting.ImplementingSpreadReconciles{
+		TestApiObject: pmtesting.TestApiObject{
+			ObjectMeta: v1.ObjectMeta{
+				Generation: 1,
+			},
+			Status: pmtesting.TestStatus{
+				ObservedGeneration: 1,
+				NextReconcileTime:  v1.NewTime(past),
+			},
+		},
+	}
+	assert.True(t, s.ReconcileRequired(apiObject2, tl.Logger), "Should require reconcile when after next reconcile time")
+
+	// Case 3: Refresh label present
+	apiObject3 := &pmtesting.ImplementingSpreadReconciles{
+		TestApiObject: pmtesting.TestApiObject{
+			ObjectMeta: v1.ObjectMeta{
+				Generation: 1,
+				Labels:     map[string]string{ReconcileRefreshLabel: ""},
+			},
+			Status: pmtesting.TestStatus{
+				ObservedGeneration: 1,
+				NextReconcileTime:  v1.NewTime(future),
+			},
+		},
+	}
+	assert.True(t, s.ReconcileRequired(apiObject3, tl.Logger), "Should require reconcile when refresh label present")
+
+	// Case 4: No condition met
+	apiObject4 := &pmtesting.ImplementingSpreadReconciles{
+		TestApiObject: pmtesting.TestApiObject{
+			ObjectMeta: v1.ObjectMeta{
+				Generation: 1,
+			},
+			Status: pmtesting.TestStatus{
+				ObservedGeneration: 1,
+				NextReconcileTime:  v1.NewTime(future),
+			},
+		},
+	}
+	assert.False(t, s.ReconcileRequired(apiObject4, tl.Logger), "Should not require reconcile when no condition met")
 }

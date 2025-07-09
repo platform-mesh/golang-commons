@@ -30,12 +30,10 @@ type Config struct {
 }
 
 type ConditionManager interface {
-	MustToRuntimeObjectConditionsInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) RuntimeObjectConditions
 	SetInstanceConditionUnknownIfNotSet(conditions *[]metav1.Condition) bool
 	SetSubroutineConditionToUnknownIfNotSet(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, isFinalize bool, log *logger.Logger) bool
 	SetSubroutineCondition(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, subroutineResult ctrl.Result, subroutineErr error, isFinalize bool, log *logger.Logger) bool
 	SetInstanceConditionReady(conditions *[]metav1.Condition, status metav1.ConditionStatus) bool
-	ToRuntimeObjectConditionsInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) (RuntimeObjectConditions, error)
 }
 
 type RuntimeObjectConditions interface {
@@ -44,9 +42,8 @@ type RuntimeObjectConditions interface {
 }
 
 type SpreadManager interface {
-	ToRuntimeObjectSpreadReconcileStatusInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) (RuntimeObjectSpreadReconcileStatus, error)
-	MustToRuntimeObjectSpreadReconcileStatusInterface(instance runtimeobject.RuntimeObject, log *logger.Logger) RuntimeObjectSpreadReconcileStatus
-	OnNextReconcile(instanceStatusObj RuntimeObjectSpreadReconcileStatus, log *logger.Logger) (ctrl.Result, error)
+	ReconcileRequired(instance runtimeobject.RuntimeObject, log *logger.Logger) bool
+	OnNextReconcile(instance runtimeobject.RuntimeObject, log *logger.Logger) (ctrl.Result, error)
 	RemoveRefreshLabelIfExists(instance runtimeobject.RuntimeObject) bool
 	SetNextReconcileTime(instanceStatusObj RuntimeObjectSpreadReconcileStatus, log *logger.Logger)
 	UpdateObservedGeneration(instanceStatusObj RuntimeObjectSpreadReconcileStatus, log *logger.Logger)

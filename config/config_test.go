@@ -168,3 +168,12 @@ func TestNewDefaultConfig(t *testing.T) {
 	err = v.Unmarshal(&config.CommonServiceConfig{})
 	assert.NoError(t, err)
 }
+
+func TestGenerateFlagSetUnsupportedType(t *testing.T) {
+	type test struct {
+		UnsupportedField []string `mapstructure:"unsupported-field"`
+	}
+	testStruct := test{}
+	err := config.BindConfigToFlags(viper.New(), &cobra.Command{}, &testStruct)
+	assert.Error(t, err)
+}

@@ -212,6 +212,7 @@ func BindConfigToFlags(v *viper.Viper, cmd *cobra.Command, config any) error {
 	return nil
 }
 
+// unmarshalIntoStruct returns a function that unmarshal viper config into cfg and panics on error.
 func unmarshalIntoStruct(v *viper.Viper, cfg any) func() {
 	return func() {
 		if err := v.Unmarshal(cfg); err != nil {

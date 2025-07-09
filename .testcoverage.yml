@@ -2,5 +2,6 @@ exclude:
   paths:
     - ^controller/testSupport	# exclude test support files
     - mocks	# exclude generated mock files
-    - ^test/openfga
- 
+    - ^test/
+    - ^logger/testlogger
+

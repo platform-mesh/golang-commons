@@ -7,40 +7,41 @@ import (
 
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
-	"golang.org/x/exp/maps"
 	"k8s.io/apimachinery/pkg/api/equality"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/api"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
-	"github.com/platform-mesh/golang-commons/controller/lifecycle/spread"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/subroutine"
+	"github.com/platform-mesh/golang-commons/controller/lifecycle/util"
 	"github.com/platform-mesh/golang-commons/errors"
 	"github.com/platform-mesh/golang-commons/logger"
 	"github.com/platform-mesh/golang-commons/sentry"
 )
 
-func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.RuntimeObject, cl client.Client, l api.Lifecycle) (ctrl.Result, error) {
+func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtimeobject.RuntimeObject, cl client.Client, l api.Lifecycle) (ctrl.Result, error) {
 	ctx, span := otel.Tracer(l.Config().OperatorName).Start(ctx, fmt.Sprintf("%s.Reconcile", l.Config().ControllerName))
 	defer span.End()
 
 	result := ctrl.Result{}
 	reconcileId := uuid.New().String()
 
-	log := l.Log().MustChildLoggerWithAttributes("name", req.Name, "namespace", req.Namespace, "reconcile_id", reconcileId)
-	sentryTags := sentry.Tags{"namespace": req.Namespace, "name": req.Name}
+	log := l.Log().MustChildLoggerWithAttributes("name", nName.Name, "namespace", nName.Namespace, "reconcile_id", reconcileId)
+	sentryTags := sentry.Tags{"namespace": nName.Namespace, "name": nName.Name}
 
 	ctx = logger.SetLoggerInContext(ctx, log)
 	ctx = sentry.ContextWithSentryTags(ctx, sentryTags)
 
 	log.Info().Msg("start reconcile")
-	err := cl.Get(ctx, req.NamespacedName, instance)
+
+	err := cl.Get(ctx, nName, instance)
 	if err != nil {
 		if kerrors.IsNotFound(err) {
 			log.Info().Msg("instance not found. It was likely deleted")
@@ -54,15 +55,10 @@ func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.Run
 	generationChanged := true
 
 	if l.Spreader() != nil && instance.GetDeletionTimestamp().IsZero() {
-		instanceStatusObj := l.Spreader().MustToRuntimeObjectSpreadReconcileStatusInterface(instance, log)
-		generationChanged = instance.GetGeneration() != instanceStatusObj.GetObservedGeneration()
-		isAfterNextReconcileTime := v1.Now().UTC().After(instanceStatusObj.GetNextReconcileTime().UTC())
-		refreshRequested := slices.Contains(maps.Keys(instance.GetLabels()), spread.ReconcileRefreshLabel)
-
-		reconcileRequired := generationChanged || isAfterNextReconcileTime || refreshRequested
+		reconcileRequired := l.Spreader().ReconcileRequired(instance, log)
 		if !reconcileRequired {
 			log.Info().Msg("skipping reconciliation, spread reconcile is active. No processing needed")
-			return l.Spreader().OnNextReconcile(instanceStatusObj, log)
+			return l.Spreader().OnNextReconcile(instance, log)
 		}
 	}
 
@@ -74,7 +70,7 @@ func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.Run
 
 	var condArr []v1.Condition
 	if l.ConditionsManager() != nil {
-		condArr = l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).GetConditions()
+		condArr = util.MustToInterface[api.RuntimeObjectConditions](instance, log).GetConditions()
 		l.ConditionsManager().SetInstanceConditionUnknownIfNotSet(&condArr)
 	}
 
@@ -101,18 +97,18 @@ func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.Run
 
 		// Set current condArr before reconciling the s
 		if l.ConditionsManager() != nil {
-			l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).SetConditions(condArr)
+			util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
 		}
 		subResult, retry, err := reconcileSubroutine(ctx, instance, s, cl, l, log, generationChanged, sentryTags)
 		// Update condArr with any changes the s did
 		if l.ConditionsManager() != nil {
-			condArr = l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).GetConditions()
+			condArr = util.MustToInterface[api.RuntimeObjectConditions](instance, log).GetConditions()
 		}
 		if err != nil {
 			if l.ConditionsManager() != nil {
 				l.ConditionsManager().SetSubroutineCondition(&condArr, s, result, err, inDeletion, log)
 				l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
-				l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).SetConditions(condArr)
+				util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
 			}
 			if !retry {
 				MarkResourceAsFinal(instance, log, condArr, v1.ConditionFalse, l)
@@ -147,7 +143,7 @@ func Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.Run
 	}
 
 	if l.ConditionsManager() != nil {
-		l.ConditionsManager().MustToRuntimeObjectConditionsInterface(instance, log).SetConditions(condArr)
+		util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
 	}
 
 	if !l.Config().ReadOnly {
@@ -302,7 +298,7 @@ func HandleClientError(msg string, log *logger.Logger, err error, generationChan
 
 func MarkResourceAsFinal(instance runtimeobject.RuntimeObject, log *logger.Logger, conditions []v1.Condition, status v1.ConditionStatus, l api.Lifecycle) {
 	if l.Spreader() != nil && instance.GetDeletionTimestamp().IsZero() {
-		instanceStatusObj := l.Spreader().MustToRuntimeObjectSpreadReconcileStatusInterface(instance, log)
+		instanceStatusObj := util.MustToInterface[api.RuntimeObjectSpreadReconcileStatus](instance, log)
 		l.Spreader().SetNextReconcileTime(instanceStatusObj, log)
 		l.Spreader().UpdateObservedGeneration(instanceStatusObj, log)
 	}
@@ -362,4 +358,20 @@ func HandleOperatorError(ctx context.Context, operatorError errors.OperatorError
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func ValidateInterfaces(instance runtimeobject.RuntimeObject, log *logger.Logger, l api.Lifecycle) error {
+	if l.Spreader() != nil {
+		_, err := util.ToInterface[api.RuntimeObjectSpreadReconcileStatus](instance, log)
+		if err != nil {
+			return err
+		}
+	}
+	if l.ConditionsManager() != nil {
+		_, err := util.ToInterface[api.RuntimeObjectConditions](instance, log)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

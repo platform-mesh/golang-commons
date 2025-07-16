@@ -36,7 +36,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.7.0
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6
 	golang.org/x/oauth2 v0.30.0
-	google.golang.org/grpc v1.73.0
+	google.golang.org/grpc v1.74.0
 	k8s.io/api v0.33.0
 	k8s.io/apimachinery v0.33.0
 	k8s.io/client-go v0.33.0
@@ -46,7 +46,7 @@ require (
 )
 
 require (
-	cel.dev/expr v0.23.1 // indirect
+	cel.dev/expr v0.24.0 // indirect
 	github.com/Yiling-J/theine-go v0.6.1 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect

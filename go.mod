@@ -34,7 +34,7 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.37.0
 	go.opentelemetry.io/otel/sdk v1.37.0
 	go.opentelemetry.io/proto/otlp v1.7.1
-	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6
+	golang.org/x/exp v0.0.0-20250808145144-a408d31f581a
 	golang.org/x/oauth2 v0.30.0
 	google.golang.org/grpc v1.74.2
 	k8s.io/api v0.33.0

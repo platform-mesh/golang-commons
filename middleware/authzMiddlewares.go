@@ -12,11 +12,9 @@ import (
 // 2. StoreAuthHeader()
 // 3. StoreSpiffeHeader()
 func CreateAuthMiddleware() []func(http.Handler) http.Handler {
-	mws := make([]func(http.Handler) http.Handler, 0, 5)
-
-	mws = append(mws, StoreWebToken())
-	mws = append(mws, StoreAuthHeader())
-	mws = append(mws, StoreSpiffeHeader())
-
-	return mws
+	return []func(http.Handler) http.Handler{
+		StoreWebToken(),
+		StoreAuthHeader(),
+		StoreSpiffeHeader(),
+	}
 }

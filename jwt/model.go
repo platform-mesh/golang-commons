@@ -33,6 +33,7 @@ type WebToken struct {
 
 // New retrieves a new WebToken from an id_token string provided by OpenID communication
 // When not able to parse or deserialize the requested claims, it will return an error
+// JWT Claims are parsed without verification, ensure properer JWT verification before calling this function, eg. with istio
 func New(idToken string, signatureAlgorithms []jose.SignatureAlgorithm) (webToken WebToken, err error) {
 	token, parseErr := jwt.ParseSigned(idToken, signatureAlgorithms)
 	if parseErr != nil {

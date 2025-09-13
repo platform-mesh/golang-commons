@@ -1,3 +1,5 @@
+//go:build test || local
+
 package local_middleware
 
 import (
@@ -5,6 +7,7 @@ import (
 
 	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
+
 	"github.com/platform-mesh/golang-commons/context"
 )
 

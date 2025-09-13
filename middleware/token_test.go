@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestStoreWebToken_WithValidBearerToken(t *testing.T) {
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+func TestStoreWebToken_WithFakeBearerToken(t *testing.T) {
+	token := "fake.invalid.token"
 	authHeader := "Bearer " + token
 
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -103,8 +103,8 @@ func TestStoreWebToken_WithEmptyBearerToken(t *testing.T) {
 	assert.Equal(t, http.StatusOK, recorder.Code)
 }
 
-func TestStoreWebToken_WithBearerTokenLowercase(t *testing.T) {
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+func TestStoreWebToken_WithFakeBearerTokenLowercase(t *testing.T) {
+	token := "fake.invalid.token"
 	authHeader := "bearer " + token // lowercase
 
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

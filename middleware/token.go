@@ -25,9 +25,9 @@ func StoreWebToken() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
 			ctx := request.Context()
-			auth := strings.Split(request.Header.Get(headers.Authorization), " ")
-			if len(auth) > 1 && strings.ToUpper(auth[0]) == tokenAuthPrefix {
-				ctx = pmcontext.AddWebTokenToContext(ctx, auth[1], signatureAlgorithms)
+			tokens := strings.Fields(request.Header.Get(headers.Authorization))
+			if len(tokens) == 2 && strings.EqualFold(tokens[0], tokenAuthPrefix) {
+				ctx = pmcontext.AddWebTokenToContext(ctx, tokens[1], signatureAlgorithms)
 			}
 
 			next.ServeHTTP(responseWriter, request.WithContext(ctx))

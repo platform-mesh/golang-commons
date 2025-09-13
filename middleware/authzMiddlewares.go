@@ -6,11 +6,6 @@ import (
 	"github.com/platform-mesh/golang-commons/policy_services"
 )
 
-// Deprecated: CreateMiddlewares use CreateAuthMiddleware instead.
-func CreateMiddlewares(retriever policy_services.TenantRetriever) []func(http.Handler) http.Handler {
-	return CreateAuthMiddleware(retriever)
-}
-
 func CreateAuthMiddleware(retriever policy_services.TenantRetriever) []func(http.Handler) http.Handler {
 	mws := make([]func(http.Handler) http.Handler, 0, 5)
 

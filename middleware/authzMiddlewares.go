@@ -4,15 +4,13 @@ import (
 	"net/http"
 )
 
-// CreateAuthMiddleware returns a slice of HTTP middleware constructors that populate
-// authentication-related request context and headers.
-//
-// The returned middlewares, applied in order, are:
-// 1. StoreWebToken()
-// 2. StoreAuthHeader()
-// 3. StoreSpiffeHeader()
-func CreateAuthMiddleware() []func(http.Handler) http.Handler {
-	return []func(http.Handler) http.Handler{
+// Middleware defines a function that wraps an http.Handler.
+type Middleware func(http.Handler) http.Handler
+
+// CreateAuthMiddleware returns a slice of Middleware functions for authentication and authorization.
+// The returned middlewares are: StoreWebToken, StoreAuthHeader, and StoreSpiffeHeader.
+func CreateAuthMiddleware() []Middleware {
+	return []Middleware{
 		StoreWebToken(),
 		StoreAuthHeader(),
 		StoreSpiffeHeader(),

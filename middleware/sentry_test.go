@@ -13,7 +13,7 @@ import (
 func TestSentryRecoverer_NoPanic(t *testing.T) {
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("success"))
+		_, _ = w.Write([]byte("success"))
 	})
 
 	handlerToTest := SentryRecoverer(nextHandler)

@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 func TestSetOtelTracingContext(t *testing.T) {
@@ -18,7 +18,7 @@ func TestSetOtelTracingContext(t *testing.T) {
 	otel.SetTextMapPropagator(propagator)
 
 	// Create a span context to inject
-	tracer := trace.NewNoopTracerProvider().Tracer("test")
+	tracer := noop.NewTracerProvider().Tracer("test")
 	ctx, span := tracer.Start(context.Background(), "test-span")
 	span.End()
 

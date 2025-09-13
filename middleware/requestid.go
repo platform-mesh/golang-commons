@@ -11,6 +11,10 @@ import (
 
 const requestIdHeader = "X-Request-Id"
 
+// SetRequestId returns an HTTP middleware that ensures each request has a request ID.
+// It reads the `X-Request-Id` header (used only if exactly one value is present); otherwise
+// it generates a new UUID. The request ID is stored in the request context under
+// keys.RequestIdCtxKey and the request is forwarded to the next handler with the updated context.
 func SetRequestId() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
@@ -28,6 +32,11 @@ func SetRequestId() func(http.Handler) http.Handler {
 	}
 }
 
+// SetRequestIdInLogger returns HTTP middleware that injects a request-scoped logger into the request context.
+// 
+// The middleware loads the current logger from the request context, creates a per-request logger using
+// logger.NewRequestLoggerFromZerolog(ctx, log.Logger), and stores the resulting logger back into the context
+// before calling the next handler. This ensures handlers downstream receive a logger enriched for the current request.
 func SetRequestIdInLogger() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
@@ -40,6 +49,8 @@ func SetRequestIdInLogger() func(http.Handler) http.Handler {
 	}
 }
 
+// GetRequestId returns the request ID stored in ctx under keys.RequestIdCtxKey.
+// If the value is missing or not a string, it returns the empty string.
 func GetRequestId(ctx context.Context) string {
 	if val, ok := ctx.Value(keys.RequestIdCtxKey).(string); ok {
 		return val

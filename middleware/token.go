@@ -13,7 +13,13 @@ const tokenAuthPrefix = "BEARER"
 
 var SignatureAlgorithms = []jose.SignatureAlgorithm{jose.RS256}
 
-// StoreWebToken retrieves the actual JWT Token within the Authorization header, and it stores it in the context as a struct
+// StoreWebToken returns middleware that extracts a JWT from the HTTP `Authorization` header
+// and stores it in the request context for downstream handlers.
+//
+// The middleware looks for an Authorization header of the form `Bearer <token>` (scheme match is
+// case-insensitive). When present, the token is added to the context via
+// context.AddWebTokenToContext using the package's SignatureAlgorithms. If the header is absent,
+// malformed, or not a Bearer token, the request context is left unchanged.
 func StoreWebToken() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {

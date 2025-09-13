@@ -1,11 +1,9 @@
 package middleware
 
 import (
-	_ "context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	_ "github.com/stretchr/testify/mock"
 )
 
 func TestCreateAuthMiddleware(t *testing.T) {

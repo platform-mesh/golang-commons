@@ -79,10 +79,10 @@ func TestStoreAuthHeader_WithEmptyAuthHeader(t *testing.T) {
 func TestStoreAuthHeader_MultipleAuthHeaders(t *testing.T) {
 	// Test behavior when multiple authorization headers are present
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Should get the first/combined value
+		// Should get the first header value since http.Header.Get returns only the first value
 		authFromContext, err := context.GetAuthHeaderFromContext(r.Context())
 		assert.NoError(t, err)
-		assert.NotEmpty(t, authFromContext)
+		assert.Equal(t, "Bearer token1", authFromContext)
 
 		w.WriteHeader(http.StatusOK)
 	})

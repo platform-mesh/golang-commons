@@ -7,6 +7,11 @@ import (
 	"github.com/platform-mesh/golang-commons/jwt"
 )
 
+// StoreSpiffeHeader returns an HTTP middleware that extracts a SPIFFE URL from the request headers
+// and, if present, inserts it into the request context for downstream handlers.
+//
+// The middleware always calls the next handler; when a SPIFFE URL is found it updates the request's
+// context with that value so subsequent handlers can retrieve it.
 func StoreSpiffeHeader() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {

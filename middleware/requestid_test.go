@@ -45,10 +45,23 @@ func TestSetRequestIdWitoutIncomingHeader(t *testing.T) {
 	handlerToTest.ServeHTTP(httptest.NewRecorder(), req)
 }
 
+import (
+	"context"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/platform-mesh/golang-commons/context/keys"
+	"github.com/platform-mesh/golang-commons/logger"
+	"github.com/stretchr/testify/assert"
+)
+
 func TestSetRequestIdInLogger(t *testing.T) {
 	// This test verifies that SetRequestIdInLogger creates a request-aware logger
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// The logger in context should be updated with request information
+		log := logger.LoadLoggerFromContext(r.Context())
+		assert.NotNil(t, log)
 		w.WriteHeader(http.StatusOK)
 	})
 

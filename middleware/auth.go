@@ -4,15 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-http-utils/headers"
-	"github.com/platform-mesh/golang-commons/context"
-)
 
-package middleware
-
-import (
-	"net/http"
-
-	"github.com/go-http-utils/headers"
 	appctx "github.com/platform-mesh/golang-commons/context"
 )
 

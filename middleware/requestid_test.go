@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/platform-mesh/golang-commons/context/keys"
+	"github.com/platform-mesh/golang-commons/logger"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -44,17 +46,6 @@ func TestSetRequestIdWitoutIncomingHeader(t *testing.T) {
 	// call the handler using a mock response recorder (we'll not use that anyway)
 	handlerToTest.ServeHTTP(httptest.NewRecorder(), req)
 }
-
-import (
-	"context"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-
-	"github.com/platform-mesh/golang-commons/context/keys"
-	"github.com/platform-mesh/golang-commons/logger"
-	"github.com/stretchr/testify/assert"
-)
 
 func TestSetRequestIdInLogger(t *testing.T) {
 	// This test verifies that SetRequestIdInLogger creates a request-aware logger

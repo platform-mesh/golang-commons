@@ -15,15 +15,9 @@ func TestStoreWebToken_WithFakeBearerToken(t *testing.T) {
 	authHeader := "Bearer " + token
 
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Token parsing may fail due to signature validation, which is expected in tests
-		// The middleware should handle this gracefully
 		_, err := context.GetWebTokenFromContext(r.Context())
-		// In a real scenario with proper JWT validation, this might fail
-		// For test purposes, we just verify the middleware doesn't crash
-		if err != nil {
-			// This is expected behavior when token validation fails
-			assert.Error(t, err)
-		}
+		// Presence of a Bearer header must result in a stored token.
+		assert.NoError(t, err)
 
 		w.WriteHeader(http.StatusOK)
 	})

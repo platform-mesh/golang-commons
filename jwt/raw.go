@@ -19,7 +19,7 @@ type rawWebToken struct {
 func (r rawWebToken) getMail() (mail string) {
 	mail = strings.TrimSpace(r.RawMail)
 	if mail == "" {
-		mail = r.RawEmail
+		mail = strings.TrimSpace(r.RawEmail)
 	}
 	return
 }
@@ -27,7 +27,7 @@ func (r rawWebToken) getMail() (mail string) {
 func (r rawWebToken) getLastName() (lastName string) {
 	lastName = strings.TrimSpace(r.LastName)
 	if lastName == "" {
-		lastName = r.RawFamilyName
+		lastName = strings.TrimSpace(r.RawFamilyName)
 	}
 	return
 }
@@ -35,7 +35,7 @@ func (r rawWebToken) getLastName() (lastName string) {
 func (r rawWebToken) getFirstName() (firstName string) {
 	firstName = strings.TrimSpace(r.FirstName)
 	if firstName == "" {
-		firstName = r.RawGivenName
+		firstName = strings.TrimSpace(r.RawGivenName)
 	}
 	return
 }

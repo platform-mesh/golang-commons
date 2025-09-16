@@ -52,6 +52,8 @@ func New(idToken string, signatureAlgorithms []jose.SignatureAlgorithm) (webToke
 	webToken.IssuerAttributes = rawToken.IssuerAttributes
 	webToken.Audiences = rawToken.getAudiences()
 	webToken.Mail = rawToken.getMail()
+	webToken.FirstName = rawToken.getFirstName()
+	webToken.LastName = rawToken.getLastName()
 
 	return
 }

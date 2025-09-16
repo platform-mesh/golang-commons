@@ -49,3 +49,102 @@ func TestNew_DeserializationError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unable to deserialize claims")
 }
+
+func TestNew_WithFirstNameAndLastName(t *testing.T) {
+	claims := map[string]interface{}{
+		"iss":        "test-issuer",
+		"sub":        "test-subject",
+		"first_name": "John",
+		"last_name":  "Doe",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(claims))
+	tokenString, err := token.SignedString(joseTestKey)
+	assert.NoError(t, err)
+
+	webToken, err := New(tokenString, signatureAlgorithms)
+	assert.NoError(t, err)
+	assert.Equal(t, "John", webToken.FirstName)
+	assert.Equal(t, "Doe", webToken.LastName)
+}
+
+func TestNew_WithGivenNameAndFamilyName(t *testing.T) {
+	claims := map[string]interface{}{
+		"iss":         "test-issuer",
+		"sub":         "test-subject",
+		"given_name":  "Jonathan",
+		"family_name": "Smith",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(claims))
+	tokenString, err := token.SignedString(joseTestKey)
+	assert.NoError(t, err)
+
+	webToken, err := New(tokenString, signatureAlgorithms)
+	assert.NoError(t, err)
+	assert.Equal(t, "Jonathan", webToken.FirstName)
+	assert.Equal(t, "Smith", webToken.LastName)
+}
+
+func TestNew_PreferFirstLastNameOverGivenFamilyName(t *testing.T) {
+	claims := map[string]interface{}{
+		"iss":         "test-issuer",
+		"sub":         "test-subject",
+		"first_name":  "John",
+		"last_name":   "Doe",
+		"given_name":  "Jonathan",
+		"family_name": "Smith",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(claims))
+	tokenString, err := token.SignedString(joseTestKey)
+	assert.NoError(t, err)
+
+	webToken, err := New(tokenString, signatureAlgorithms)
+	assert.NoError(t, err)
+	// Should prefer first_name/last_name over given_name/family_name
+	assert.Equal(t, "John", webToken.FirstName)
+	assert.Equal(t, "Doe", webToken.LastName)
+}
+
+func TestNew_FallbackToGivenFamilyNameWhenFirstLastEmpty(t *testing.T) {
+	claims := map[string]interface{}{
+		"iss":         "test-issuer",
+		"sub":         "test-subject",
+		"first_name":  "",
+		"last_name":   "",
+		"given_name":  "Jonathan",
+		"family_name": "Smith",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(claims))
+	tokenString, err := token.SignedString(joseTestKey)
+	assert.NoError(t, err)
+
+	webToken, err := New(tokenString, signatureAlgorithms)
+	assert.NoError(t, err)
+	// Should fallback to given_name/family_name when first_name/last_name are empty
+	assert.Equal(t, "Jonathan", webToken.FirstName)
+	assert.Equal(t, "Smith", webToken.LastName)
+}
+
+func TestNew_PartialFallback(t *testing.T) {
+	claims := map[string]interface{}{
+		"iss":         "test-issuer",
+		"sub":         "test-subject",
+		"first_name":  "John",
+		"last_name":   "", // empty
+		"given_name":  "Jonathan",
+		"family_name": "Smith",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(claims))
+	tokenString, err := token.SignedString(joseTestKey)
+	assert.NoError(t, err)
+
+	webToken, err := New(tokenString, signatureAlgorithms)
+	assert.NoError(t, err)
+	// Should use first_name but fallback to family_name for last name
+	assert.Equal(t, "John", webToken.FirstName)
+	assert.Equal(t, "Smith", webToken.LastName)
+}

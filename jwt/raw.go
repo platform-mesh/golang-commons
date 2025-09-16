@@ -1,5 +1,7 @@
 package jwt
 
+import "strings"
+
 type rawClaims struct {
 	RawAudiences  interface{} `json:"aud"` // RawAudiences could be a []string or string depending on the serialization in IdP site
 	RawEmail      string      `json:"email,omitempty"`
@@ -15,7 +17,7 @@ type rawWebToken struct {
 }
 
 func (r rawWebToken) getMail() (mail string) {
-	mail = r.RawMail
+	mail = strings.TrimSpace(r.RawMail)
 	if mail == "" {
 		mail = r.RawEmail
 	}
@@ -23,7 +25,7 @@ func (r rawWebToken) getMail() (mail string) {
 }
 
 func (r rawWebToken) getLastName() (lastName string) {
-	lastName = r.LastName
+	lastName = strings.TrimSpace(r.LastName)
 	if lastName == "" {
 		lastName = r.RawFamilyName
 	}
@@ -31,7 +33,7 @@ func (r rawWebToken) getLastName() (lastName string) {
 }
 
 func (r rawWebToken) getFirstName() (firstName string) {
-	firstName = r.FirstName
+	firstName = strings.TrimSpace(r.FirstName)
 	if firstName == "" {
 		firstName = r.RawGivenName
 	}

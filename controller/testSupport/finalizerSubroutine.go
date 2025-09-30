@@ -40,7 +40,7 @@ func (c FinalizerSubroutine) GetName() string {
 	return "changeStatus"
 }
 
-func (c FinalizerSubroutine) Finalizers() []string {
+func (c FinalizerSubroutine) Finalizers(_ runtimeobject.RuntimeObject) []string {
 	return []string{
 		SubroutineFinalizer,
 	}

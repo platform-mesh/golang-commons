@@ -112,7 +112,7 @@ func (c ChangeStatusSubroutine) GetName() string {
 	return "changeStatus"
 }
 
-func (c ChangeStatusSubroutine) Finalizers() []string {
+func (c ChangeStatusSubroutine) Finalizers(instance runtimeobject.RuntimeObject) []string {
 	return []string{"changestatus"}
 }
 
@@ -142,7 +142,7 @@ func (c AddConditionSubroutine) GetName() string {
 	return "addCondition"
 }
 
-func (c AddConditionSubroutine) Finalizers() []string {
+func (c AddConditionSubroutine) Finalizers(instance runtimeobject.RuntimeObject) []string {
 	return []string{}
 }
 
@@ -169,7 +169,7 @@ func (f FailureScenarioSubroutine) Finalize(_ context.Context, _ runtimeobject.R
 	return controllerruntime.Result{}, errors.NewOperatorError(fmt.Errorf("FailureScenarioSubroutine"), true, false)
 }
 
-func (f FailureScenarioSubroutine) Finalizers() []string {
+func (f FailureScenarioSubroutine) Finalizers(instance runtimeobject.RuntimeObject) []string {
 	return []string{FailureScenarioSubroutineFinalizer}
 }
 
@@ -220,7 +220,7 @@ func (f ContextValueSubroutine) Finalize(_ context.Context, _ runtimeobject.Runt
 	return controllerruntime.Result{}, nil
 }
 
-func (f ContextValueSubroutine) Finalizers() []string {
+func (f ContextValueSubroutine) Finalizers(instance runtimeobject.RuntimeObject) []string {
 	return []string{}
 }
 

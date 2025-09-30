@@ -178,7 +178,7 @@ func reconcileSubroutine(ctx context.Context, instance runtimeobject.RuntimeObje
 	var result ctrl.Result
 	var err errors.OperatorError
 	if instance.GetDeletionTimestamp() != nil {
-		if containsFinalizer(instance, subroutine.Finalizers()) {
+		if containsFinalizer(instance, subroutine.Finalizers(instance)) {
 			subroutineLogger.Debug().Msg("finalizing instance")
 			result, err = subroutine.Finalize(ctx, instance)
 			subroutineLogger.Debug().Any("result", result).Msg("finalized instance")
@@ -222,7 +222,7 @@ func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.Runtime
 	if result.RequeueAfter == 0 {
 		update := false
 		original := instance.DeepCopyObject().(client.Object)
-		for _, f := range subroutine.Finalizers() {
+		for _, f := range subroutine.Finalizers(instance) {
 			needsUpdate := controllerutil.RemoveFinalizer(instance, f)
 			if needsUpdate {
 				update = true
@@ -320,7 +320,7 @@ func AddFinalizersIfNeeded(ctx context.Context, cl client.Client, instance runti
 	update := false
 	original := instance.DeepCopyObject().(client.Object)
 	for _, s := range subroutines {
-		if len(s.Finalizers()) > 0 {
+		if len(s.Finalizers(instance)) > 0 {
 			needsUpdate := AddFinalizerIfNeeded(instance, s)
 			if needsUpdate {
 				update = true
@@ -338,7 +338,7 @@ func AddFinalizersIfNeeded(ctx context.Context, cl client.Client, instance runti
 
 func AddFinalizerIfNeeded(instance runtimeobject.RuntimeObject, subroutine subroutine.Subroutine) bool {
 	update := false
-	for _, f := range subroutine.Finalizers() {
+	for _, f := range subroutine.Finalizers(instance) {
 		needsUpdate := controllerutil.AddFinalizer(instance, f)
 		if needsUpdate {
 			update = true

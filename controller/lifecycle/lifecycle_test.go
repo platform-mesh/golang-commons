@@ -967,9 +967,9 @@ func TestRemoveFinalizerIfNeeded(t *testing.T) {
 func TestContainsFinalizer(t *testing.T) {
 	instance := &pmtesting.TestApiObject{}
 	sub := pmtesting.FinalizerSubroutine{}
-	assert.False(t, containsFinalizer(instance, sub.Finalizers()))
+	assert.False(t, containsFinalizer(instance, sub.Finalizers(instance)))
 	AddFinalizerIfNeeded(instance, sub)
-	assert.True(t, containsFinalizer(instance, sub.Finalizers()))
+	assert.True(t, containsFinalizer(instance, sub.Finalizers(instance)))
 }
 
 func TestMarkResourceAsFinal(t *testing.T) {

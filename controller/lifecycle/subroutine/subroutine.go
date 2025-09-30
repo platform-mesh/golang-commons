@@ -13,5 +13,5 @@ type Subroutine interface {
 	Process(ctx context.Context, instance runtimeobject.RuntimeObject) (ctrl.Result, errors.OperatorError)
 	Finalize(ctx context.Context, instance runtimeobject.RuntimeObject) (ctrl.Result, errors.OperatorError)
 	GetName() string
-	Finalizers() []string
+	Finalizers(instance runtimeobject.RuntimeObject) []string
 }

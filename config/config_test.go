@@ -36,6 +36,7 @@ func TestBindConfigToFlags(t *testing.T) {
 		CustomFlagStruct2 struct {
 			CustomFlagDuration time.Duration `mapstructure:"custom-flag-duration-2"`
 		} `mapstructure:"le-strFlag"`
+		Slice []string `mapstructure:"slice" description:"This is a slice of strings"`
 	}
 
 	testStruct := test{}

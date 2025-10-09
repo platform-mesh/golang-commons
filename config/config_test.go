@@ -36,6 +36,7 @@ func TestBindConfigToFlags(t *testing.T) {
 		CustomFlagStruct2 struct {
 			CustomFlagDuration time.Duration `mapstructure:"custom-flag-duration-2"`
 		} `mapstructure:"le-strFlag"`
+		Slice []string `mapstructure:"slice" description:"This is a slice of strings"`
 	}
 
 	testStruct := test{}
@@ -171,7 +172,7 @@ func TestNewDefaultConfig(t *testing.T) {
 
 func TestGenerateFlagSetUnsupportedType(t *testing.T) {
 	type test struct {
-		UnsupportedField []string `mapstructure:"unsupported-field"`
+		UnsupportedField []int `mapstructure:"unsupported-field"`
 	}
 	testStruct := test{}
 	err := config.BindConfigToFlags(viper.New(), &cobra.Command{}, &testStruct)

@@ -166,6 +166,11 @@ func traverseStruct(value reflect.Value, flagSet *pflag.FlagSet, prefix string) 
 				defaultBoolValue = b
 			}
 			flagSet.Bool(prefix+tag, defaultBoolValue, description)
+		case reflect.Slice:
+			if fieldValue.Type().Elem().Kind() != reflect.String {
+				return fmt.Errorf("unsupported slice element type %s for field %s", fieldValue.Type().Elem().Kind(), field.Name)
+			}
+			flagSet.StringSlice(prefix+tag, []string{}, description)
 		default:
 			return fmt.Errorf("unsupported field type %s for field %s", fieldValue.Kind(), field.Name)
 		}

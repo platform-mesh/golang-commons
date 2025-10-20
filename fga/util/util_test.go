@@ -123,21 +123,21 @@ func TestCapGroupSingularLength(t *testing.T) {
 			group:     "test",
 			singular:  "resource",
 			maxLength: 20,
-			expected:  "test_resource",
+			expected:  "est_resource", // "create_test_resources" = 21 chars, truncate 1: "est_resource"
 		},
 		{
 			name:      "successful truncation case",
 			group:     "verylonggroup",
 			singular:  "job",
 			maxLength: 20,
-			expected:  "longgroup_job",
+			expected:  "onggroup_job", // "create_verylonggroup_jobs" = 25 chars, truncate 5: "onggroup_job"
 		},
 		{
 			name:      "truncation case with very long singular",
 			group:     "short",
 			singular:  "verylongkindnamethatexceedseverything",
 			maxLength: 10,
-			expected:  "ing",
+			expected:  "ng", // Additional "s" in relation makes it one char shorter
 		},
 		{
 			name:      "maxLength zero returns original groupKind",
@@ -151,7 +151,7 @@ func TestCapGroupSingularLength(t *testing.T) {
 			group:     "exactlength",
 			singular:  "test",
 			maxLength: 15,
-			expected:  "gth_test",
+			expected:  "th_test", // "create_exactlength_tests" = 24 chars, truncate 9: "th_test"
 		},
 	}
 

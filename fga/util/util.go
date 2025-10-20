@@ -24,12 +24,12 @@ func ConvertToTypeName(group, singular string) string {
 }
 
 func capGroupSingularLength(group, singular string, maxLength int) string {
-	groupKind := fmt.Sprintf("%s_%s", group, singular)
-	maxRelation := fmt.Sprintf("create_%s", groupKind)
+	groupSingular := fmt.Sprintf("%s_%s", group, singular)
+	maxRelation := fmt.Sprintf("create_%s", groupSingular)
 
 	if len(maxRelation) > maxLength && maxLength > 0 {
 		truncateLen := len(maxRelation) - maxLength
-		return groupKind[truncateLen:]
+		return groupSingular[truncateLen:]
 	}
-	return groupKind
+	return groupSingular
 }

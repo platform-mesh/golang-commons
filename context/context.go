@@ -18,8 +18,12 @@ const DefaultShutdownTimeout = 3 * time.Second
 type ShutdownTimeoutKey struct{}
 
 // Creates a new context and returns context, cancel and shutdown function. It should be directly followed by a defer call to shutdown.
-func StartContext(log *logger.Logger, cfg any, timeout time.Duration) (ctx context.Context, cancel context.CancelCauseFunc, shutdown func()) {
-	parentCtx := context.WithValue(context.Background(), ShutdownTimeoutKey{}, timeout)
+func StartContext(log *logger.Logger, cfg any, timeout time.Duration) (context.Context, context.CancelCauseFunc, func()) {
+	return StartWithContext(context.Background(), log, cfg, timeout)
+}
+
+func StartWithContext(ctx context.Context, log *logger.Logger, cfg any, timeout time.Duration) (context.Context, context.CancelCauseFunc, func()) {
+	parentCtx := context.WithValue(ctx, ShutdownTimeoutKey{}, timeout)
 	ctxWithCause, cancel := context.WithCancelCause(parentCtx)
 	ctx, c := NotifyShutdownContext(ctxWithCause)
 	ctx = logger.SetLoggerInContext(ctx, log)

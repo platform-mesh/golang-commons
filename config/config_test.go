@@ -36,7 +36,7 @@ func TestBindConfigToFlags(t *testing.T) {
 		CustomFlagStruct2 struct {
 			CustomFlagDuration time.Duration `mapstructure:"custom-flag-duration-2"`
 		} `mapstructure:"le-strFlag"`
-		Slice []string `mapstructure:"slice" description:"This is a slice of strings"`
+		Slice []string `mapstructure:"slice" description:"This is a slice of strings" default:"one,two,three"`
 	}
 
 	testStruct := test{}
@@ -75,6 +75,10 @@ func TestBindConfigToFlags(t *testing.T) {
 	assert.NotNil(t, durationFlag)
 	assert.Equal(t, "This is a custom flag with duration value", durationFlag.Usage)
 	assert.Equal(t, "1m0s", durationFlag.DefValue)
+
+	sliceFlag := cmd.Flags().Lookup("slice")
+	assert.NotNil(t, sliceFlag)
+	assert.Equal(t, "[one,two,three]", sliceFlag.DefValue)
 }
 
 func TestBindConfigToFlagsWrongTypeInt(t *testing.T) {

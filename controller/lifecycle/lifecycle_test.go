@@ -894,7 +894,7 @@ func TestUpdateStatus(t *testing.T) {
 
 		// Then
 		assert.Error(t, err)
-		assert.Equal(t, "status field not found in current object", err.Error())
+		assert.Equal(t, "internal error", err.Error())
 	})
 	t.Run("Test UpdateStatus with no status object (current)", func(t *testing.T) {
 		original := &pmtesting.ImplementConditions{}
@@ -904,7 +904,7 @@ func TestUpdateStatus(t *testing.T) {
 
 		// Then
 		assert.Error(t, err)
-		assert.Equal(t, "status field not found in current object", err.Error())
+		assert.Equal(t, "internal error", err.Error())
 	})
 }
 

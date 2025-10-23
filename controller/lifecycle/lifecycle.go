@@ -250,20 +250,14 @@ func updateStatus(ctx context.Context, cl client.Client, original runtime.Object
 		return err
 	}
 
-	currentStatus, hasField, err := unstructured.NestedFieldCopy(currentUn, "status")
+	currentStatus, _, err := unstructured.NestedFieldCopy(currentUn, "status")
 	if err != nil {
 		return err
-	}
-	if !hasField {
-		return fmt.Errorf("status field not found in current object")
 	}
 
-	originalStatus, hasField, err := unstructured.NestedFieldCopy(originalUn, "status")
+	originalStatus, _, err := unstructured.NestedFieldCopy(originalUn, "status")
 	if err != nil {
 		return err
-	}
-	if !hasField {
-		return fmt.Errorf("status field not found in current object")
 	}
 
 	if equality.Semantic.DeepEqual(currentStatus, originalStatus) {

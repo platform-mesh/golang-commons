@@ -220,8 +220,16 @@ func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.Runtime
 	}
 
 	if result.RequeueAfter == 0 {
-		update := false
+		err := cl.Get(ctx, client.ObjectKeyFromObject(instance), instance)
+		if err != nil {
+			if kerrors.IsNotFound(err) {
+				return nil
+			}
+			return errors.NewOperatorError(errors.Wrap(err, "failed to re-fetch before patching"), true, false)
+		}
+
 		original := instance.DeepCopyObject().(client.Object)
+		update := false
 		for _, f := range subroutine.Finalizers(instance) {
 			needsUpdate := controllerutil.RemoveFinalizer(instance, f)
 			if needsUpdate {
@@ -229,7 +237,7 @@ func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.Runtime
 			}
 		}
 		if update {
-			err := cl.Patch(ctx, instance, client.MergeFrom(original))
+			err = cl.Patch(ctx, instance, client.MergeFrom(original))
 			if err != nil {
 				return errors.NewOperatorError(errors.Wrap(err, "failed to update instance"), true, false)
 			}

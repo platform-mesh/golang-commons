@@ -17,6 +17,7 @@ import (
 	"github.com/platform-mesh/golang-commons/controller/lifecycle"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/api"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/conditions"
+	"github.com/platform-mesh/golang-commons/controller/lifecycle/ratelimiter"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/spread"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/subroutine"
@@ -35,6 +36,7 @@ type LifecycleManager struct {
 	spreader           *spread.Spreader
 	conditionsManager  *conditions.ConditionManager
 	prepareContextFunc api.PrepareContextFunc
+	rateLimiterConfig  ratelimiter.Config
 }
 
 func NewLifecycleManager(subroutines []subroutine.Subroutine, operatorName string, controllerName string, mgr ClusterGetter, log *logger.Logger) *LifecycleManager {
@@ -95,7 +97,9 @@ func (l *LifecycleManager) SetupWithManagerBuilder(mgr mcmanager.Manager, maxRec
 	eventPredicates = append([]predicate.Predicate{filter.DebugResourcesBehaviourPredicate(debugLabelValue)}, eventPredicates...)
 	opts := controller.TypedOptions[mcreconcile.Request]{
 		MaxConcurrentReconciles: maxReconciles,
+		RateLimiter:             ratelimiter.NewStaticThenExponentialRateLimiter[mcreconcile.Request](l.rateLimiterConfig),
 	}
+
 	return mcbuilder.ControllerManagedBy(mgr).
 		Named(reconcilerName).
 		For(instance).
@@ -134,5 +138,11 @@ func (l *LifecycleManager) WithSpreadingReconciles() api.Lifecycle {
 
 func (l *LifecycleManager) WithConditionManagement() api.Lifecycle {
 	l.conditionsManager = conditions.NewConditionManager()
+	return l
+}
+
+func (l *LifecycleManager) WithRateLimiter(opts ...ratelimiter.Option) *LifecycleManager {
+	cfg := ratelimiter.NewConfig(opts...)
+	l.rateLimiterConfig = cfg
 	return l
 }

@@ -62,6 +62,14 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 		}
 	}
 
+	if l.RateLimiter() != nil && instance.GetDeletionTimestamp().IsZero() {
+		reconcileRequired := l.RateLimiter().ReconcileRequired(instance, log)
+		if !reconcileRequired {
+			log.Info().Msg("skipping reconciliation, rate limit is active. No processing needed")
+			return l.RateLimiter().OnNextReconcile(instance, log)
+		}
+	}
+
 	// Manage Finalizers
 	ferr := AddFinalizersIfNeeded(ctx, cl, instance, l.Subroutines(), l.Config().ReadOnly)
 	if ferr != nil {
@@ -297,6 +305,11 @@ func MarkResourceAsFinal(instance runtimeobject.RuntimeObject, log *logger.Logge
 		l.Spreader().UpdateObservedGeneration(instanceStatusObj, log)
 	}
 
+	if l.RateLimiter() != nil && instance.GetDeletionTimestamp().IsZero() {
+		instanceStatusObj := util.MustToInterface[api.RuntimeObjectRateLimitStatus](instance, log)
+		l.RateLimiter().SetLastReconcileTime(instanceStatusObj, log)
+	}
+
 	if l.ConditionsManager() != nil {
 		l.ConditionsManager().SetInstanceConditionReady(&conditions, status)
 	}
@@ -357,6 +370,12 @@ func HandleOperatorError(ctx context.Context, operatorError errors.OperatorError
 func ValidateInterfaces(instance runtimeobject.RuntimeObject, log *logger.Logger, l api.Lifecycle) error {
 	if l.Spreader() != nil {
 		_, err := util.ToInterface[api.RuntimeObjectSpreadReconcileStatus](instance, log)
+		if err != nil {
+			return err
+		}
+	}
+	if l.RateLimiter() != nil {
+		_, err := util.ToInterface[api.RuntimeObjectRateLimitStatus](instance, log)
 		if err != nil {
 			return err
 		}

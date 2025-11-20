@@ -18,6 +18,7 @@ type TestLifecycleManager struct {
 	Logger             *logger.Logger
 	SubroutinesArr     []subroutine.Subroutine
 	spreader           api.SpreadManager
+	rateLimiter        api.RateLimitManager
 	conditionsManager  api.ConditionManager
 	ShouldReconcile    bool
 	prepareContextFunc api.PrepareContextFunc
@@ -32,6 +33,7 @@ func (l *TestLifecycleManager) Config() api.Config {
 }
 func (l *TestLifecycleManager) Log() *logger.Logger                     { return l.Logger }
 func (l *TestLifecycleManager) Spreader() api.SpreadManager             { return l.spreader }
+func (l *TestLifecycleManager) RateLimiter() api.RateLimitManager       { return l.rateLimiter }
 func (l *TestLifecycleManager) ConditionsManager() api.ConditionManager { return l.conditionsManager }
 func (l *TestLifecycleManager) PrepareContextFunc() api.PrepareContextFunc {
 	return l.prepareContextFunc
@@ -43,6 +45,10 @@ func (l *TestLifecycleManager) WithSpreadingReconciles() api.Lifecycle {
 }
 func (l *TestLifecycleManager) WithConditionManagement() api.Lifecycle {
 	l.conditionsManager = &TestConditionManager{}
+	return l
+}
+func (l *TestLifecycleManager) WithRateLimiting() api.Lifecycle {
+	l.rateLimiter = &TestRateLimiter{ShouldReconcile: l.ShouldReconcile}
 	return l
 }
 func (l *TestLifecycleManager) WithPrepareContextFunc(prepareFunction api.PrepareContextFunc) *TestLifecycleManager {
@@ -127,4 +133,20 @@ func (t TestConditionManager) SetInstanceConditionReady(conditions *[]metav1.Con
 		Message: "The resource is ready",
 		Reason:  "ok",
 	})
+}
+
+type TestRateLimiter struct {
+	ShouldReconcile bool
+}
+
+func (t TestRateLimiter) ReconcileRequired(runtimeobject.RuntimeObject, *logger.Logger) bool {
+	return t.ShouldReconcile
+}
+
+func (t TestRateLimiter) OnNextReconcile(runtimeobject.RuntimeObject, *logger.Logger) (ctrl.Result, error) {
+	return ctrl.Result{RequeueAfter: 5 * time.Minute}, nil
+}
+
+func (t TestRateLimiter) SetLastReconcileTime(instanceStatusObj api.RuntimeObjectRateLimitStatus, _ *logger.Logger) {
+	instanceStatusObj.SetLastReconcileTime(metav1.NewTime(time.Now()))
 }

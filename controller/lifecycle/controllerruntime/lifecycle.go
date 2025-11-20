@@ -3,6 +3,7 @@ package controllerruntime
 import (
 	"context"
 	"fmt"
+	"time"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -15,6 +16,7 @@ import (
 	"github.com/platform-mesh/golang-commons/controller/lifecycle"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/api"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/conditions"
+	"github.com/platform-mesh/golang-commons/controller/lifecycle/ratelimit"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/spread"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/subroutine"
@@ -27,6 +29,7 @@ type LifecycleManager struct {
 	config             api.Config
 	subroutines        []subroutine.Subroutine
 	spreader           *spread.Spreader
+	rateLimiter        *ratelimit.RateLimiter
 	conditionsManager  *conditions.ConditionManager
 	prepareContextFunc api.PrepareContextFunc
 }
@@ -70,6 +73,13 @@ func (l *LifecycleManager) Spreader() api.SpreadManager {
 	}
 	return l.spreader
 }
+func (l *LifecycleManager) RateLimiter() api.RateLimitManager {
+	// it is important to return nil instead of a nil pointer to the interface to avoid misbehaving nil checks
+	if l.rateLimiter == nil {
+		return nil
+	}
+	return l.rateLimiter
+}
 func (l *LifecycleManager) Reconcile(ctx context.Context, req ctrl.Request, instance runtimeobject.RuntimeObject) (ctrl.Result, error) {
 	return lifecycle.Reconcile(ctx, req.NamespacedName, instance, l.client, l)
 }
@@ -78,8 +88,8 @@ func (l *LifecycleManager) SetupWithManagerBuilder(mgr ctrl.Manager, maxReconcil
 		return nil, err
 	}
 
-	if (l.ConditionsManager() != nil || l.Spreader() != nil) && l.Config().ReadOnly {
-		return nil, fmt.Errorf("cannot use conditions or spread reconciles in read-only mode")
+	if (l.ConditionsManager() != nil || l.Spreader() != nil || l.RateLimiter() != nil) && l.Config().ReadOnly {
+		return nil, fmt.Errorf("cannot use conditions, spread reconciles or rate limiting in read-only mode")
 	}
 
 	eventPredicates = append([]predicate.Predicate{filter.DebugResourcesBehaviourPredicate(debugLabelValue)}, eventPredicates...)
@@ -121,5 +131,11 @@ func (l *LifecycleManager) WithSpreadingReconciles() *LifecycleManager {
 
 func (l *LifecycleManager) WithConditionManagement() *LifecycleManager {
 	l.conditionsManager = conditions.NewConditionManager()
+	return l
+}
+
+// WithRateLimiting sets the LifecycleManager to rate limit the reconciling
+func (l *LifecycleManager) WithRateLimiting(interval time.Duration, bypassFunc func(runtimeobject.RuntimeObject) bool) *LifecycleManager {
+	l.rateLimiter = ratelimit.NewRateLimiter(interval, bypassFunc)
 	return l
 }

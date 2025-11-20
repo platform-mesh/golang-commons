@@ -16,6 +16,7 @@ type Lifecycle interface {
 	Config() Config
 	Log() *logger.Logger
 	Spreader() SpreadManager
+	RateLimiter() RateLimitManager
 	ConditionsManager() ConditionManager
 	PrepareContextFunc() PrepareContextFunc
 	Subroutines() []subroutine.Subroutine
@@ -49,10 +50,23 @@ type SpreadManager interface {
 	UpdateObservedGeneration(instanceStatusObj RuntimeObjectSpreadReconcileStatus, log *logger.Logger)
 }
 
+type RateLimitManager interface {
+	ReconcileRequired(instance runtimeobject.RuntimeObject, log *logger.Logger) bool
+	OnNextReconcile(instance runtimeobject.RuntimeObject, log *logger.Logger) (ctrl.Result, error)
+	SetLastReconcileTime(instanceStatusObj RuntimeObjectRateLimitStatus, log *logger.Logger)
+}
+
 type RuntimeObjectSpreadReconcileStatus interface {
 	GetGeneration() int64
 	GetObservedGeneration() int64
 	SetObservedGeneration(int64)
 	GetNextReconcileTime() metav1.Time
 	SetNextReconcileTime(time metav1.Time)
+}
+
+type RuntimeObjectRateLimitStatus interface {
+	GetLastReconcileTime() metav1.Time
+	SetLastReconcileTime(metav1.Time)
+	GetGeneration() int64
+	GetObservedGeneration() int64
 }

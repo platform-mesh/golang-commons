@@ -10,7 +10,7 @@ import (
 
 type StaticThenExponentialRateLimiter[T comparable] struct {
 	failuresLock sync.RWMutex
-	firstAttempt map[T]time.Time
+	staticAttempts map[T]time.Time
 
 	staticDelay  time.Duration
 	staticWindow time.Duration
@@ -30,7 +30,7 @@ func NewStaticThenExponentialRateLimiter[T comparable](cfg Config) (*StaticThenE
 			cfg.ExponentialInitialBackoff,
 			cfg.ExponentialMaxBackoff,
 		),
-		firstAttempt: make(map[T]time.Time),
+		staticAttempts: make(map[T]time.Time),
 		clock:        clock.RealClock{},
 	},nil
 }
@@ -39,11 +39,11 @@ func (r *StaticThenExponentialRateLimiter[T]) When(item T) time.Duration {
 	now := r.clock.Now()
 
 	r.failuresLock.RLock()
-	first, exists := r.firstAttempt[item]
+	first, exists := r.staticAttempts[item]
 	r.failuresLock.RUnlock()
 	if !exists {
 		r.failuresLock.Lock()
-		r.firstAttempt[item] = now
+		r.staticAttempts[item] = now
 		r.failuresLock.Unlock()
 		return r.staticDelay
 	}
@@ -60,7 +60,7 @@ func (r *StaticThenExponentialRateLimiter[T]) Forget(item T) {
 	r.failuresLock.Lock()
 	defer r.failuresLock.Unlock()
 
-	delete(r.firstAttempt, item)
+	delete(r.staticAttempts, item)
 	r.exponential.Forget(item)
 }
 

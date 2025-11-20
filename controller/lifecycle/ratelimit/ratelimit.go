@@ -66,5 +66,5 @@ func (r *RateLimiter) OnNextReconcile(instance runtimeobject.RuntimeObject, log 
 
 func (r *RateLimiter) SetLastReconcileTime(instanceStatusObj api.RuntimeObjectRateLimitStatus, log *logger.Logger) {
 	log.Debug().Msg("Setting last reconcile time for the instance")
-	instanceStatusObj.SetLastReconcileTime(v1.NewTime(time.Now()))
+	instanceStatusObj.SetLastReconcileTime(v1.Now())
 }

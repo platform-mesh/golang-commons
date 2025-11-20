@@ -9,7 +9,7 @@ import (
 )
 
 type StaticThenExponentialRateLimiter[T comparable] struct {
-	failuresLock sync.Mutex
+	failuresLock sync.RWMutex
 	firstAttempt map[T]time.Time
 
 	staticDelay  time.Duration
@@ -19,7 +19,10 @@ type StaticThenExponentialRateLimiter[T comparable] struct {
 	clock       clock.Clock
 }
 
-func NewStaticThenExponentialRateLimiter[T comparable](cfg Config) *StaticThenExponentialRateLimiter[T] {
+func NewStaticThenExponentialRateLimiter[T comparable](cfg Config) (*StaticThenExponentialRateLimiter[T], error) {
+	if err := cfg.validate(); err != nil {
+		return nil, err
+	}
 	return &StaticThenExponentialRateLimiter[T]{
 		staticDelay:  cfg.StaticRequeueDelay,
 		staticWindow: cfg.StaticWindow,
@@ -29,19 +32,20 @@ func NewStaticThenExponentialRateLimiter[T comparable](cfg Config) *StaticThenEx
 		),
 		firstAttempt: make(map[T]time.Time),
 		clock:        clock.RealClock{},
-	}
+	},nil
 }
 
 func (r *StaticThenExponentialRateLimiter[T]) When(item T) time.Duration {
-	r.failuresLock.Lock()
-	defer r.failuresLock.Unlock()
-
 	now := r.clock.Now()
 
+	r.failuresLock.RLock()
 	first, exists := r.firstAttempt[item]
+	r.failuresLock.RUnlock()
 	if !exists {
-		first = now
-		r.firstAttempt[item] = first
+		r.failuresLock.Lock()
+		r.firstAttempt[item] = now
+		r.failuresLock.Unlock()
+		return r.staticDelay
 	}
 
 	timeSinceFirst := now.Sub(first)

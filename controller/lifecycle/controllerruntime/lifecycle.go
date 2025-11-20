@@ -84,10 +84,15 @@ func (l *LifecycleManager) SetupWithManagerBuilder(mgr ctrl.Manager, maxReconcil
 		return nil, fmt.Errorf("cannot use conditions or spread reconciles in read-only mode")
 	}
 
+	rateLimiter, err := ratelimiter.NewStaticThenExponentialRateLimiter[reconcile.Request](l.rateLimiterConfig)
+	if err != nil {
+		return nil, err
+	}
+
 	eventPredicates = append([]predicate.Predicate{filter.DebugResourcesBehaviourPredicate(debugLabelValue)}, eventPredicates...)
 	opts := controller.Options{
 		MaxConcurrentReconciles: maxReconciles,
-		RateLimiter:             ratelimiter.NewStaticThenExponentialRateLimiter[reconcile.Request](l.rateLimiterConfig),
+		RateLimiter:             rateLimiter,
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).

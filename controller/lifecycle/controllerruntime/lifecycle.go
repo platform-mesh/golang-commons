@@ -15,6 +15,7 @@ import (
 	"github.com/platform-mesh/golang-commons/controller/lifecycle"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/api"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/conditions"
+	"github.com/platform-mesh/golang-commons/controller/lifecycle/ratelimiter"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/spread"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/subroutine"
@@ -29,6 +30,7 @@ type LifecycleManager struct {
 	spreader           *spread.Spreader
 	conditionsManager  *conditions.ConditionManager
 	prepareContextFunc api.PrepareContextFunc
+	rateLimiterConfig  ratelimiter.Config
 }
 
 func NewLifecycleManager(subroutines []subroutine.Subroutine, operatorName string, controllerName string, client client.Client, log *logger.Logger) *LifecycleManager {
@@ -82,11 +84,21 @@ func (l *LifecycleManager) SetupWithManagerBuilder(mgr ctrl.Manager, maxReconcil
 		return nil, fmt.Errorf("cannot use conditions or spread reconciles in read-only mode")
 	}
 
+	rateLimiter, err := ratelimiter.NewStaticThenExponentialRateLimiter[reconcile.Request](l.rateLimiterConfig)
+	if err != nil {
+		return nil, err
+	}
+
 	eventPredicates = append([]predicate.Predicate{filter.DebugResourcesBehaviourPredicate(debugLabelValue)}, eventPredicates...)
+	opts := controller.Options{
+		MaxConcurrentReconciles: maxReconciles,
+		RateLimiter:             rateLimiter,
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(reconcilerName).
 		For(instance).
-		WithOptions(controller.Options{MaxConcurrentReconciles: maxReconciles}).
+		WithOptions(opts).
 		WithEventFilter(predicate.And(eventPredicates...)), nil
 }
 func (l *LifecycleManager) SetupWithManager(mgr ctrl.Manager, maxReconciles int, reconcilerName string, instance runtimeobject.RuntimeObject, debugLabelValue string, r reconcile.Reconciler, log *logger.Logger, eventPredicates ...predicate.Predicate) error {
@@ -121,5 +133,11 @@ func (l *LifecycleManager) WithSpreadingReconciles() *LifecycleManager {
 
 func (l *LifecycleManager) WithConditionManagement() *LifecycleManager {
 	l.conditionsManager = conditions.NewConditionManager()
+	return l
+}
+
+func (l *LifecycleManager) WithRateLimiter(opts ...ratelimiter.Option) *LifecycleManager {
+	cfg := ratelimiter.NewConfig(opts...)
+	l.rateLimiterConfig = cfg
 	return l
 }

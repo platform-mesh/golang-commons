@@ -115,6 +115,7 @@ func TestControllerRuntimeBuilder(t *testing.T) {
 		b := NewBuilder("op", "ctrl", nil, &logger.Logger{}).WithStaticThenExponentialRateLimiter(
 			ratelimiter.WithRequeueDelay(5*time.Second),
 			ratelimiter.WithStaticWindow(1*time.Minute),
+			ratelimiter.WithExponentialInitialBackoff(5*time.Second),
 		)
 		fakeClient := pmtesting.CreateFakeClient(t, &pmtesting.TestApiObject{})
 		lm := b.BuildControllerRuntime(fakeClient)
@@ -154,6 +155,7 @@ func TestMulticontrollerRuntimeBuilder(t *testing.T) {
 		b := NewBuilder("op", "ctrl", nil, &logger.Logger{}).WithStaticThenExponentialRateLimiter(
 			ratelimiter.WithRequeueDelay(5*time.Second),
 			ratelimiter.WithStaticWindow(1*time.Minute),
+			ratelimiter.WithExponentialInitialBackoff(5*time.Second),
 		)
 		cfg := &rest.Config{}
 		provider := pmtesting.NewFakeProvider(cfg)

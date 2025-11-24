@@ -11,6 +11,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	"k8s.io/client-go/util/workqueue"
+
 	"github.com/platform-mesh/golang-commons/controller/filter"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/api"
@@ -30,7 +32,7 @@ type LifecycleManager struct {
 	spreader           *spread.Spreader
 	conditionsManager  *conditions.ConditionManager
 	prepareContextFunc api.PrepareContextFunc
-	rateLimiterConfig  *ratelimiter.Config
+	rateLimiter        workqueue.TypedRateLimiter[reconcile.Request]
 }
 
 func NewLifecycleManager(subroutines []subroutine.Subroutine, operatorName string, controllerName string, client client.Client, log *logger.Logger) *LifecycleManager {
@@ -89,12 +91,8 @@ func (l *LifecycleManager) SetupWithManagerBuilder(mgr ctrl.Manager, maxReconcil
 		MaxConcurrentReconciles: maxReconciles,
 	}
 
-	if l.rateLimiterConfig != nil {
-		rateLimiter, err := ratelimiter.NewStaticThenExponentialRateLimiter[reconcile.Request](*l.rateLimiterConfig)
-		if err != nil {
-			return nil, err
-		}
-		opts.RateLimiter = rateLimiter
+	if l.rateLimiter != nil {
+		opts.RateLimiter = l.rateLimiter
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
@@ -139,7 +137,6 @@ func (l *LifecycleManager) WithConditionManagement() *LifecycleManager {
 }
 
 func (l *LifecycleManager) WithStaticThenExponentialRateLimiter(opts ...ratelimiter.Option) *LifecycleManager {
-	cfg := ratelimiter.NewConfig(opts...)
-	l.rateLimiterConfig = &cfg
+	l.rateLimiter = ratelimiter.NewStaticThenExponentialRateLimiter[reconcile.Request](ratelimiter.NewConfig(opts...))
 	return l
 }

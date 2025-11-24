@@ -1,7 +1,6 @@
 package ratelimiter
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -17,22 +16,6 @@ var defaultConfig = Config{
 	StaticWindow:              60 * time.Second,
 	ExponentialInitialBackoff: 2 * time.Second,
 	ExponentialMaxBackoff:     1000 * time.Second,
-}
-
-func (c Config) validate() error {
-	if c.StaticRequeueDelay < 0 {
-		return fmt.Errorf("the static requeue delay shouldn't be negative")
-	}
-	if c.ExponentialInitialBackoff < 0 {
-		return fmt.Errorf("the initial exponential backoff shouldn't be negative")
-	}
-	if c.StaticRequeueDelay > c.ExponentialInitialBackoff {
-		return fmt.Errorf("the initial exponential backoff should be equal to or greater than the static requeue delay")
-	}
-	if c.StaticWindow < c.StaticRequeueDelay {
-		return fmt.Errorf("the static window duration should be equal to or greater than the static requeue delay")
-	}
-	return nil
 }
 
 type Option func(*Config)

@@ -172,8 +172,11 @@ func TestLifecycle(t *testing.T) {
 			ratelimiter.WithExponentialMaxBackoff(expectedCfg.ExponentialMaxBackoff),
 		)
 
-		assert.NotNil(t, l.rateLimiterConfig)
-		assert.Equal(t, expectedCfg, *l.rateLimiterConfig)
+		assert.NotNil(t, l.rateLimiter, "rate limiter should be configured")
+
+		req := controllerruntime.Request{}
+		delay := l.rateLimiter.When(req)
+		assert.Equal(t, expectedCfg.StaticRequeueDelay, delay)
 	})
 
 }

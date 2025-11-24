@@ -17,8 +17,7 @@ func TestStaticThenExponentialRateLimiter_Forget(t *testing.T) {
 		ExponentialInitialBackoff: 2 * time.Second,
 		ExponentialMaxBackoff:     1 * time.Minute,
 	}
-	limiter, err := NewStaticThenExponentialRateLimiter[reconcile.Request](cfg)
-	require.Nil(t, err)
+	limiter := NewStaticThenExponentialRateLimiter[reconcile.Request](cfg)
 	fakeClock := clocktesting.NewFakeClock(time.Now())
 	limiter.clock = fakeClock
 

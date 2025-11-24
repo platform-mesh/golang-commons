@@ -13,10 +13,10 @@ type Config struct {
 }
 
 var defaultConfig = Config{
-	StaticRequeueDelay:        5 * time.Second,
-	StaticWindow:              1 * time.Minute,
-	ExponentialInitialBackoff: 5 * time.Second,
-	ExponentialMaxBackoff:     2 * time.Minute,
+	StaticRequeueDelay:        2 * time.Second,
+	StaticWindow:              60 * time.Second,
+	ExponentialInitialBackoff: 2 * time.Second,
+	ExponentialMaxBackoff:     1000 * time.Second,
 }
 
 func (c Config) validate() error {

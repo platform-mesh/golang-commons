@@ -30,7 +30,7 @@ type LifecycleManager struct {
 	spreader           *spread.Spreader
 	conditionsManager  *conditions.ConditionManager
 	prepareContextFunc api.PrepareContextFunc
-	rateLimiterConfig  ratelimiter.Config
+	rateLimiterConfig  *ratelimiter.Config
 }
 
 func NewLifecycleManager(subroutines []subroutine.Subroutine, operatorName string, controllerName string, client client.Client, log *logger.Logger) *LifecycleManager {
@@ -84,15 +84,17 @@ func (l *LifecycleManager) SetupWithManagerBuilder(mgr ctrl.Manager, maxReconcil
 		return nil, fmt.Errorf("cannot use conditions or spread reconciles in read-only mode")
 	}
 
-	rateLimiter, err := ratelimiter.NewStaticThenExponentialRateLimiter[reconcile.Request](l.rateLimiterConfig)
-	if err != nil {
-		return nil, err
-	}
-
 	eventPredicates = append([]predicate.Predicate{filter.DebugResourcesBehaviourPredicate(debugLabelValue)}, eventPredicates...)
 	opts := controller.Options{
 		MaxConcurrentReconciles: maxReconciles,
-		RateLimiter:             rateLimiter,
+	}
+
+	if l.rateLimiterConfig != nil {
+		rateLimiter, err := ratelimiter.NewStaticThenExponentialRateLimiter[reconcile.Request](*l.rateLimiterConfig)
+		if err != nil {
+			return nil, err
+		}
+		opts.RateLimiter = rateLimiter
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
@@ -136,8 +138,8 @@ func (l *LifecycleManager) WithConditionManagement() *LifecycleManager {
 	return l
 }
 
-func (l *LifecycleManager) WithRateLimiter(opts ...ratelimiter.Option) *LifecycleManager {
+func (l *LifecycleManager) WithStaticThenExponentialRateLimiter(opts ...ratelimiter.Option) *LifecycleManager {
 	cfg := ratelimiter.NewConfig(opts...)
-	l.rateLimiterConfig = cfg
+	l.rateLimiterConfig = &cfg
 	return l
 }

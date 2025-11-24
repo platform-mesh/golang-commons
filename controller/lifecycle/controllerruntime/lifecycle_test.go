@@ -165,14 +165,15 @@ func TestLifecycle(t *testing.T) {
 			ExponentialInitialBackoff: 5 * time.Second,
 			ExponentialMaxBackoff:     time.Minute,
 		}
-		l.WithRateLimiter(
+		l.WithStaticThenExponentialRateLimiter(
 			ratelimiter.WithRequeueDelay(expectedCfg.StaticRequeueDelay),
 			ratelimiter.WithStaticWindow(expectedCfg.StaticWindow),
 			ratelimiter.WithExponentialInitialBackoff(expectedCfg.ExponentialInitialBackoff),
 			ratelimiter.WithExponentialMaxBackoff(expectedCfg.ExponentialMaxBackoff),
 		)
 
-		assert.Equal(t, expectedCfg, l.rateLimiterConfig)
+		assert.NotNil(t, l.rateLimiterConfig)
+		assert.Equal(t, expectedCfg, *l.rateLimiterConfig)
 	})
 
 }

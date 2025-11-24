@@ -9,7 +9,7 @@ import (
 )
 
 type StaticThenExponentialRateLimiter[T comparable] struct {
-	failuresLock sync.RWMutex
+	failuresLock   sync.RWMutex
 	staticAttempts map[T]time.Time
 
 	staticDelay  time.Duration
@@ -31,8 +31,8 @@ func NewStaticThenExponentialRateLimiter[T comparable](cfg Config) (*StaticThenE
 			cfg.ExponentialMaxBackoff,
 		),
 		staticAttempts: make(map[T]time.Time),
-		clock:        clock.RealClock{},
-	},nil
+		clock:          clock.RealClock{},
+	}, nil
 }
 
 func (r *StaticThenExponentialRateLimiter[T]) When(item T) time.Duration {

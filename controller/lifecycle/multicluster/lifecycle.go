@@ -3,6 +3,7 @@ package multicluster
 import (
 	"context"
 	"fmt"
+	"log"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cluster"
@@ -147,6 +148,10 @@ func (l *LifecycleManager) WithConditionManagement() api.Lifecycle {
 }
 
 func (l *LifecycleManager) WithStaticThenExponentialRateLimiter(opts ...ratelimiter.Option) *LifecycleManager {
-	l.rateLimiter = ratelimiter.NewStaticThenExponentialRateLimiter[mcreconcile.Request](ratelimiter.NewConfig(opts...))
+	rateLimiter, err := ratelimiter.NewStaticThenExponentialRateLimiter[mcreconcile.Request](ratelimiter.NewConfig(opts...))
+	if err != nil {
+		log.Fatalf("rate limiter config error: %s",err)
+	}
+	l.rateLimiter = rateLimiter
 	return l
 }

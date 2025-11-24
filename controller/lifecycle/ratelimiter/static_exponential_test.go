@@ -17,7 +17,8 @@ func TestStaticThenExponentialRateLimiter_Forget(t *testing.T) {
 		ExponentialInitialBackoff: 2 * time.Second,
 		ExponentialMaxBackoff:     1 * time.Minute,
 	}
-	limiter := NewStaticThenExponentialRateLimiter[reconcile.Request](cfg)
+	limiter, err := NewStaticThenExponentialRateLimiter[reconcile.Request](cfg)
+	require.NoError(t, err)
 	fakeClock := clocktesting.NewFakeClock(time.Now())
 	limiter.clock = fakeClock
 
@@ -30,4 +31,54 @@ func TestStaticThenExponentialRateLimiter_Forget(t *testing.T) {
 	require.Equal(t, 0, limiter.NumRequeues(item))
 	delay := limiter.When(item)
 	require.Equal(t, cfg.StaticRequeueDelay, delay)
+}
+
+func TestStaticThenExponentialRateLimiter_InvalidConfig(t *testing.T) {
+	t.Run("negative static requeue delay", func(t *testing.T) {
+		cfg := Config{
+			StaticRequeueDelay:        -1 * time.Second,
+			StaticWindow:              5 * time.Second,
+			ExponentialInitialBackoff: 2 * time.Second,
+			ExponentialMaxBackoff:     1 * time.Minute,
+		}
+		_, err := NewStaticThenExponentialRateLimiter[reconcile.Request](cfg)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "static requeue delay shouldn't be negative")
+	})
+
+	t.Run("negative exponential initial backoff", func(t *testing.T) {
+		cfg := Config{
+			StaticRequeueDelay:        1 * time.Second,
+			StaticWindow:              5 * time.Second,
+			ExponentialInitialBackoff: -1 * time.Second,
+			ExponentialMaxBackoff:     1 * time.Minute,
+		}
+		_, err := NewStaticThenExponentialRateLimiter[reconcile.Request](cfg)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "initial exponential backoff shouldn't be negative")
+	})
+
+	t.Run("static requeue delay greater than exponential initial backoff", func(t *testing.T) {
+		cfg := Config{
+			StaticRequeueDelay:        5 * time.Second,
+			StaticWindow:              10 * time.Second,
+			ExponentialInitialBackoff: 2 * time.Second,
+			ExponentialMaxBackoff:     1 * time.Minute,
+		}
+		_, err := NewStaticThenExponentialRateLimiter[reconcile.Request](cfg)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "initial exponential backoff should be equal to or greater than the static requeue delay")
+	})
+
+	t.Run("static window less than static requeue delay", func(t *testing.T) {
+		cfg := Config{
+			StaticRequeueDelay:        5 * time.Second,
+			StaticWindow:              2 * time.Second,
+			ExponentialInitialBackoff: 5 * time.Second,
+			ExponentialMaxBackoff:     1 * time.Minute,
+		}
+		_, err := NewStaticThenExponentialRateLimiter[reconcile.Request](cfg)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "static window duration should be equal to or greater than the static requeue delay")
+	})
 }

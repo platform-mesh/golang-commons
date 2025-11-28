@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/util/retry"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -244,40 +245,54 @@ func updateStatus(ctx context.Context, cl client.Client, original runtime.Object
 	if err != nil {
 		return err
 	}
-
 	originalUn, err := runtime.DefaultUnstructuredConverter.ToUnstructured(original)
 	if err != nil {
 		return err
 	}
-
 	currentStatus, _, err := unstructured.NestedFieldCopy(currentUn, "status")
 	if err != nil {
 		return err
 	}
-
 	originalStatus, _, err := unstructured.NestedFieldCopy(originalUn, "status")
 	if err != nil {
 		return err
 	}
-
 	if equality.Semantic.DeepEqual(currentStatus, originalStatus) {
 		log.Info().Msg("skipping status update, since they are equal")
 		return nil
 	}
 
 	log.Info().Msg("updating resource status")
-	err = cl.Status().Update(ctx, current)
-	if err != nil {
-		if !kerrors.IsConflict(err) {
-			log.Error().Err(err).Msg("cannot update status, kubernetes client error")
-			if generationChanged {
-				sentry.CaptureError(err, sentryTags, sentry.Extras{"message": "Updating of instance status failed"})
-			}
+	
+	err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		latest := current.DeepCopyObject().(runtimeobject.RuntimeObject)
+		if err := cl.Get(ctx, client.ObjectKeyFromObject(current), latest); err != nil {
+			return err
 		}
+
+		latestUn, err := runtime.DefaultUnstructuredConverter.ToUnstructured(latest)
+		if err != nil {
+			return err
+		}
+		
+		if err := unstructured.SetNestedField(latestUn, currentStatus, "status"); err != nil {
+			return err
+		}
+		
+		if err := runtime.DefaultUnstructuredConverter.FromUnstructured(latestUn, latest); err != nil {
+			return err
+		}
+		
+		return cl.Status().Update(ctx, latest)
+	})
+	
+	if err != nil {
 		log.Error().Err(err).Msg("cannot update reconciliation Conditions, kubernetes client error")
+		if !kerrors.IsConflict(err) && generationChanged {
+			sentry.CaptureError(err, sentryTags, sentry.Extras{"message": "Updating of instance status failed"})
+		}
 		return err
 	}
-
 	return nil
 }
 

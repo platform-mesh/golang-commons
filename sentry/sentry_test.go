@@ -33,3 +33,27 @@ func TestCaptureSentryError(t *testing.T) {
 		CaptureSentryError(err, nil)
 	})
 }
+
+func TestWrap_NoPanic(t *testing.T) {
+	called := false
+
+	wrapped := Wrap(func() {
+		called = true
+	}, nil)
+
+	assert.NotPanics(t, func() {
+		wrapped()
+	})
+
+	assert.True(t, called, "wrapped function should be executed")
+}
+
+func TestWrap_PanicIsRecovered(t *testing.T) {
+	wrapped := Wrap(func() {
+		panic("nil pointer exception")
+	}, Tags{"component": "test"})
+
+	assert.NotPanics(t, func() {
+		wrapped()
+	})
+}

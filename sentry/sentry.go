@@ -111,6 +111,50 @@ func CaptureSentryError(err error, tags Tags, extras ...Extras) {
 	}
 }
 
+// Wrap returns a function wrapper that recovers from panics and sends them to Sentry.
+//
+// Usage:
+//
+//	// synchronous usage
+//	wrapped := sentry.Wrap(func() { /* work */ }, sentry.Tags{"component":"job"})
+//	wrapped()
+//
+//	// asynchronous usage
+//	go sentry.Wrap(func() { /* work */ }, sentry.Tags{"component":"worker"})()
+//
+// Any panic inside the provided function will be captured and reported to Sentry
+// with the tag panic=true alongside any provided tags and extras.
+func Wrap(f func(), tags Tags, extras ...Extras) func() {
+	return func() {
+		defer func() {
+			if r := recover(); r != nil {
+				var err error
+				switch v := r.(type) {
+				case error:
+					err = v
+				default:
+					err = fmt.Errorf("panic: %v", v)
+				}
+
+				// ensure we always tag this as a panic while preserving any provided tags
+				merged := Tags{"panic": "true"}
+				for k, v := range tags {
+					merged[k] = v
+				}
+
+				CaptureError(err, merged, extras...)
+			}
+		}()
+
+		f()
+	}
+}
+
+// Go starts a goroutine that recovers from panics and sends them to Sentry.
+func Go(f func(), tags Tags, extras ...Extras) {
+	go Wrap(f, tags, extras...)()
+}
+
 // Add adds a new tag
 func (t Tags) Add(key, value string) {
 	t[key] = value

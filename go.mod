@@ -3,7 +3,7 @@ module github.com/platform-mesh/golang-commons
 go 1.25.0
 
 // This is currently necessary due to the version used in https://github.com/kcp-dev/multicluster-provider/blob/main/go.mod
-replace sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.20.4
+replace sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.22.4
 
 require (
 	github.com/99designs/gqlgen v0.17.85
@@ -127,7 +127,7 @@ require (
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apiextensions-apiserver v0.33.0 // indirect
+	k8s.io/apiextensions-apiserver v0.34.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20250910181357-589584f1c912 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect

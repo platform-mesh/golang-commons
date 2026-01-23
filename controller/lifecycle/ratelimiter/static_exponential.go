@@ -27,9 +27,6 @@ func NewStaticThenExponentialRateLimiter[T comparable](cfg Config) (*StaticThenE
 	if err := cfg.validate(); err != nil {
 		return nil, err
 	}
-	log, _ := logger.New(logger.Config{
-		Name: "StaticThenExponentialRateLimiter",
-	})
 
 	return &StaticThenExponentialRateLimiter[T]{
 		staticDelay:  cfg.StaticRequeueDelay,
@@ -40,8 +37,11 @@ func NewStaticThenExponentialRateLimiter[T comparable](cfg Config) (*StaticThenE
 		),
 		staticAttempts: make(map[T]time.Time),
 		clock:          clock.RealClock{},
-		logger:         log,
 	}, nil
+}
+
+func (r *StaticThenExponentialRateLimiter[T]) SetLogger(logger *logger.Logger) {
+	r.logger = logger.MustChildLoggerWithAttributes("component", "StaticThenExponentialRateLimiter")
 }
 
 func (r *StaticThenExponentialRateLimiter[T]) When(item T) time.Duration {

@@ -2,6 +2,7 @@ package ratelimiter
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 
@@ -99,8 +100,15 @@ func (r *StaticThenExponentialRateLimiter[T]) Forget(item T) {
 	expFailuresBefore := r.exponential.NumRequeues(item)
 	r.failuresLock.RUnlock()
 
-	r.logger.Info().Msg(fmt.Sprintf("[RateLimiter] FORGET_CALLED: item=%v, exists_in_static=%v, map_size=%d, exp_failures_before=%d",
-		item, existsInStatic, staticMapSize, expFailuresBefore))
+	// Get caller info
+	pc, file, line, ok := runtime.Caller(1)
+	caller := "unknown"
+	if ok {
+		caller = fmt.Sprintf("%s:%d (%s)", file, line, runtime.FuncForPC(pc).Name())
+	}
+
+	r.logger.Info().Msg(fmt.Sprintf("[RateLimiter] FORGET_CALLED: item=%v, caller=%s, exists_in_static=%v, map_size=%d, exp_failures_before=%d",
+		item, caller, existsInStatic, staticMapSize, expFailuresBefore))
 
 	r.failuresLock.Lock()
 	defer r.failuresLock.Unlock()
@@ -117,8 +125,8 @@ func (r *StaticThenExponentialRateLimiter[T]) Forget(item T) {
 	expFailuresAfter := r.exponential.NumRequeues(item)
 	staticMapSizeAfter := len(r.staticAttempts)
 
-	r.logger.Info().Msg(fmt.Sprintf("[RateLimiter] FORGET_COMPLETED: item=%v, map_size_after=%d, exp_failures_after=%d",
-		item, staticMapSizeAfter, expFailuresAfter))
+	r.logger.Info().Msg(fmt.Sprintf("[RateLimiter] FORGET_COMPLETED: item=%v, map_size_after=%d, exp_failures_after=%d, was_in_error=%v",
+		item, staticMapSizeAfter, expFailuresAfter, expFailuresBefore > 0))
 }
 
 func (r *StaticThenExponentialRateLimiter[T]) NumRequeues(item T) int {

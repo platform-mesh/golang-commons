@@ -90,7 +90,10 @@ type ChangeStatusSubroutine struct {
 	Client client.Client
 }
 
-func (c ChangeStatusSubroutine) Process(_ context.Context, runtimeObj runtimeobject.RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
+func (c ChangeStatusSubroutine) Process(
+	_ context.Context,
+	runtimeObj runtimeobject.RuntimeObject,
+) (controllerruntime.Result, errors.OperatorError) {
 	if instance, ok := runtimeObj.(*TestApiObject); ok {
 		instance.Status.Some = "other string"
 	}
@@ -104,7 +107,10 @@ func (c ChangeStatusSubroutine) Process(_ context.Context, runtimeObj runtimeobj
 	return controllerruntime.Result{}, nil
 }
 
-func (c ChangeStatusSubroutine) Finalize(_ context.Context, _ runtimeobject.RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
+func (c ChangeStatusSubroutine) Finalize(
+	_ context.Context,
+	_ runtimeobject.RuntimeObject,
+) (controllerruntime.Result, errors.OperatorError) {
 	return controllerruntime.Result{}, nil
 }
 
@@ -116,11 +122,18 @@ func (c ChangeStatusSubroutine) Finalizers(instance runtimeobject.RuntimeObject)
 	return []string{"changestatus"}
 }
 
+func (c ChangeStatusSubroutine) ShouldStopChain() bool {
+	return false
+}
+
 type AddConditionSubroutine struct {
 	Ready metav1.ConditionStatus
 }
 
-func (c AddConditionSubroutine) Process(_ context.Context, runtimeObj runtimeobject.RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
+func (c AddConditionSubroutine) Process(
+	_ context.Context,
+	runtimeObj runtimeobject.RuntimeObject,
+) (controllerruntime.Result, errors.OperatorError) {
 	if instance, ok := runtimeObj.(*ImplementConditions); ok {
 		instance.Status.Some = "other string"
 		meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
@@ -134,7 +147,10 @@ func (c AddConditionSubroutine) Process(_ context.Context, runtimeObj runtimeobj
 	return controllerruntime.Result{}, nil
 }
 
-func (c AddConditionSubroutine) Finalize(_ context.Context, _ runtimeobject.RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
+func (c AddConditionSubroutine) Finalize(
+	_ context.Context,
+	_ runtimeobject.RuntimeObject,
+) (controllerruntime.Result, errors.OperatorError) {
 	return controllerruntime.Result{}, nil
 }
 
@@ -146,6 +162,10 @@ func (c AddConditionSubroutine) Finalizers(instance runtimeobject.RuntimeObject)
 	return []string{}
 }
 
+func (c AddConditionSubroutine) ShouldStopChain() bool {
+	return false
+}
+
 type FailureScenarioSubroutine struct {
 	Retry              bool
 	RequeAfter         bool
@@ -153,7 +173,10 @@ type FailureScenarioSubroutine struct {
 	FinalizeRequeAfter bool
 }
 
-func (f FailureScenarioSubroutine) Process(_ context.Context, _ runtimeobject.RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
+func (f FailureScenarioSubroutine) Process(
+	_ context.Context,
+	_ runtimeobject.RuntimeObject,
+) (controllerruntime.Result, errors.OperatorError) {
 	if f.RequeAfter {
 		return controllerruntime.Result{RequeueAfter: 10 * time.Second}, nil
 	}
@@ -161,7 +184,10 @@ func (f FailureScenarioSubroutine) Process(_ context.Context, _ runtimeobject.Ru
 	return controllerruntime.Result{}, errors.NewOperatorError(fmt.Errorf("FailureScenarioSubroutine"), f.Retry, false)
 }
 
-func (f FailureScenarioSubroutine) Finalize(_ context.Context, _ runtimeobject.RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
+func (f FailureScenarioSubroutine) Finalize(
+	_ context.Context,
+	_ runtimeobject.RuntimeObject,
+) (controllerruntime.Result, errors.OperatorError) {
 	if f.RequeAfter {
 		return controllerruntime.Result{RequeueAfter: 10 * time.Second}, nil
 	}
@@ -175,6 +201,10 @@ func (f FailureScenarioSubroutine) Finalizers(instance runtimeobject.RuntimeObje
 
 func (c FailureScenarioSubroutine) GetName() string {
 	return "FailureScenarioSubroutine"
+}
+
+func (c FailureScenarioSubroutine) ShouldStopChain() bool {
+	return false
 }
 
 type ImplementConditionsAndSpreadReconciles struct {
@@ -209,14 +239,20 @@ type ContextValueSubroutine struct {
 
 const ContextValueKey = keys.ContextKey("ContextValueKey")
 
-func (f ContextValueSubroutine) Process(ctx context.Context, r runtimeobject.RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
+func (f ContextValueSubroutine) Process(
+	ctx context.Context,
+	r runtimeobject.RuntimeObject,
+) (controllerruntime.Result, errors.OperatorError) {
 	if instance, ok := r.(*TestApiObject); ok {
 		instance.Status.Some = ctx.Value(ContextValueKey).(string)
 	}
 	return controllerruntime.Result{}, nil
 }
 
-func (f ContextValueSubroutine) Finalize(_ context.Context, _ runtimeobject.RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
+func (f ContextValueSubroutine) Finalize(
+	_ context.Context,
+	_ runtimeobject.RuntimeObject,
+) (controllerruntime.Result, errors.OperatorError) {
 	return controllerruntime.Result{}, nil
 }
 
@@ -226,4 +262,110 @@ func (f ContextValueSubroutine) Finalizers(instance runtimeobject.RuntimeObject)
 
 func (c ContextValueSubroutine) GetName() string {
 	return "ContextValueSubroutine"
+}
+
+func (c ContextValueSubroutine) ShouldStopChain() bool {
+	return false
+}
+
+type ChainStopSubroutine struct {
+	Name         string
+	StopChain    bool
+	RequeueAfter time.Duration
+	Processed    *bool
+	Finalized    *bool
+}
+
+func (c ChainStopSubroutine) Process(
+	_ context.Context,
+	_ runtimeobject.RuntimeObject,
+) (controllerruntime.Result, errors.OperatorError) {
+	if c.Processed != nil {
+		*c.Processed = true
+	}
+	if c.RequeueAfter > 0 {
+		return controllerruntime.Result{RequeueAfter: c.RequeueAfter}, nil
+	}
+	return controllerruntime.Result{}, nil
+}
+
+func (c ChainStopSubroutine) Finalize(
+	_ context.Context,
+	_ runtimeobject.RuntimeObject,
+) (controllerruntime.Result, errors.OperatorError) {
+	if c.Finalized != nil {
+		*c.Finalized = true
+	}
+	if c.RequeueAfter > 0 {
+		return controllerruntime.Result{RequeueAfter: c.RequeueAfter}, nil
+	}
+	return controllerruntime.Result{}, nil
+}
+
+func (c ChainStopSubroutine) GetName() string {
+	if c.Name != "" {
+		return c.Name
+	}
+	return "ChainStopSubroutine"
+}
+
+func (c ChainStopSubroutine) Finalizers(_ runtimeobject.RuntimeObject) []string {
+	return []string{}
+}
+
+func (c ChainStopSubroutine) ShouldStopChain() bool {
+	return c.StopChain
+}
+
+type ChainStopFinalizerSubroutine struct {
+	Name          string
+	FinalizerName string
+	StopChain     bool
+	RequeueAfter  time.Duration
+	Processed     *bool
+	Finalized     *bool
+}
+
+func (c ChainStopFinalizerSubroutine) Process(
+	_ context.Context,
+	_ runtimeobject.RuntimeObject,
+) (controllerruntime.Result, errors.OperatorError) {
+	if c.Processed != nil {
+		*c.Processed = true
+	}
+	if c.RequeueAfter > 0 {
+		return controllerruntime.Result{RequeueAfter: c.RequeueAfter}, nil
+	}
+	return controllerruntime.Result{}, nil
+}
+
+func (c ChainStopFinalizerSubroutine) Finalize(
+	_ context.Context,
+	_ runtimeobject.RuntimeObject,
+) (controllerruntime.Result, errors.OperatorError) {
+	if c.Finalized != nil {
+		*c.Finalized = true
+	}
+	if c.RequeueAfter > 0 {
+		return controllerruntime.Result{RequeueAfter: c.RequeueAfter}, nil
+	}
+	return controllerruntime.Result{}, nil
+}
+
+func (c ChainStopFinalizerSubroutine) GetName() string {
+	if c.Name != "" {
+		return c.Name
+	}
+	return "ChainStopFinalizerSubroutine"
+}
+
+func (c ChainStopFinalizerSubroutine) Finalizers(_ runtimeobject.RuntimeObject) []string {
+	if c.FinalizerName != "" {
+		return []string{c.FinalizerName}
+	}
+	return []string{"chainstopfinalizer"}
+}
+
+func (c ChainStopFinalizerSubroutine) ShouldStopChain() bool {
+	return c.StopChain
 }

@@ -14,4 +14,7 @@ type Subroutine interface {
 	Finalize(ctx context.Context, instance runtimeobject.RuntimeObject) (ctrl.Result, errors.OperatorError)
 	GetName() string
 	Finalizers(instance runtimeobject.RuntimeObject) []string
+	// ShouldStopChain returns true if the reconciliation chain should stop after this subroutine
+	// this allows subroutines to signal that subsequent subroutines should not run (e.g. domain filtering)
+	ShouldStopChain() bool
 }

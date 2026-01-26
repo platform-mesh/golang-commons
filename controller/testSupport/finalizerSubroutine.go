@@ -45,3 +45,7 @@ func (c FinalizerSubroutine) Finalizers(_ runtimeobject.RuntimeObject) []string 
 		SubroutineFinalizer,
 	}
 }
+
+func (c FinalizerSubroutine) ShouldStopChain() bool {
+	return false
+}

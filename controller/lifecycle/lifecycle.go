@@ -26,14 +26,21 @@ import (
 	"github.com/platform-mesh/golang-commons/sentry"
 )
 
-func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtimeobject.RuntimeObject, cl client.Client, l api.Lifecycle) (ctrl.Result, error) {
+func Reconcile(
+	ctx context.Context,
+	nName types.NamespacedName,
+	instance runtimeobject.RuntimeObject,
+	cl client.Client,
+	l api.Lifecycle,
+) (ctrl.Result, error) {
 	ctx, span := otel.Tracer(l.Config().OperatorName).Start(ctx, fmt.Sprintf("%s.Reconcile", l.Config().ControllerName))
 	defer span.End()
 
 	result := ctrl.Result{}
 	reconcileId := uuid.New().String()
 
-	log := l.Log().MustChildLoggerWithAttributes("name", nName.Name, "namespace", nName.Namespace, "reconcile_id", reconcileId)
+	log := l.Log().
+		MustChildLoggerWithAttributes("name", nName.Name, "namespace", nName.Namespace, "reconcile_id", reconcileId)
 	sentryTags := sentry.Tags{"namespace": nName.Namespace, "name": nName.Name}
 
 	ctx = logger.SetLoggerInContext(ctx, log)
@@ -131,6 +138,12 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 				l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult, err, inDeletion, log)
 			}
 		}
+		if s.ShouldStopChain() {
+			log.Info().
+				Str("subroutine", s.GetName()).
+				Msg("subroutine requested stop chain, skipping remaining subroutines")
+			break
+		}
 	}
 
 	if result.RequeueAfter == 0 {
@@ -168,12 +181,22 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 	return result, nil
 }
 
-func reconcileSubroutine(ctx context.Context, instance runtimeobject.RuntimeObject, subroutine subroutine.Subroutine, cl client.Client, l api.Lifecycle, log *logger.Logger, generationChanged bool, sentryTags map[string]string) (ctrl.Result, bool, error) {
+func reconcileSubroutine(
+	ctx context.Context,
+	instance runtimeobject.RuntimeObject,
+	subroutine subroutine.Subroutine,
+	cl client.Client,
+	l api.Lifecycle,
+	log *logger.Logger,
+	generationChanged bool,
+	sentryTags map[string]string,
+) (ctrl.Result, bool, error) {
 	subroutineLogger := log.ChildLogger("subroutine", subroutine.GetName())
 	ctx = logger.SetLoggerInContext(ctx, subroutineLogger)
 	subroutineLogger.Debug().Msg("start subroutine")
 
-	ctx, span := otel.Tracer(l.Config().OperatorName).Start(ctx, fmt.Sprintf("%s.reconcileSubroutine.%s", l.Config().ControllerName, subroutine.GetName()))
+	ctx, span := otel.Tracer(l.Config().OperatorName).
+		Start(ctx, fmt.Sprintf("%s.reconcileSubroutine.%s", l.Config().ControllerName, subroutine.GetName()))
 	defer span.End()
 	var result ctrl.Result
 	var err errors.OperatorError
@@ -214,7 +237,14 @@ func containsFinalizer(o client.Object, subroutineFinalizers []string) bool {
 	return false
 }
 
-func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.RuntimeObject, subroutine subroutine.Subroutine, result ctrl.Result, readonly bool, cl client.Client) errors.OperatorError {
+func removeFinalizerIfNeeded(
+	ctx context.Context,
+	instance runtimeobject.RuntimeObject,
+	subroutine subroutine.Subroutine,
+	result ctrl.Result,
+	readonly bool,
+	cl client.Client,
+) errors.OperatorError {
 	if readonly {
 		return nil
 	}
@@ -239,7 +269,15 @@ func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.Runtime
 	return nil
 }
 
-func updateStatus(ctx context.Context, cl client.Client, original runtime.Object, current runtimeobject.RuntimeObject, log *logger.Logger, generationChanged bool, sentryTags sentry.Tags) error {
+func updateStatus(
+	ctx context.Context,
+	cl client.Client,
+	original runtime.Object,
+	current runtimeobject.RuntimeObject,
+	log *logger.Logger,
+	generationChanged bool,
+	sentryTags sentry.Tags,
+) error {
 	currentUn, err := runtime.DefaultUnstructuredConverter.ToUnstructured(current)
 	if err != nil {
 		return err
@@ -281,7 +319,13 @@ func updateStatus(ctx context.Context, cl client.Client, original runtime.Object
 	return nil
 }
 
-func HandleClientError(msg string, log *logger.Logger, err error, generationChanged bool, sentryTags sentry.Tags) (ctrl.Result, error) {
+func HandleClientError(
+	msg string,
+	log *logger.Logger,
+	err error,
+	generationChanged bool,
+	sentryTags sentry.Tags,
+) (ctrl.Result, error) {
 	log.Error().Err(err).Msg(msg)
 	if generationChanged {
 		sentry.CaptureError(err, sentryTags)
@@ -290,7 +334,13 @@ func HandleClientError(msg string, log *logger.Logger, err error, generationChan
 	return ctrl.Result{}, err
 }
 
-func MarkResourceAsFinal(instance runtimeobject.RuntimeObject, log *logger.Logger, conditions []v1.Condition, status v1.ConditionStatus, l api.Lifecycle) {
+func MarkResourceAsFinal(
+	instance runtimeobject.RuntimeObject,
+	log *logger.Logger,
+	conditions []v1.Condition,
+	status v1.ConditionStatus,
+	l api.Lifecycle,
+) {
 	if l.Spreader() != nil && instance.GetDeletionTimestamp().IsZero() {
 		instanceStatusObj := util.MustToInterface[api.RuntimeObjectSpreadReconcileStatus](instance, log)
 		l.Spreader().SetNextReconcileTime(instanceStatusObj, log)
@@ -302,7 +352,13 @@ func MarkResourceAsFinal(instance runtimeobject.RuntimeObject, log *logger.Logge
 	}
 }
 
-func AddFinalizersIfNeeded(ctx context.Context, cl client.Client, instance runtimeobject.RuntimeObject, subroutines []subroutine.Subroutine, readonly bool) error {
+func AddFinalizersIfNeeded(
+	ctx context.Context,
+	cl client.Client,
+	instance runtimeobject.RuntimeObject,
+	subroutines []subroutine.Subroutine,
+	readonly bool,
+) error {
 	if readonly {
 		return nil
 	}
@@ -341,8 +397,18 @@ func AddFinalizerIfNeeded(instance runtimeobject.RuntimeObject, subroutine subro
 	return update
 }
 
-func HandleOperatorError(ctx context.Context, operatorError errors.OperatorError, msg string, generationChanged bool, log *logger.Logger) (ctrl.Result, error) {
-	log.Error().Bool("retry", operatorError.Retry()).Bool("sentry", operatorError.Sentry()).Err(operatorError.Err()).Msg(msg)
+func HandleOperatorError(
+	ctx context.Context,
+	operatorError errors.OperatorError,
+	msg string,
+	generationChanged bool,
+	log *logger.Logger,
+) (ctrl.Result, error) {
+	log.Error().
+		Bool("retry", operatorError.Retry()).
+		Bool("sentry", operatorError.Sentry()).
+		Err(operatorError.Err()).
+		Msg(msg)
 	if generationChanged && operatorError.Sentry() {
 		sentry.CaptureError(operatorError.Err(), sentry.GetSentryTagsFromContext(ctx))
 	}

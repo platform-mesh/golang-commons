@@ -295,11 +295,15 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-			pmtesting.ChangeStatusSubroutine{
-				Client: fakeClient,
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.ChangeStatusSubroutine{
+					Client: fakeClient,
+				},
 			},
-		}}
+		}
 		mgr.WithSpreadingReconciles()
 
 		// Act
@@ -329,11 +333,15 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-			pmtesting.ChangeStatusSubroutine{
-				Client: fakeClient,
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.ChangeStatusSubroutine{
+					Client: fakeClient,
+				},
 			},
-		}}
+		}
 		mgr.WithSpreadingReconciles()
 
 		// Act
@@ -361,9 +369,13 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-			pmtesting.FailureScenarioSubroutine{RequeAfter: false},
-		}}
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.FailureScenarioSubroutine{RequeAfter: false},
+			},
+		}
 		mgr.WithSpreadingReconciles()
 
 		// Act
@@ -391,9 +403,13 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-			pmtesting.FailureScenarioSubroutine{Retry: false, RequeAfter: false},
-		}}
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.FailureScenarioSubroutine{Retry: false, RequeAfter: false},
+			},
+		}
 		mgr.WithSpreadingReconciles()
 
 		// Act
@@ -420,9 +436,13 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-			pmtesting.FailureScenarioSubroutine{Retry: true, RequeAfter: false},
-		}}
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.FailureScenarioSubroutine{Retry: true, RequeAfter: false},
+			},
+		}
 		mgr.WithSpreadingReconciles()
 
 		// Act
@@ -448,9 +468,13 @@ func TestLifecycle(t *testing.T) {
 		}
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-			pmtesting.FailureScenarioSubroutine{RequeAfter: true},
-		}}
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.FailureScenarioSubroutine{RequeAfter: true},
+			},
+		}
 		mgr.WithSpreadingReconciles()
 
 		// Act
@@ -476,9 +500,13 @@ func TestLifecycle(t *testing.T) {
 		}
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-			pmtesting.FailureScenarioSubroutine{RequeAfter: true},
-		}}
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.FailureScenarioSubroutine{RequeAfter: true},
+			},
+		}
 		mgr.WithSpreadingReconciles()
 
 		// Act
@@ -503,11 +531,15 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-			pmtesting.ChangeStatusSubroutine{
-				Client: fakeClient,
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.ChangeStatusSubroutine{
+					Client: fakeClient,
+				},
 			},
-		}}
+		}
 		mgr.WithSpreadingReconciles()
 
 		// Act
@@ -534,11 +566,15 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-			pmtesting.ChangeStatusSubroutine{
-				Client: fakeClient,
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.ChangeStatusSubroutine{
+					Client: fakeClient,
+				},
 			},
-		}}
+		}
 		mgr.WithSpreadingReconciles()
 
 		// Act
@@ -581,7 +617,11 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{}}
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr:  []subroutine.Subroutine{},
+		}
 		mgr.WithConditionManagement()
 
 		// Act
@@ -608,11 +648,15 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-			pmtesting.ChangeStatusSubroutine{
-				Client: fakeClient,
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.ChangeStatusSubroutine{
+					Client: fakeClient,
+				},
 			},
-		}}
+		}
 		mgr.WithConditionManagement()
 
 		// Act
@@ -642,11 +686,15 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-			pmtesting.ChangeStatusSubroutine{
-				Client: fakeClient,
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.ChangeStatusSubroutine{
+					Client: fakeClient,
+				},
 			},
-		}}
+		}
 		mgr.WithConditionManagement()
 
 		// Act
@@ -661,34 +709,42 @@ func TestLifecycle(t *testing.T) {
 		assert.Equal(t, metav1.ConditionTrue, instance.Status.Conditions[1].Status)
 		assert.Equal(t, "The subroutine is complete", instance.Status.Conditions[1].Message)
 	})
-	t.Run("Lifecycle with manage conditions finalizes with multiple subroutines partially succeeding", func(t *testing.T) {
-		// Arrange
-		instance := &pmtesting.ImplementConditions{
-			TestApiObject: pmtesting.TestApiObject{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:              name,
-					Namespace:         namespace,
-					Generation:        1,
-					DeletionTimestamp: &metav1.Time{Time: time.Now()},
-					Finalizers:        []string{pmtesting.FailureScenarioSubroutineFinalizer, pmtesting.ChangeStatusSubroutineFinalizer},
+	t.Run(
+		"Lifecycle with manage conditions finalizes with multiple subroutines partially succeeding",
+		func(t *testing.T) {
+			instance := &pmtesting.ImplementConditions{
+				TestApiObject: pmtesting.TestApiObject{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:              name,
+						Namespace:         namespace,
+						Generation:        1,
+						DeletionTimestamp: &metav1.Time{Time: time.Now()},
+						Finalizers: []string{
+							pmtesting.FailureScenarioSubroutineFinalizer,
+							pmtesting.ChangeStatusSubroutineFinalizer,
+						},
+					},
+					Status: pmtesting.TestStatus{},
 				},
-				Status: pmtesting.TestStatus{},
-			},
-		}
+			}
 
-		fakeClient := pmtesting.CreateFakeClient(t, instance)
+			fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-			pmtesting.FailureScenarioSubroutine{},
-			pmtesting.ChangeStatusSubroutine{Client: fakeClient}}}
-		mgr.WithConditionManagement()
+			mgr := &pmtesting.TestLifecycleManager{
+				Logger:          log,
+				ShouldReconcile: true,
+				SubroutinesArr: []subroutine.Subroutine{
+					pmtesting.FailureScenarioSubroutine{},
+					pmtesting.ChangeStatusSubroutine{Client: fakeClient}},
+			}
+			mgr.WithConditionManagement()
 
-		// Act
-		_, err := Reconcile(ctx, request.NamespacedName, instance, fakeClient, mgr)
+			_, err := Reconcile(ctx, request.NamespacedName, instance, fakeClient, mgr)
 
-		assert.Error(t, err)
-		require.Len(t, instance.Status.Conditions, 3)
-	})
+			assert.Error(t, err)
+			require.Len(t, instance.Status.Conditions, 3)
+		},
+	)
 	t.Run("Lifecycle with manage conditions reconciles with Error subroutine (no-retry)", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.ImplementConditions{
@@ -704,9 +760,13 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-			pmtesting.FailureScenarioSubroutine{RequeAfter: false},
-		}}
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.FailureScenarioSubroutine{RequeAfter: false},
+			},
+		}
 		mgr.WithConditionManagement()
 
 		// Act
@@ -730,9 +790,13 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-			pmtesting.FailureScenarioSubroutine{Retry: true, RequeAfter: false},
-		}}
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.FailureScenarioSubroutine{Retry: true, RequeAfter: false},
+			},
+		}
 		mgr.WithConditionManagement()
 
 		// Act
@@ -759,9 +823,13 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-			pmtesting.FailureScenarioSubroutine{RequeAfter: false},
-		}}
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.FailureScenarioSubroutine{RequeAfter: false},
+			},
+		}
 		mgr.WithSpreadingReconciles()
 		mgr.WithConditionManagement()
 
@@ -777,7 +845,13 @@ func TestLifecycle(t *testing.T) {
 		testLog := testlogger.New()
 
 		// Act
-		result, err := HandleOperatorError(ctx, operrors.NewOperatorError(goerrors.New(errorMessage), false, false), "handle op error", true, testLog.Logger)
+		result, err := HandleOperatorError(
+			ctx,
+			operrors.NewOperatorError(goerrors.New(errorMessage), false, false),
+			"handle op error",
+			true,
+			testLog.Logger,
+		)
 
 		// Assert
 		assert.Nil(t, err)
@@ -794,14 +868,26 @@ func TestLifecycle(t *testing.T) {
 
 			fakeClient := pmtesting.CreateFakeClient(t, testApiObject)
 
-			mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.ContextValueSubroutine{},
-			}}
+			mgr := &pmtesting.TestLifecycleManager{
+				Logger:          log,
+				ShouldReconcile: true,
+				SubroutinesArr: []subroutine.Subroutine{
+					pmtesting.ContextValueSubroutine{},
+				},
+			}
 
-			mgr = mgr.WithPrepareContextFunc(func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, operrors.OperatorError) {
-				return context.WithValue(ctx, pmtesting.ContextValueKey, "valueFromContext"), nil
-			})
-			result, err := Reconcile(ctx, types.NamespacedName{Name: name, Namespace: namespace}, testApiObject, fakeClient, mgr)
+			mgr = mgr.WithPrepareContextFunc(
+				func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, operrors.OperatorError) {
+					return context.WithValue(ctx, pmtesting.ContextValueKey, "valueFromContext"), nil
+				},
+			)
+			result, err := Reconcile(
+				ctx,
+				types.NamespacedName{Name: name, Namespace: namespace},
+				testApiObject,
+				fakeClient,
+				mgr,
+			)
 
 			// Then
 			assert.NotNil(t, ctx)
@@ -819,14 +905,26 @@ func TestLifecycle(t *testing.T) {
 
 			fakeClient := pmtesting.CreateFakeClient(t, testApiObject)
 
-			mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.ContextValueSubroutine{},
-			}}
+			mgr := &pmtesting.TestLifecycleManager{
+				Logger:          log,
+				ShouldReconcile: true,
+				SubroutinesArr: []subroutine.Subroutine{
+					pmtesting.ContextValueSubroutine{},
+				},
+			}
 
-			mgr = mgr.WithPrepareContextFunc(func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, operrors.OperatorError) {
-				return nil, operrors.NewOperatorError(goerrors.New(errorMessage), true, false)
-			})
-			result, err := Reconcile(ctx, types.NamespacedName{Name: name, Namespace: namespace}, testApiObject, fakeClient, mgr)
+			mgr = mgr.WithPrepareContextFunc(
+				func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, operrors.OperatorError) {
+					return nil, operrors.NewOperatorError(goerrors.New(errorMessage), true, false)
+				},
+			)
+			result, err := Reconcile(
+				ctx,
+				types.NamespacedName{Name: name, Namespace: namespace},
+				testApiObject,
+				fakeClient,
+				mgr,
+			)
 
 			// Then
 			assert.NotNil(t, ctx)
@@ -1010,4 +1108,522 @@ func TestValidateInterfaces(t *testing.T) {
 	mgr := &pmtesting.TestLifecycleManager{Logger: log}
 	err := ValidateInterfaces(instance, log, mgr)
 	assert.NoError(t, err)
+}
+
+func TestChainStop(t *testing.T) {
+	namespace := "bar"
+	name := "foo"
+	ctx := context.Background()
+	logcfg := logger.DefaultConfig()
+	logcfg.NoJSON = true
+	log, err := logger.New(logcfg)
+	assert.NoError(t, err)
+
+	t.Run("Chain stop skips remaining subroutines", func(t *testing.T) {
+		instance := &pmtesting.TestApiObject{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+		}
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
+
+		sub1Processed := false
+		sub2Processed := false
+		sub3Processed := false
+
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub1",
+				StopChain: false,
+				Processed: &sub1Processed,
+			},
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub2",
+				StopChain: true,
+				Processed: &sub2Processed,
+			},
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub3",
+				StopChain: false,
+				Processed: &sub3Processed,
+			},
+		}}
+
+		result, err := Reconcile(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instance, fakeClient, mgr)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.True(t, sub1Processed, "sub1 should have been processed")
+		assert.True(t, sub2Processed, "sub2 should have been processed")
+		assert.False(t, sub3Processed, "sub3 should NOT have been processed (skipped due to chain stop)")
+	})
+
+	t.Run("Chain stop on first subroutine skips all remaining", func(t *testing.T) {
+		instance := &pmtesting.TestApiObject{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+		}
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
+
+		sub1Processed := false
+		sub2Processed := false
+		sub3Processed := false
+
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub1",
+				StopChain: true,
+				Processed: &sub1Processed,
+			},
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub2",
+				StopChain: false,
+				Processed: &sub2Processed,
+			},
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub3",
+				StopChain: false,
+				Processed: &sub3Processed,
+			},
+		}}
+
+		result, err := Reconcile(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instance, fakeClient, mgr)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.True(t, sub1Processed, "sub1 should have been processed")
+		assert.False(t, sub2Processed, "sub2 should NOT have been processed")
+		assert.False(t, sub3Processed, "sub3 should NOT have been processed")
+	})
+
+	t.Run("Chain stop on last subroutine - all execute normally", func(t *testing.T) {
+		instance := &pmtesting.TestApiObject{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+		}
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
+
+		sub1Processed := false
+		sub2Processed := false
+
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub1",
+				StopChain: false,
+				Processed: &sub1Processed,
+			},
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub2",
+				StopChain: true,
+				Processed: &sub2Processed,
+			},
+		}}
+
+		result, err := Reconcile(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instance, fakeClient, mgr)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.True(t, sub1Processed, "sub1 should have been processed")
+		assert.True(t, sub2Processed, "sub2 should have been processed (it's the last one)")
+	})
+
+	t.Run("No chain stop - all subroutines execute", func(t *testing.T) {
+		instance := &pmtesting.TestApiObject{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+		}
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
+
+		sub1Processed := false
+		sub2Processed := false
+		sub3Processed := false
+
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub1",
+				StopChain: false,
+				Processed: &sub1Processed,
+			},
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub2",
+				StopChain: false,
+				Processed: &sub2Processed,
+			},
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub3",
+				StopChain: false,
+				Processed: &sub3Processed,
+			},
+		}}
+
+		result, err := Reconcile(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instance, fakeClient, mgr)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.True(t, sub1Processed, "sub1 should have been processed")
+		assert.True(t, sub2Processed, "sub2 should have been processed")
+		assert.True(t, sub3Processed, "sub3 should have been processed")
+	})
+
+	t.Run("Chain stop with RequeueAfter - requeue is preserved", func(t *testing.T) {
+		instance := &pmtesting.TestApiObject{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+		}
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
+
+		sub1Processed := false
+		sub2Processed := false
+
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+			pmtesting.ChainStopSubroutine{
+				Name:         "sub1",
+				StopChain:    true,
+				RequeueAfter: 30 * time.Second,
+				Processed:    &sub1Processed,
+			},
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub2",
+				StopChain: false,
+				Processed: &sub2Processed,
+			},
+		}}
+
+		result, err := Reconcile(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instance, fakeClient, mgr)
+
+		assert.NoError(t, err)
+		assert.True(t, sub1Processed, "sub1 should have been processed")
+		assert.False(t, sub2Processed, "sub2 should NOT have been processed")
+		assert.Equal(t, 30*time.Second, result.RequeueAfter, "RequeueAfter should be preserved")
+	})
+
+	t.Run("Chain stop with conditions - conditions are set correctly", func(t *testing.T) {
+		instance := &pmtesting.ImplementConditions{
+			TestApiObject: pmtesting.TestApiObject{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:       name,
+					Namespace:  namespace,
+					Generation: 1,
+				},
+				Status: pmtesting.TestStatus{},
+			},
+		}
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
+
+		sub1Processed := false
+		sub2Processed := false
+
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub1",
+				StopChain: true,
+				Processed: &sub1Processed,
+			},
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub2",
+				StopChain: false,
+				Processed: &sub2Processed,
+			},
+		}}
+		mgr.WithConditionManagement()
+
+		_, err := Reconcile(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instance, fakeClient, mgr)
+
+		assert.NoError(t, err)
+		assert.True(t, sub1Processed, "sub1 should have been processed")
+		assert.False(t, sub2Processed, "sub2 should NOT have been processed")
+
+		require.GreaterOrEqual(t, len(instance.Status.Conditions), 2, "Should have Ready condition and sub1 condition")
+
+		var sub1Condition *metav1.Condition
+		for i := range instance.Status.Conditions {
+			if instance.Status.Conditions[i].Type == "sub1_Ready" {
+				sub1Condition = &instance.Status.Conditions[i]
+				break
+			}
+		}
+		require.NotNil(t, sub1Condition, "sub1 condition should exist")
+		assert.Equal(t, metav1.ConditionTrue, sub1Condition.Status, "sub1 condition should be True")
+	})
+
+	t.Run("Chain stop during finalization - skips remaining finalizers", func(t *testing.T) {
+		now := &metav1.Time{Time: time.Now()}
+		sub1Finalized := false
+		sub2Finalized := false
+
+		instance := &pmtesting.TestApiObject{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:              name,
+				Namespace:         namespace,
+				DeletionTimestamp: now,
+				Finalizers:        []string{"finalizer1", "finalizer2"},
+			},
+		}
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
+
+		// note: during deletion, subroutines run in reverse order: [sub2, sub1]
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+			pmtesting.ChainStopFinalizerSubroutine{
+				Name:          "sub1",
+				FinalizerName: "finalizer1",
+				StopChain:     false,
+				Finalized:     &sub1Finalized,
+			},
+			pmtesting.ChainStopFinalizerSubroutine{
+				Name:          "sub2",
+				FinalizerName: "finalizer2",
+				StopChain:     true, // sub2 runs first (reverse order) and stops chain
+				Finalized:     &sub2Finalized,
+			},
+		}}
+
+		_, err := Reconcile(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instance, fakeClient, mgr)
+
+		assert.NoError(t, err)
+		// so sub2 runs first (reverse order) and signals chain stop
+		assert.True(t, sub2Finalized, "sub2 should have been finalized (runs first in reverse order)")
+		// sub1 should be skipped due to chain stop
+		assert.False(t, sub1Finalized, "sub1 should NOT have been finalized (skipped due to chain stop)")
+	})
+
+	t.Run("Multiple subroutines could stop chain - first one wins", func(t *testing.T) {
+		instance := &pmtesting.TestApiObject{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+		}
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
+
+		sub1Processed := false
+		sub2Processed := false
+		sub3Processed := false
+
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub1",
+				StopChain: true,
+				Processed: &sub1Processed,
+			},
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub2",
+				StopChain: true, // would also stop, but never reached because first one wins
+				Processed: &sub2Processed,
+			},
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub3",
+				StopChain: false,
+				Processed: &sub3Processed,
+			},
+		}}
+
+		result, err := Reconcile(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instance, fakeClient, mgr)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.True(t, sub1Processed, "sub1 should have been processed")
+		assert.False(t, sub2Processed, "sub2 should NOT have been processed (sub1 stopped chain)")
+		assert.False(t, sub3Processed, "sub3 should NOT have been processed")
+	})
+
+	t.Run("Chain stop with spread reconciles - marks resource as final", func(t *testing.T) {
+		instance := &pmtesting.ImplementingSpreadReconciles{
+			TestApiObject: pmtesting.TestApiObject{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:       name,
+					Namespace:  namespace,
+					Generation: 1,
+				},
+				Status: pmtesting.TestStatus{
+					Some:               "string",
+					ObservedGeneration: 0,
+				},
+			},
+		}
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
+
+		sub1Processed := false
+		sub2Processed := false
+
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.ChainStopSubroutine{
+					Name:      "sub1",
+					StopChain: true,
+					Processed: &sub1Processed,
+				},
+				pmtesting.ChainStopSubroutine{
+					Name:      "sub2",
+					StopChain: false,
+					Processed: &sub2Processed,
+				},
+			},
+		}
+		mgr.WithSpreadingReconciles()
+
+		_, err := Reconcile(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instance, fakeClient, mgr)
+
+		assert.NoError(t, err)
+		assert.True(t, sub1Processed, "sub1 should have been processed")
+		assert.False(t, sub2Processed, "sub2 should NOT have been processed")
+		assert.Equal(t, int64(1), instance.Status.ObservedGeneration, "ObservedGeneration should be updated")
+	})
+
+	t.Run("Chain stop middle of chain with multiple subroutines", func(t *testing.T) {
+		instance := &pmtesting.TestApiObject{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+		}
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
+
+		sub1Processed := false
+		sub2Processed := false
+		sub3Processed := false
+		sub4Processed := false
+		sub5Processed := false
+
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+			pmtesting.ChainStopSubroutine{Name: "sub1", StopChain: false, Processed: &sub1Processed},
+			pmtesting.ChainStopSubroutine{Name: "sub2", StopChain: false, Processed: &sub2Processed},
+			pmtesting.ChainStopSubroutine{Name: "sub3", StopChain: true, Processed: &sub3Processed},
+			pmtesting.ChainStopSubroutine{Name: "sub4", StopChain: false, Processed: &sub4Processed},
+			pmtesting.ChainStopSubroutine{Name: "sub5", StopChain: false, Processed: &sub5Processed},
+		}}
+
+		_, err := Reconcile(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instance, fakeClient, mgr)
+
+		assert.NoError(t, err)
+		assert.True(t, sub1Processed, "sub1 should have been processed")
+		assert.True(t, sub2Processed, "sub2 should have been processed")
+		assert.True(t, sub3Processed, "sub3 should have been processed")
+		assert.False(t, sub4Processed, "sub4 should NOT have been processed")
+		assert.False(t, sub5Processed, "sub5 should NOT have been processed")
+	})
+
+	t.Run("Chain stop with single subroutine", func(t *testing.T) {
+		instance := &pmtesting.TestApiObject{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+		}
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
+
+		sub1Processed := false
+
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub1",
+				StopChain: true,
+				Processed: &sub1Processed,
+			},
+		}}
+
+		result, err := Reconcile(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instance, fakeClient, mgr)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.True(t, sub1Processed, "sub1 should have been processed")
+	})
+
+	t.Run("Chain stop preserves smaller RequeueAfter from earlier subroutine", func(t *testing.T) {
+		instance := &pmtesting.TestApiObject{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+		}
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
+
+		sub1Processed := false
+		sub2Processed := false
+		sub3Processed := false
+
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+			pmtesting.ChainStopSubroutine{
+				Name:         "sub1",
+				StopChain:    false,
+				RequeueAfter: 10 * time.Second,
+				Processed:    &sub1Processed,
+			},
+			pmtesting.ChainStopSubroutine{
+				Name:         "sub2",
+				StopChain:    true,
+				RequeueAfter: 60 * time.Second,
+				Processed:    &sub2Processed,
+			},
+			pmtesting.ChainStopSubroutine{
+				Name:      "sub3",
+				StopChain: false,
+				Processed: &sub3Processed,
+			},
+		}}
+
+		result, err := Reconcile(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instance, fakeClient, mgr)
+
+		assert.NoError(t, err)
+		assert.True(t, sub1Processed, "sub1 should have been processed")
+		assert.True(t, sub2Processed, "sub2 should have been processed")
+		assert.False(t, sub3Processed, "sub3 should NOT have been processed")
+		assert.Equal(t, 10*time.Second, result.RequeueAfter, "Should use smaller RequeueAfter")
+	})
+
+	t.Run("Chain stop with conditions and spread reconciles combined", func(t *testing.T) {
+		instance := &pmtesting.ImplementConditionsAndSpreadReconciles{
+			TestApiObject: pmtesting.TestApiObject{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:       name,
+					Namespace:  namespace,
+					Generation: 1,
+				},
+				Status: pmtesting.TestStatus{
+					ObservedGeneration: 0,
+				},
+			},
+		}
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
+
+		sub1Processed := false
+		sub2Processed := false
+
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:          log,
+			ShouldReconcile: true,
+			SubroutinesArr: []subroutine.Subroutine{
+				pmtesting.ChainStopSubroutine{
+					Name:      "sub1",
+					StopChain: true,
+					Processed: &sub1Processed,
+				},
+				pmtesting.ChainStopSubroutine{
+					Name:      "sub2",
+					StopChain: false,
+					Processed: &sub2Processed,
+				},
+			},
+		}
+		mgr.WithConditionManagement()
+		mgr.WithSpreadingReconciles()
+
+		_, err := Reconcile(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instance, fakeClient, mgr)
+
+		assert.NoError(t, err)
+		assert.True(t, sub1Processed, "sub1 should have been processed")
+		assert.False(t, sub2Processed, "sub2 should NOT have been processed")
+		assert.Equal(t, int64(1), instance.Status.ObservedGeneration, "ObservedGeneration should be updated")
+		assert.GreaterOrEqual(t, len(instance.Status.Conditions), 1, "Should have conditions")
+	})
 }

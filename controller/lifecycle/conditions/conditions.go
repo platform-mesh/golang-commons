@@ -21,6 +21,7 @@ const (
 	reasonComplete   = "Complete"
 	reasonProcessing = "Processing"
 	reasonError      = "Error"
+	reasonSkipped    = "Skipped"
 
 	subroutineReadyConditionFormatString    = "%s_Ready"
 	subroutineFinalizeConditionFormatString = "%s_Finalize"
@@ -28,6 +29,7 @@ const (
 	subroutineMessageProcessingFormatString = "The %s is processing"
 	subroutineMessageCompleteFormatString   = "The %s is complete"
 	subroutineMessageErrorFormatString      = "The %s has an error: %s"
+	subroutineMessageSkippedFormatString    = "The %s was skipped: %s"
 )
 
 type ConditionManager struct{}
@@ -37,7 +39,10 @@ func NewConditionManager() *ConditionManager {
 }
 
 // Set the Condition of the instance to be ready
-func (c *ConditionManager) SetInstanceConditionReady(conditions *[]metav1.Condition, status metav1.ConditionStatus) bool {
+func (c *ConditionManager) SetInstanceConditionReady(
+	conditions *[]metav1.Condition,
+	status metav1.ConditionStatus,
+) bool {
 	var msg string
 	switch status {
 	case metav1.ConditionTrue:
@@ -64,13 +69,25 @@ func (c *ConditionManager) SetInstanceConditionUnknownIfNotSet(conditions *[]met
 	return false
 }
 
-func (c *ConditionManager) SetSubroutineConditionToUnknownIfNotSet(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, isFinalize bool, log *logger.Logger) bool {
+func (c *ConditionManager) SetSubroutineConditionToUnknownIfNotSet(
+	conditions *[]metav1.Condition,
+	subroutine subroutine.Subroutine,
+	isFinalize bool,
+	log *logger.Logger,
+) bool {
 	conditionName, conditionMessage := getConditionNameAndMessage(subroutine, isFinalize)
 
 	existingCondition := meta.FindStatusCondition(*conditions, conditionName)
 	if existingCondition == nil {
-		changed := meta.SetStatusCondition(conditions,
-			metav1.Condition{Type: conditionName, Status: metav1.ConditionUnknown, Message: fmt.Sprintf(subroutineMessageProcessingFormatString, conditionMessage), Reason: reasonProcessing})
+		changed := meta.SetStatusCondition(
+			conditions,
+			metav1.Condition{
+				Type:    conditionName,
+				Status:  metav1.ConditionUnknown,
+				Message: fmt.Sprintf(subroutineMessageProcessingFormatString, conditionMessage),
+				Reason:  reasonProcessing,
+			},
+		)
 		if changed {
 			log.Info().Str("type", conditionName).Msg("updated condition")
 		}
@@ -90,28 +107,78 @@ func getConditionNameAndMessage(subroutine subroutine.Subroutine, isFinalize boo
 }
 
 // Set Subroutines Conditions
-func (c *ConditionManager) SetSubroutineCondition(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, subroutineResult ctrl.Result, subroutineErr error, isFinalize bool, log *logger.Logger) bool {
+func (c *ConditionManager) SetSubroutineCondition(
+	conditions *[]metav1.Condition,
+	subroutine subroutine.Subroutine,
+	subroutineResult ctrl.Result,
+	subroutineErr error,
+	isFinalize bool,
+	log *logger.Logger,
+) bool {
 	conditionName, conditionMessage := getConditionNameAndMessage(subroutine, isFinalize)
 
 	// processing complete
 	if subroutineErr == nil && subroutineResult.RequeueAfter == 0 {
-		return meta.SetStatusCondition(conditions,
-			metav1.Condition{Type: conditionName, Status: metav1.ConditionTrue, Message: fmt.Sprintf(subroutineMessageCompleteFormatString, conditionMessage), Reason: reasonComplete})
+		return meta.SetStatusCondition(
+			conditions,
+			metav1.Condition{
+				Type:    conditionName,
+				Status:  metav1.ConditionTrue,
+				Message: fmt.Sprintf(subroutineMessageCompleteFormatString, conditionMessage),
+				Reason:  reasonComplete,
+			},
+		)
 	}
 	// processing is still processing
 	if subroutineErr == nil && subroutineResult.RequeueAfter > 0 {
-		return meta.SetStatusCondition(conditions,
-			metav1.Condition{Type: conditionName, Status: metav1.ConditionUnknown, Message: fmt.Sprintf(subroutineMessageProcessingFormatString, conditionMessage), Reason: reasonProcessing})
+		return meta.SetStatusCondition(
+			conditions,
+			metav1.Condition{
+				Type:    conditionName,
+				Status:  metav1.ConditionUnknown,
+				Message: fmt.Sprintf(subroutineMessageProcessingFormatString, conditionMessage),
+				Reason:  reasonProcessing,
+			},
+		)
 	}
 	// processing failed
 	var sErr error
 	if subroutineErr != nil {
 		sErr = subroutineErr
 	}
-	changed := meta.SetStatusCondition(conditions,
-		metav1.Condition{Type: conditionName, Status: metav1.ConditionFalse, Message: fmt.Sprintf(subroutineMessageErrorFormatString, conditionMessage, sErr), Reason: reasonError})
+	changed := meta.SetStatusCondition(
+		conditions,
+		metav1.Condition{
+			Type:    conditionName,
+			Status:  metav1.ConditionFalse,
+			Message: fmt.Sprintf(subroutineMessageErrorFormatString, conditionMessage, sErr),
+			Reason:  reasonError,
+		},
+	)
 	if changed {
 		log.Info().Str("type", conditionName).Msg("updated condition")
+	}
+	return changed
+}
+
+func (c *ConditionManager) SetSubroutineConditionSkipped(
+	conditions *[]metav1.Condition,
+	subroutine subroutine.Subroutine,
+	reason string,
+	isFinalize bool,
+	log *logger.Logger,
+) bool {
+	conditionName, conditionMessage := getConditionNameAndMessage(subroutine, isFinalize)
+
+	changed := meta.SetStatusCondition(conditions,
+		metav1.Condition{
+			Type:    conditionName,
+			Status:  metav1.ConditionTrue,
+			Message: fmt.Sprintf(subroutineMessageSkippedFormatString, conditionMessage, reason),
+			Reason:  reasonSkipped,
+		})
+	if changed {
+		log.Info().Str("type", conditionName).Str("reason", reason).Msg("subroutine skipped")
 	}
 	return changed
 }

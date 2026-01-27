@@ -9,13 +9,12 @@ import (
 
 	"github.com/platform-mesh/golang-commons/context/keys"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
+	"github.com/platform-mesh/golang-commons/controller/lifecycle/subroutine"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/platform-mesh/golang-commons/errors"
 )
 
 const FailureScenarioSubroutineFinalizer = "failuresubroutine"
@@ -93,7 +92,7 @@ type ChangeStatusSubroutine struct {
 func (c ChangeStatusSubroutine) Process(
 	_ context.Context,
 	runtimeObj runtimeobject.RuntimeObject,
-) (controllerruntime.Result, errors.OperatorError) {
+) subroutine.Result {
 	if instance, ok := runtimeObj.(*TestApiObject); ok {
 		instance.Status.Some = "other string"
 	}
@@ -104,14 +103,14 @@ func (c ChangeStatusSubroutine) Process(
 	if instance, ok := runtimeObj.(*ImplementConditions); ok {
 		instance.Status.Some = "other string"
 	}
-	return controllerruntime.Result{}, nil
+	return subroutine.OK()
 }
 
 func (c ChangeStatusSubroutine) Finalize(
 	_ context.Context,
 	_ runtimeobject.RuntimeObject,
-) (controllerruntime.Result, errors.OperatorError) {
-	return controllerruntime.Result{}, nil
+) subroutine.Result {
+	return subroutine.OK()
 }
 
 func (c ChangeStatusSubroutine) GetName() string {
@@ -122,10 +121,6 @@ func (c ChangeStatusSubroutine) Finalizers(instance runtimeobject.RuntimeObject)
 	return []string{"changestatus"}
 }
 
-func (c ChangeStatusSubroutine) ShouldStopChain() bool {
-	return false
-}
-
 type AddConditionSubroutine struct {
 	Ready metav1.ConditionStatus
 }
@@ -133,7 +128,7 @@ type AddConditionSubroutine struct {
 func (c AddConditionSubroutine) Process(
 	_ context.Context,
 	runtimeObj runtimeobject.RuntimeObject,
-) (controllerruntime.Result, errors.OperatorError) {
+) subroutine.Result {
 	if instance, ok := runtimeObj.(*ImplementConditions); ok {
 		instance.Status.Some = "other string"
 		meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
@@ -144,14 +139,14 @@ func (c AddConditionSubroutine) Process(
 		})
 	}
 
-	return controllerruntime.Result{}, nil
+	return subroutine.OK()
 }
 
 func (c AddConditionSubroutine) Finalize(
 	_ context.Context,
 	_ runtimeobject.RuntimeObject,
-) (controllerruntime.Result, errors.OperatorError) {
-	return controllerruntime.Result{}, nil
+) subroutine.Result {
+	return subroutine.OK()
 }
 
 func (c AddConditionSubroutine) GetName() string {
@@ -160,10 +155,6 @@ func (c AddConditionSubroutine) GetName() string {
 
 func (c AddConditionSubroutine) Finalizers(instance runtimeobject.RuntimeObject) []string {
 	return []string{}
-}
-
-func (c AddConditionSubroutine) ShouldStopChain() bool {
-	return false
 }
 
 type FailureScenarioSubroutine struct {
@@ -176,23 +167,26 @@ type FailureScenarioSubroutine struct {
 func (f FailureScenarioSubroutine) Process(
 	_ context.Context,
 	_ runtimeobject.RuntimeObject,
-) (controllerruntime.Result, errors.OperatorError) {
+) subroutine.Result {
 	if f.RequeAfter {
-		return controllerruntime.Result{RequeueAfter: 10 * time.Second}, nil
+		return subroutine.OKWithRequeue(controllerruntime.Result{RequeueAfter: 10 * time.Second})
 	}
 
-	return controllerruntime.Result{}, errors.NewOperatorError(fmt.Errorf("FailureScenarioSubroutine"), f.Retry, false)
+	if f.Retry {
+		return subroutine.Retry(fmt.Errorf("FailureScenarioSubroutine"))
+	}
+	return subroutine.Fail(fmt.Errorf("FailureScenarioSubroutine"))
 }
 
 func (f FailureScenarioSubroutine) Finalize(
 	_ context.Context,
 	_ runtimeobject.RuntimeObject,
-) (controllerruntime.Result, errors.OperatorError) {
+) subroutine.Result {
 	if f.RequeAfter {
-		return controllerruntime.Result{RequeueAfter: 10 * time.Second}, nil
+		return subroutine.OKWithRequeue(controllerruntime.Result{RequeueAfter: 10 * time.Second})
 	}
 
-	return controllerruntime.Result{}, errors.NewOperatorError(fmt.Errorf("FailureScenarioSubroutine"), true, false)
+	return subroutine.Retry(fmt.Errorf("FailureScenarioSubroutine"))
 }
 
 func (f FailureScenarioSubroutine) Finalizers(instance runtimeobject.RuntimeObject) []string {
@@ -201,10 +195,6 @@ func (f FailureScenarioSubroutine) Finalizers(instance runtimeobject.RuntimeObje
 
 func (c FailureScenarioSubroutine) GetName() string {
 	return "FailureScenarioSubroutine"
-}
-
-func (c FailureScenarioSubroutine) ShouldStopChain() bool {
-	return false
 }
 
 type ImplementConditionsAndSpreadReconciles struct {
@@ -242,18 +232,18 @@ const ContextValueKey = keys.ContextKey("ContextValueKey")
 func (f ContextValueSubroutine) Process(
 	ctx context.Context,
 	r runtimeobject.RuntimeObject,
-) (controllerruntime.Result, errors.OperatorError) {
+) subroutine.Result {
 	if instance, ok := r.(*TestApiObject); ok {
 		instance.Status.Some = ctx.Value(ContextValueKey).(string)
 	}
-	return controllerruntime.Result{}, nil
+	return subroutine.OK()
 }
 
 func (f ContextValueSubroutine) Finalize(
 	_ context.Context,
 	_ runtimeobject.RuntimeObject,
-) (controllerruntime.Result, errors.OperatorError) {
-	return controllerruntime.Result{}, nil
+) subroutine.Result {
+	return subroutine.OK()
 }
 
 func (f ContextValueSubroutine) Finalizers(instance runtimeobject.RuntimeObject) []string {
@@ -264,13 +254,10 @@ func (c ContextValueSubroutine) GetName() string {
 	return "ContextValueSubroutine"
 }
 
-func (c ContextValueSubroutine) ShouldStopChain() bool {
-	return false
-}
-
 type ChainStopSubroutine struct {
 	Name         string
 	StopChain    bool
+	StopReason   string
 	RequeueAfter time.Duration
 	Processed    *bool
 	Finalized    *bool
@@ -279,27 +266,47 @@ type ChainStopSubroutine struct {
 func (c ChainStopSubroutine) Process(
 	_ context.Context,
 	_ runtimeobject.RuntimeObject,
-) (controllerruntime.Result, errors.OperatorError) {
+) subroutine.Result {
 	if c.Processed != nil {
 		*c.Processed = true
 	}
-	if c.RequeueAfter > 0 {
-		return controllerruntime.Result{RequeueAfter: c.RequeueAfter}, nil
+	if c.StopChain {
+		reason := c.StopReason
+		if reason == "" {
+			reason = "chain stop requested"
+		}
+		if c.RequeueAfter > 0 {
+			return subroutine.StopWithRequeue(controllerruntime.Result{RequeueAfter: c.RequeueAfter}, reason)
+		}
+		return subroutine.Stop(reason)
 	}
-	return controllerruntime.Result{}, nil
+	if c.RequeueAfter > 0 {
+		return subroutine.OKWithRequeue(controllerruntime.Result{RequeueAfter: c.RequeueAfter})
+	}
+	return subroutine.OK()
 }
 
 func (c ChainStopSubroutine) Finalize(
 	_ context.Context,
 	_ runtimeobject.RuntimeObject,
-) (controllerruntime.Result, errors.OperatorError) {
+) subroutine.Result {
 	if c.Finalized != nil {
 		*c.Finalized = true
 	}
-	if c.RequeueAfter > 0 {
-		return controllerruntime.Result{RequeueAfter: c.RequeueAfter}, nil
+	if c.StopChain {
+		reason := c.StopReason
+		if reason == "" {
+			reason = "chain stop requested"
+		}
+		if c.RequeueAfter > 0 {
+			return subroutine.StopWithRequeue(controllerruntime.Result{RequeueAfter: c.RequeueAfter}, reason)
+		}
+		return subroutine.Stop(reason)
 	}
-	return controllerruntime.Result{}, nil
+	if c.RequeueAfter > 0 {
+		return subroutine.OKWithRequeue(controllerruntime.Result{RequeueAfter: c.RequeueAfter})
+	}
+	return subroutine.OK()
 }
 
 func (c ChainStopSubroutine) GetName() string {
@@ -313,14 +320,11 @@ func (c ChainStopSubroutine) Finalizers(_ runtimeobject.RuntimeObject) []string 
 	return []string{}
 }
 
-func (c ChainStopSubroutine) ShouldStopChain() bool {
-	return c.StopChain
-}
-
 type ChainStopFinalizerSubroutine struct {
 	Name          string
 	FinalizerName string
 	StopChain     bool
+	StopReason    string
 	RequeueAfter  time.Duration
 	Processed     *bool
 	Finalized     *bool
@@ -329,27 +333,47 @@ type ChainStopFinalizerSubroutine struct {
 func (c ChainStopFinalizerSubroutine) Process(
 	_ context.Context,
 	_ runtimeobject.RuntimeObject,
-) (controllerruntime.Result, errors.OperatorError) {
+) subroutine.Result {
 	if c.Processed != nil {
 		*c.Processed = true
 	}
-	if c.RequeueAfter > 0 {
-		return controllerruntime.Result{RequeueAfter: c.RequeueAfter}, nil
+	if c.StopChain {
+		reason := c.StopReason
+		if reason == "" {
+			reason = "chain stop requested"
+		}
+		if c.RequeueAfter > 0 {
+			return subroutine.StopWithRequeue(controllerruntime.Result{RequeueAfter: c.RequeueAfter}, reason)
+		}
+		return subroutine.Stop(reason)
 	}
-	return controllerruntime.Result{}, nil
+	if c.RequeueAfter > 0 {
+		return subroutine.OKWithRequeue(controllerruntime.Result{RequeueAfter: c.RequeueAfter})
+	}
+	return subroutine.OK()
 }
 
 func (c ChainStopFinalizerSubroutine) Finalize(
 	_ context.Context,
 	_ runtimeobject.RuntimeObject,
-) (controllerruntime.Result, errors.OperatorError) {
+) subroutine.Result {
 	if c.Finalized != nil {
 		*c.Finalized = true
 	}
-	if c.RequeueAfter > 0 {
-		return controllerruntime.Result{RequeueAfter: c.RequeueAfter}, nil
+	if c.StopChain {
+		reason := c.StopReason
+		if reason == "" {
+			reason = "chain stop requested"
+		}
+		if c.RequeueAfter > 0 {
+			return subroutine.StopWithRequeue(controllerruntime.Result{RequeueAfter: c.RequeueAfter}, reason)
+		}
+		return subroutine.Stop(reason)
 	}
-	return controllerruntime.Result{}, nil
+	if c.RequeueAfter > 0 {
+		return subroutine.OKWithRequeue(controllerruntime.Result{RequeueAfter: c.RequeueAfter})
+	}
+	return subroutine.OK()
 }
 
 func (c ChainStopFinalizerSubroutine) GetName() string {
@@ -364,8 +388,4 @@ func (c ChainStopFinalizerSubroutine) Finalizers(_ runtimeobject.RuntimeObject) 
 		return []string{c.FinalizerName}
 	}
 	return []string{"chainstopfinalizer"}
-}
-
-func (c ChainStopFinalizerSubroutine) ShouldStopChain() bool {
-	return c.StopChain
 }

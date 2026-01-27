@@ -8,7 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
-	"github.com/platform-mesh/golang-commons/errors"
+	"github.com/platform-mesh/golang-commons/controller/lifecycle/subroutine"
 )
 
 const SubroutineFinalizer = "finalizer"
@@ -19,21 +19,21 @@ type FinalizerSubroutine struct {
 	RequeueAfter time.Duration
 }
 
-func (c FinalizerSubroutine) Process(_ context.Context, runtimeObj runtimeobject.RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
+func (c FinalizerSubroutine) Process(_ context.Context, runtimeObj runtimeobject.RuntimeObject) subroutine.Result {
 	instance := runtimeObj.(*TestApiObject)
 	instance.Status.Some = "other string"
-	return controllerruntime.Result{}, nil
+	return subroutine.OK()
 }
 
-func (c FinalizerSubroutine) Finalize(_ context.Context, _ runtimeobject.RuntimeObject) (controllerruntime.Result, errors.OperatorError) {
+func (c FinalizerSubroutine) Finalize(_ context.Context, _ runtimeobject.RuntimeObject) subroutine.Result {
 	if c.Err != nil {
-		return controllerruntime.Result{}, errors.NewOperatorError(c.Err, true, true)
+		return subroutine.Retry(c.Err)
 	}
 	if c.RequeueAfter > 0 {
-		return controllerruntime.Result{RequeueAfter: c.RequeueAfter}, nil
+		return subroutine.OKWithRequeue(controllerruntime.Result{RequeueAfter: c.RequeueAfter})
 	}
 
-	return controllerruntime.Result{}, nil
+	return subroutine.OK()
 }
 
 func (c FinalizerSubroutine) GetName() string {
@@ -44,8 +44,4 @@ func (c FinalizerSubroutine) Finalizers(_ runtimeobject.RuntimeObject) []string 
 	return []string{
 		SubroutineFinalizer,
 	}
-}
-
-func (c FinalizerSubroutine) ShouldStopChain() bool {
-	return false
 }

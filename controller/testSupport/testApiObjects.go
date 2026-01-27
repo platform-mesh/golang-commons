@@ -12,10 +12,10 @@ type TestApiObject struct {
 	Status TestStatus `json:"status,omitempty"`
 }
 type TestStatus struct {
-	Some               string
-	Conditions         []metav1.Condition
-	NextReconcileTime  metav1.Time
-	ObservedGeneration int64
+	Some               string             `json:"some,omitempty"`
+	Conditions         []metav1.Condition `json:"conditions,omitempty"`
+	NextReconcileTime  metav1.Time        `json:"nextReconcileTime,omitempty"`
+	ObservedGeneration int64              `json:"observedGeneration,omitempty"`
 }
 
 func (t *TestApiObject) DeepCopyObject() runtime.Object {
@@ -36,6 +36,13 @@ func (m *TestApiObject) DeepCopyInto(out *TestApiObject) {
 	*out = *m
 	out.TypeMeta = m.TypeMeta
 	m.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
+	out.Status = m.Status
+	if m.Status.Conditions != nil {
+		out.Status.Conditions = make([]metav1.Condition, len(m.Status.Conditions))
+		for i := range m.Status.Conditions {
+			m.Status.Conditions[i].DeepCopyInto(&out.Status.Conditions[i])
+		}
+	}
 }
 
 type TestNoStatusApiObject struct {

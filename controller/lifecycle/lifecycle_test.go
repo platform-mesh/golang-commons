@@ -837,74 +837,117 @@ func TestLifecycle(t *testing.T) {
 }
 
 func TestUpdateStatus(t *testing.T) {
-	clientMock := new(mocks.Client)
-	subresourceClient := new(mocks.SubResourceClient)
-
 	logcfg := logger.DefaultConfig()
 	logcfg.NoJSON = true
 	log, err := logger.New(logcfg)
 	assert.NoError(t, err)
 
 	t.Run("Test UpdateStatus with no changes", func(t *testing.T) {
+		clientMock := new(mocks.Client)
 		original := &pmtesting.ImplementingSpreadReconciles{
 			TestApiObject: pmtesting.TestApiObject{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test",
+					Namespace: "default",
+				},
 				Status: pmtesting.TestStatus{
 					Some: "string",
 				},
 			}}
 
+		clientMock.EXPECT().Get(mock.Anything, mock.Anything, mock.Anything).
+			Return(nil).
+			Run(func(ctx context.Context, key types.NamespacedName, obj client.Object, opts ...client.GetOption) {
+			})
+
 		// When
-		err := updateStatus(context.Background(), clientMock, original, original, log, true, nil)
+		err := updateStatus(context.Background(), clientMock, types.NamespacedName{Name: "test", Namespace: "default"}, original, log, true, nil)
 
 		// Then
 		assert.NoError(t, err)
 	})
 
 	t.Run("Test UpdateStatus with update error", func(t *testing.T) {
-		original := &pmtesting.ImplementingSpreadReconciles{
-			TestApiObject: pmtesting.TestApiObject{
-				Status: pmtesting.TestStatus{
-					Some: "string",
-				},
-			}}
+		clientMock := new(mocks.Client)
+		subresourceClient := new(mocks.SubResourceClient)
+
 		current := &pmtesting.ImplementingSpreadReconciles{
 			TestApiObject: pmtesting.TestApiObject{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test",
+					Namespace: "default",
+				},
 				Status: pmtesting.TestStatus{
 					Some: "string1",
 				},
 			}}
+
+		clientMock.EXPECT().Get(mock.Anything, mock.Anything, mock.Anything).
+			Return(nil).
+			Run(func(ctx context.Context, key types.NamespacedName, obj client.Object, opts ...client.GetOption) {
+				// Simulate refetch with different status to trigger update
+				if impl, ok := obj.(*pmtesting.ImplementingSpreadReconciles); ok {
+					impl.Status.Some = "string-from-server"
+				} else {
+					panic(fmt.Sprintf("unexpected type in Get mock: %T", obj))
+				}
+			})
 
 		clientMock.EXPECT().Status().Return(subresourceClient)
 		subresourceClient.EXPECT().Update(mock.Anything, mock.Anything, mock.Anything).
 			Return(errors.NewBadRequest("internal error"))
 
 		// When
-		err := updateStatus(context.Background(), clientMock, original, current, log, true, nil)
+		err := updateStatus(context.Background(), clientMock, types.NamespacedName{Name: "test", Namespace: "default"}, current, log, true, nil)
 
 		// Then
 		assert.Error(t, err)
 		assert.Equal(t, "internal error", err.Error())
 	})
 
-	t.Run("Test UpdateStatus with no status object (original)", func(t *testing.T) {
-		original := &pmtesting.TestNoStatusApiObject{}
-		current := &pmtesting.ImplementConditions{}
+	t.Run("Test UpdateStatus with no status change", func(t *testing.T) {
+		clientMock := new(mocks.Client)
+
+		current := &pmtesting.ImplementConditions{
+			TestApiObject: pmtesting.TestApiObject{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test",
+					Namespace: "default",
+				},
+			},
+		}
+
+		clientMock.EXPECT().Get(mock.Anything, mock.Anything, mock.Anything).
+			Return(nil).
+			Run(func(ctx context.Context, key types.NamespacedName, obj client.Object, opts ...client.GetOption) {
+			})
+
 		// When
-		err := updateStatus(context.Background(), clientMock, original, current, log, true, nil)
+		err := updateStatus(context.Background(), clientMock, types.NamespacedName{Name: "test", Namespace: "default"}, current, log, true, nil)
 
 		// Then
-		assert.Error(t, err)
-		assert.Equal(t, "internal error", err.Error())
+		assert.NoError(t, err)
 	})
-	t.Run("Test UpdateStatus with no status object (current)", func(t *testing.T) {
-		original := &pmtesting.ImplementConditions{}
-		current := &pmtesting.TestNoStatusApiObject{}
+	t.Run("Test UpdateStatus with object without status field", func(t *testing.T) {
+		clientMock := new(mocks.Client)
+
+		current := &pmtesting.TestNoStatusApiObject{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "test",
+				Namespace: "default",
+			},
+		}
+
+		clientMock.EXPECT().Get(mock.Anything, mock.Anything, mock.Anything).
+			Return(nil).
+			Run(func(ctx context.Context, key types.NamespacedName, obj client.Object, opts ...client.GetOption) {
+			})
+
 		// When
-		err := updateStatus(context.Background(), clientMock, original, current, log, true, nil)
+		err := updateStatus(context.Background(), clientMock, types.NamespacedName{Name: "test", Namespace: "default"}, current, log, true, nil)
 
 		// Then
-		assert.Error(t, err)
-		assert.Equal(t, "internal error", err.Error())
+		assert.NoError(t, err)
 	})
 }
 

@@ -50,7 +50,6 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 		return HandleClientError("failed to retrieve instance", log, err, true, sentryTags)
 	}
 
-	originalCopy := instance.DeepCopyObject()
 	inDeletion := instance.GetDeletionTimestamp() != nil
 	generationChanged := true
 
@@ -114,7 +113,7 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 				MarkResourceAsFinal(instance, log, condArr, v1.ConditionFalse, l)
 			}
 			if !l.Config().ReadOnly {
-				_ = updateStatus(ctx, cl, originalCopy, instance, log, generationChanged, sentryTags)
+				_ = updateStatus(ctx, cl, nName, instance, log, generationChanged, sentryTags)
 			}
 			if !retry {
 				return ctrl.Result{}, nil
@@ -147,7 +146,7 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 	}
 
 	if !l.Config().ReadOnly {
-		err = updateStatus(ctx, cl, originalCopy, instance, log, generationChanged, sentryTags)
+		err = updateStatus(ctx, cl, nName, instance, log, generationChanged, sentryTags)
 		if err != nil {
 			return result, err
 		}
@@ -239,30 +238,39 @@ func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.Runtime
 	return nil
 }
 
-func updateStatus(ctx context.Context, cl client.Client, original runtime.Object, current runtimeobject.RuntimeObject, log *logger.Logger, generationChanged bool, sentryTags sentry.Tags) error {
-	currentUn, err := runtime.DefaultUnstructuredConverter.ToUnstructured(current)
+func updateStatus(ctx context.Context, cl client.Client, nName types.NamespacedName, current runtimeobject.RuntimeObject, log *logger.Logger, generationChanged bool, sentryTags sentry.Tags) error {
+	statusToUpdate, statusExists, err := extractStatus(current)
 	if err != nil {
+		return fmt.Errorf("failed to extract status: %w", err)
+	}
+
+	err = cl.Get(ctx, nName, current)
+	if err != nil {
+		if kerrors.IsNotFound(err) {
+			log.Info().Msg("instance not found during status update. It was likely deleted")
+			return nil
+		}
+		log.Error().Err(err).Msg("failed to refetch instance before status update")
+		if generationChanged {
+			sentry.CaptureError(err, sentryTags)
+		}
 		return err
 	}
 
-	originalUn, err := runtime.DefaultUnstructuredConverter.ToUnstructured(original)
+	currentStatus, _, err := extractStatus(current)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to extract current status: %w", err)
 	}
 
-	currentStatus, _, err := unstructured.NestedFieldCopy(currentUn, "status")
-	if err != nil {
-		return err
-	}
-
-	originalStatus, _, err := unstructured.NestedFieldCopy(originalUn, "status")
-	if err != nil {
-		return err
-	}
-
-	if equality.Semantic.DeepEqual(currentStatus, originalStatus) {
+	if equality.Semantic.DeepEqual(statusToUpdate, currentStatus) {
 		log.Info().Msg("skipping status update, since they are equal")
 		return nil
+	}
+
+	if statusExists {
+		if err := applyStatus(current, statusToUpdate); err != nil {
+			return fmt.Errorf("failed to apply status: %w", err)
+		}
 	}
 
 	log.Info().Msg("updating resource status")
@@ -279,6 +287,26 @@ func updateStatus(ctx context.Context, cl client.Client, original runtime.Object
 	}
 
 	return nil
+}
+
+func extractStatus(obj runtime.Object) (any, bool, error) {
+	un, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
+	if err != nil {
+		return nil, false, err
+	}
+	status, exists, err := unstructured.NestedFieldCopy(un, "status")
+	return status, exists, err
+}
+
+func applyStatus(obj runtime.Object, status any) error {
+	un, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
+	if err != nil {
+		return err
+	}
+	if err := unstructured.SetNestedField(un, status, "status"); err != nil {
+		return err
+	}
+	return runtime.DefaultUnstructuredConverter.FromUnstructured(un, obj)
 }
 
 func HandleClientError(msg string, log *logger.Logger, err error, generationChanged bool, sentryTags sentry.Tags) (ctrl.Result, error) {

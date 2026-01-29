@@ -140,8 +140,9 @@ func (l *LifecycleManager) WithConditionManagement() *LifecycleManager {
 func (l *LifecycleManager) WithStaticThenExponentialRateLimiter(opts ...ratelimiter.Option) *LifecycleManager {
 	rateLimiter, err := ratelimiter.NewStaticThenExponentialRateLimiter[reconcile.Request](ratelimiter.NewConfig(opts...))
 	if err != nil {
-		log.Fatalf("rate limiter config error: %s",err)
+		log.Fatalf("rate limiter config error: %s", err)
 	}
+	rateLimiter.SetLogger(l.Log())
 	l.rateLimiter = rateLimiter
 	return l
 }

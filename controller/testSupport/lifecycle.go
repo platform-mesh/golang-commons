@@ -120,6 +120,15 @@ func (t TestConditionManager) SetSubroutineCondition(conditions *[]metav1.Condit
 	})
 }
 
+func (t TestConditionManager) SetSubroutineConditionSkipped(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, reason string, _ bool, _ *logger.Logger) bool {
+	return meta.SetStatusCondition(conditions, metav1.Condition{
+		Type:    fmt.Sprintf("%s_Ready", subroutine.GetName()),
+		Status:  metav1.ConditionTrue,
+		Message: fmt.Sprintf("The subroutine was skipped: %s", reason),
+		Reason:  "Skipped",
+	})
+}
+
 func (t TestConditionManager) SetInstanceConditionReady(conditions *[]metav1.Condition, _ metav1.ConditionStatus) bool {
 	return meta.SetStatusCondition(conditions, metav1.Condition{
 		Type:    "Ready",

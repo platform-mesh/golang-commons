@@ -17,12 +17,15 @@ import (
 const iamUrl = "http://localhost/is/mocked/in/these/tests"
 
 type mockTenantReader struct {
+	mu        sync.Mutex
 	tenantId  string
 	error     error
 	callCount int
 }
 
 func (mc *mockTenantReader) Read(_ context.Context) (string, error) {
+	mc.mu.Lock()
+	defer mc.mu.Unlock()
 	mc.callCount = mc.callCount + 1
 
 	if mc.error != nil {
@@ -30,6 +33,12 @@ func (mc *mockTenantReader) Read(_ context.Context) (string, error) {
 	}
 
 	return mc.tenantId, nil
+}
+
+func (mc *mockTenantReader) setTenantId(id string) {
+	mc.mu.Lock()
+	defer mc.mu.Unlock()
+	mc.tenantId = id
 }
 
 func TestTenantRetriever(t *testing.T) {
@@ -153,7 +162,7 @@ func TestTenantRetriever(t *testing.T) {
 				wg.Add(1)
 				go func(in int) {
 					defer wg.Done()
-					mockClient.tenantId = tenantId + strconv.Itoa(in%3)
+					mockClient.setTenantId(tenantId + strconv.Itoa(in%3))
 
 					claims := &jwt.RegisteredClaims{Issuer: issuer, Audience: jwt.ClaimStrings{audience + strconv.Itoa(in%3)}}
 					token, err := jwt.NewWithClaims(jwt.SigningMethodNone, claims).SignedString(jwt.UnsafeAllowNoneSignatureType)

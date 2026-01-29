@@ -27,7 +27,7 @@ type TenantRetrieverService struct {
 }
 
 type GraphqlClient interface {
-	Run(ctx context.Context, req *graphql.Request, resp interface{}) error
+	Run(ctx context.Context, req *graphql.Request, resp any) error
 }
 
 type TenantIdReader interface {

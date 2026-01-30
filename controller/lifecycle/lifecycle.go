@@ -274,7 +274,7 @@ func updateStatus(ctx context.Context, cl client.Client, original runtime.Object
 				sentry.CaptureError(err, sentryTags, sentry.Extras{"message": "Updating of instance status failed"})
 			}
 		}
-		log.Error().Err(err).Msg("cannot update reconciliation Conditions, kubernetes client error")
+		log.Warn().Err(err).Msg("cannot update reconciliation Conditions, kubernetes client error")
 		return err
 	}
 

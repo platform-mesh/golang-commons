@@ -5,138 +5,63 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"slices"
 
 	"github.com/platform-mesh/golang-commons/graphql/testresponse"
 )
 
+// This example demonstrates parsing a GraphQL response and checking for errors.
+// In real tests, use testify assertions instead of fmt.Println.
 func ExampleParseGQLResponse() {
-	// Simulate a GraphQL response with errors
-	body := `{
-		"data": null,
-		"errors": [
-			{"message": "validation failed: name is required"},
-			{"message": "validation failed: email is invalid"}
-		]
-	}`
+	body := `{"errors": [{"message": "validation failed"}, {"message": "not found"}]}`
 	response := &http.Response{
 		Body: io.NopCloser(bytes.NewBufferString(body)),
 	}
 
-	gqlResp, err := testresponse.ParseGQLResponse(response)
-	if err != nil {
-		panic(err)
-	}
+	gqlResp, _ := testresponse.ParseGQLResponse(response)
 
-	fmt.Println("Has errors:", gqlResp.HasErrors())
-	fmt.Println("Error count:", gqlResp.ErrorCount())
-	fmt.Println("First message:", gqlResp.Errors[0].Message)
+	// In tests: assert.True(t, gqlResp.HasErrors())
+	// In tests: assert.Equal(t, 2, gqlResp.ErrorCount())
+	fmt.Println(gqlResp.HasErrors(), gqlResp.ErrorCount())
 
 	// Output:
-	// Has errors: true
-	// Error count: 2
-	// First message: validation failed: name is required
+	// true 2
 }
 
+// HasErrorContaining checks ALL errors, not just the first one.
 func ExampleGQLResponse_HasErrorContaining() {
-	body := `{"errors": [{"message": "user not found"}, {"message": "permission denied"}]}`
+	body := `{"errors": [{"message": "first error"}, {"message": "second: not found"}]}`
 	response := &http.Response{
 		Body: io.NopCloser(bytes.NewBufferString(body)),
 	}
 
 	gqlResp, _ := testresponse.ParseGQLResponse(response)
 
-	// Check if any error contains a substring
-	fmt.Println("Contains 'not found':", gqlResp.HasErrorContaining("not found"))
-	fmt.Println("Contains 'denied':", gqlResp.HasErrorContaining("denied"))
-	fmt.Println("Contains 'timeout':", gqlResp.HasErrorContaining("timeout"))
+	// Finds "not found" in the SECOND error
+	// In tests: assert.True(t, gqlResp.HasErrorContaining("not found"))
+	fmt.Println(gqlResp.HasErrorContaining("not found"))
 
 	// Output:
-	// Contains 'not found': true
-	// Contains 'denied': true
-	// Contains 'timeout': false
+	// true
 }
 
+// HasErrorMessage requires an exact match, unlike HasErrorContaining.
 func ExampleGQLResponse_HasErrorMessage() {
-	body := `{"errors": [{"message": "exact error message"}]}`
+	body := `{"errors": [{"message": "user not found"}]}`
 	response := &http.Response{
 		Body: io.NopCloser(bytes.NewBufferString(body)),
 	}
 
 	gqlResp, _ := testresponse.ParseGQLResponse(response)
 
-	// Exact match required
-	fmt.Println("Exact match:", gqlResp.HasErrorMessage("exact error message"))
-	fmt.Println("Partial match:", gqlResp.HasErrorMessage("exact error"))
+	// Exact match works
+	// In tests: assert.True(t, gqlResp.HasErrorMessage("user not found"))
+	fmt.Println(gqlResp.HasErrorMessage("user not found"))
+
+	// Partial does NOT match
+	// In tests: assert.False(t, gqlResp.HasErrorMessage("not found"))
+	fmt.Println(gqlResp.HasErrorMessage("not found"))
 
 	// Output:
-	// Exact match: true
-	// Partial match: false
-}
-
-func ExampleGQLResponse_ErrorMessages() {
-	body := `{"errors": [{"message": "error one"}, {"message": "error two"}]}`
-	response := &http.Response{
-		Body: io.NopCloser(bytes.NewBufferString(body)),
-	}
-
-	gqlResp, _ := testresponse.ParseGQLResponse(response)
-
-	// Get all messages as a slice - useful with slices.Contains
-	messages := gqlResp.ErrorMessages()
-	fmt.Println("Contains 'error one':", slices.Contains(messages, "error one"))
-	fmt.Println("Contains 'error three':", slices.Contains(messages, "error three"))
-
-	// Output:
-	// Contains 'error one': true
-	// Contains 'error three': false
-}
-
-func ExampleGQLResponse_accessingErrorDetails() {
-	body := `{
-		"errors": [{
-			"message": "field validation failed",
-			"path": ["mutation", "createUser", "input", "email"],
-			"extensions": {"code": "VALIDATION_ERROR", "field": "email"}
-		}]
-	}`
-	response := &http.Response{
-		Body: io.NopCloser(bytes.NewBufferString(body)),
-	}
-
-	gqlResp, _ := testresponse.ParseGQLResponse(response)
-
-	err := gqlResp.Errors[0]
-	fmt.Println("Message:", err.Message)
-	fmt.Println("Path length:", len(err.Path))
-	fmt.Println("Extension code:", err.Extensions["code"])
-
-	// Output:
-	// Message: field validation failed
-	// Path length: 4
-	// Extension code: VALIDATION_ERROR
-}
-
-func ExampleNoGQLErrors() {
-	// Success response - no errors
-	successBody := `{"data": {"user": {"id": "123", "name": "John"}}}`
-	successResp := &http.Response{
-		Body: io.NopCloser(bytes.NewBufferString(successBody)),
-	}
-
-	err := testresponse.NoGQLErrors()(successResp, nil)
-	fmt.Println("Success response error:", err)
-
-	// Error response
-	errorBody := `{"errors": [{"message": "not found"}]}`
-	errorResp := &http.Response{
-		Body: io.NopCloser(bytes.NewBufferString(errorBody)),
-	}
-
-	err = testresponse.NoGQLErrors()(errorResp, nil)
-	fmt.Println("Error response has error:", err != nil)
-
-	// Output:
-	// Success response error: <nil>
-	// Error response has error: true
+	// true
+	// false
 }

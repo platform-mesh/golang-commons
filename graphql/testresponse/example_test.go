@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 
 	"github.com/platform-mesh/golang-commons/graphql/testresponse"
 )
@@ -81,15 +82,14 @@ func ExampleGQLResponse_ErrorMessages() {
 
 	gqlResp, _ := testresponse.ParseGQLResponse(response)
 
-	// Get all messages as a slice - useful with testify's Contains
+	// Get all messages as a slice - useful with slices.Contains
 	messages := gqlResp.ErrorMessages()
-	for i, msg := range messages {
-		fmt.Printf("%d: %s\n", i, msg)
-	}
+	fmt.Println("Contains 'error one':", slices.Contains(messages, "error one"))
+	fmt.Println("Contains 'error three':", slices.Contains(messages, "error three"))
 
 	// Output:
-	// 0: error one
-	// 1: error two
+	// Contains 'error one': true
+	// Contains 'error three': false
 }
 
 func ExampleGQLResponse_accessingErrorDetails() {

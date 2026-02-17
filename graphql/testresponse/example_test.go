@@ -2,33 +2,36 @@ package testresponse_test
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net/http"
+	"testing"
 
 	"github.com/platform-mesh/golang-commons/graphql/testresponse"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // This example demonstrates parsing a GraphQL response and checking for errors.
-// In real tests, use testify assertions instead of fmt.Println.
 func ExampleParseGQLResponse() {
+	t := &testing.T{} // In real tests, this comes from the test function
+
 	body := `{"errors": [{"message": "validation failed"}, {"message": "not found"}]}`
 	response := &http.Response{
 		Body: io.NopCloser(bytes.NewBufferString(body)),
 	}
 
-	gqlResp, _ := testresponse.ParseGQLResponse(response)
+	gqlResp, err := testresponse.ParseGQLResponse(response)
+	require.NoError(t, err)
 
-	// In tests: assert.True(t, gqlResp.HasErrors())
-	// In tests: assert.Equal(t, 2, gqlResp.ErrorCount())
-	fmt.Println(gqlResp.HasErrors(), gqlResp.ErrorCount())
-
-	// Output:
-	// true 2
+	assert.True(t, gqlResp.HasErrors())
+	assert.Equal(t, 2, gqlResp.ErrorCount())
+	assert.Contains(t, gqlResp.ErrorMessages(), "validation failed")
 }
 
 // HasErrorContaining checks ALL errors, not just the first one.
 func ExampleGQLResponse_HasErrorContaining() {
+	t := &testing.T{}
+
 	body := `{"errors": [{"message": "first error"}, {"message": "second: not found"}]}`
 	response := &http.Response{
 		Body: io.NopCloser(bytes.NewBufferString(body)),
@@ -36,16 +39,14 @@ func ExampleGQLResponse_HasErrorContaining() {
 
 	gqlResp, _ := testresponse.ParseGQLResponse(response)
 
-	// Finds "not found" in the SECOND error
-	// In tests: assert.True(t, gqlResp.HasErrorContaining("not found"))
-	fmt.Println(gqlResp.HasErrorContaining("not found"))
-
-	// Output:
-	// true
+	// Finds "not found" in the SECOND error - checks all errors, not just first
+	assert.True(t, gqlResp.HasErrorContaining("not found"))
 }
 
 // HasErrorMessage requires an exact match, unlike HasErrorContaining.
 func ExampleGQLResponse_HasErrorMessage() {
+	t := &testing.T{}
+
 	body := `{"errors": [{"message": "user not found"}]}`
 	response := &http.Response{
 		Body: io.NopCloser(bytes.NewBufferString(body)),
@@ -54,14 +55,8 @@ func ExampleGQLResponse_HasErrorMessage() {
 	gqlResp, _ := testresponse.ParseGQLResponse(response)
 
 	// Exact match works
-	// In tests: assert.True(t, gqlResp.HasErrorMessage("user not found"))
-	fmt.Println(gqlResp.HasErrorMessage("user not found"))
+	assert.True(t, gqlResp.HasErrorMessage("user not found"))
 
-	// Partial does NOT match
-	// In tests: assert.False(t, gqlResp.HasErrorMessage("not found"))
-	fmt.Println(gqlResp.HasErrorMessage("not found"))
-
-	// Output:
-	// true
-	// false
+	// Partial does NOT match - use HasErrorContaining for that
+	assert.False(t, gqlResp.HasErrorMessage("not found"))
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
 	"k8s.io/apimachinery/pkg/api/equality"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
@@ -31,9 +30,8 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 	defer span.End()
 
 	result := ctrl.Result{}
-	reconcileId := uuid.New().String()
 
-	log := l.Log().MustChildLoggerWithAttributes("name", nName.Name, "namespace", nName.Namespace, "reconcile_id", reconcileId)
+	log := l.Log().MustChildLoggerWithAttributes("name", nName.Name, "namespace", nName.Namespace)
 	sentryTags := sentry.Tags{"namespace": nName.Namespace, "name": nName.Name}
 
 	ctx = logger.SetLoggerInContext(ctx, log)

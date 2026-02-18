@@ -2,10 +2,8 @@ package spread
 
 import (
 	"math/rand/v2"
-	"slices"
 	"time"
 
-	"golang.org/x/exp/maps"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 
@@ -73,10 +71,11 @@ func (s *Spreader) RemoveRefreshLabelIfExists(instance runtimeobject.RuntimeObje
 }
 
 func (s *Spreader) ReconcileRequired(instance runtimeobject.RuntimeObject, log *logger.Logger) bool {
+
 	instanceStatusObj := util.MustToInterface[api.RuntimeObjectSpreadReconcileStatus](instance, log)
 	generationChanged := instance.GetGeneration() != instanceStatusObj.GetObservedGeneration()
 	isAfterNextReconcileTime := v1.Now().UTC().After(instanceStatusObj.GetNextReconcileTime().UTC())
-	refreshRequested := slices.Contains(maps.Keys(instance.GetLabels()), ReconcileRefreshLabel)
+	_, refreshRequested := instance.GetLabels()[ReconcileRefreshLabel]
 
 	return generationChanged || isAfterNextReconcileTime || refreshRequested
 }

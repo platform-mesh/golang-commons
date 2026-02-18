@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-http-utils/headers"
 	"github.com/platform-mesh/golang-commons/context"
 	"github.com/stretchr/testify/assert"
 )
@@ -26,7 +25,7 @@ func TestStoreAuthHeader_WithAuthHeader(t *testing.T) {
 	handlerToTest := middleware(nextHandler)
 
 	req := httptest.NewRequest("GET", "http://testing", nil)
-	req.Header.Set(headers.Authorization, expectedAuth)
+	req.Header.Set(AuthorizationHeader, expectedAuth)
 	recorder := httptest.NewRecorder()
 
 	handlerToTest.ServeHTTP(recorder, req)
@@ -68,7 +67,7 @@ func TestStoreAuthHeader_WithEmptyAuthHeader(t *testing.T) {
 	handlerToTest := middleware(nextHandler)
 
 	req := httptest.NewRequest("GET", "http://testing", nil)
-	req.Header.Set(headers.Authorization, "")
+	req.Header.Set(AuthorizationHeader, "")
 	recorder := httptest.NewRecorder()
 
 	handlerToTest.ServeHTTP(recorder, req)
@@ -91,8 +90,8 @@ func TestStoreAuthHeader_MultipleAuthHeaders(t *testing.T) {
 	handlerToTest := middleware(nextHandler)
 
 	req := httptest.NewRequest("GET", "http://testing", nil)
-	req.Header.Add(headers.Authorization, "Bearer token1")
-	req.Header.Add(headers.Authorization, "Bearer token2")
+	req.Header.Add(AuthorizationHeader, "Bearer token1")
+	req.Header.Add(AuthorizationHeader, "Bearer token2")
 	recorder := httptest.NewRecorder()
 
 	handlerToTest.ServeHTTP(recorder, req)

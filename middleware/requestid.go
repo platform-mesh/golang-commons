@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/platform-mesh/golang-commons/context/keys"
 	"github.com/platform-mesh/golang-commons/logger"
 )
@@ -22,9 +21,6 @@ func SetRequestId() func(http.Handler) http.Handler {
 			var requestId string
 			if ids, ok := request.Header[requestIdHeader]; ok && len(ids) == 1 {
 				requestId = ids[0]
-			} else {
-				// Generate a new request id, header was not received.
-				requestId = uuid.New().String()
 			}
 			ctx = context.WithValue(ctx, keys.RequestIdCtxKey, requestId)
 			next.ServeHTTP(responseWriter, request.WithContext(ctx))
@@ -33,7 +29,7 @@ func SetRequestId() func(http.Handler) http.Handler {
 }
 
 // SetRequestIdInLogger returns HTTP middleware that injects a request-scoped logger into the request context.
-// 
+//
 // The middleware loads the current logger from the request context, creates a per-request logger using
 // logger.NewRequestLoggerFromZerolog(ctx, log.Logger), and stores the resulting logger back into the context
 // before calling the next handler. This ensures handlers downstream receive a logger enriched for the current request.

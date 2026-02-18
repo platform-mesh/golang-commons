@@ -7,6 +7,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/events"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -60,5 +61,9 @@ func (f FakeCluster) GetAPIReader() client.Reader {
 }
 
 func (f FakeCluster) Start(context.Context) error {
+	return nil
+}
+
+func (f FakeCluster) GetEventRecorder(string) events.EventRecorder {
 	return nil
 }

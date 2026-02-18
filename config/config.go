@@ -25,43 +25,55 @@ func LoadConfigFromContext(ctx context.Context) any {
 	return ctx.Value(keys.ConfigCtxKey)
 }
 
+type ImageConfig struct {
+	Name string
+	Tag  string
+}
+
+type LogConfig struct {
+	Level  string
+	NoJson bool
+}
+
+type MetricsConfig struct {
+	BindAddress string
+	Secure      bool
+}
+
+type TracingConfig struct {
+	Enabled   bool
+	Collector traces.Config
+}
+
+type LeaderElectionConfig struct {
+	Enabled bool
+}
+
+type SentryConfig struct {
+	Dsn string
+}
+
 type CommonServiceConfig struct {
-	DebugLabelValue         string `mapstructure:"debug-label-value" description:"Set the debug label value"`
-	MaxConcurrentReconciles int    `mapstructure:"max-concurrent-reconciles" default:"10" description:"Set the max concurrent reconciles"`
-	Environment             string `mapstructure:"environment"`
-	Region                  string `mapstructure:"region" default:"local" description:"Set the region of the service, e.g. local, dev, staging, prod"`
-	Kubeconfig              string `mapstructure:"kubeconfig" description:"Set the kubeconfig path"`
-	IsLocal                 bool   `mapstructure:"is-local" default:"false" description:"Flagging execution to be local"`
+	DebugLabelValue         string
+	MaxConcurrentReconciles int
+	Environment             string
+	Region                  string
+	Kubeconfig              string
+	IsLocal                 bool
 
-	Image struct {
-		Name string `mapstructure:"image-name" description:"Set the image name"`
-		Tag  string `mapstructure:"image-tag" description:"Set the image tag"`
-	} `mapstructure:",squash"`
+	Image ImageConfig
 
-	Log struct {
-		Level  string `mapstructure:"log-level" default:"info" description:"Set the log level"`
-		NoJson bool   `mapstructure:"no-json" default:"false" description:"Disable JSON logging"`
-	} `mapstructure:",squash"`
+	Log LogConfig
 
-	ShutdownTimeout time.Duration `mapstructure:"shutdown-timeout" default:"1m" description:"Set the shutdown timeout as duration in seconds, e.g. 30s, 1m, 2h"`
-	Metrics         struct {
-		BindAddress string `mapstructure:"metrics-bind-address" default:":9090" description:"Set the metrics bind address"`
-		Secure      bool   `mapstructure:"metrics-secure" default:"false" description:"Set if metrics should be exposed via https"`
-	} `mapstructure:",squash"`
-	Tracing struct {
-		Enabled   bool          `mapstructure:"tracing-enabled" default:"false" description:"Enable tracing for the service"`
-		Collector traces.Config `mapstructure:",squash"`
-	} `mapstructure:",squash"`
-	EnableHTTP2            bool   `mapstructure:"enable-http2" default:"true" description:"Toggle to disable metrics/webhook serving using http2"`
-	HealthProbeBindAddress string `mapstructure:"health-probe-bind-address" default:":8090" description:"Set the health probe bind address"`
+	ShutdownTimeout        time.Duration
+	Metrics                MetricsConfig
+	Tracing                TracingConfig
+	EnableHTTP2            bool
+	HealthProbeBindAddress string
 
-	LeaderElection struct {
-		Enabled bool `mapstructure:"leader-elect" default:"false" description:"Enable leader election for the controller manager"`
-	} `mapstructure:",squash"`
+	LeaderElectionEnabled bool
 
-	Sentry struct {
-		Dsn string `mapstructure:"sentry-dsn" description:"Set the Sentry DSN for error reporting"`
-	} `mapstructure:",squash"`
+	Sentry SentryConfig
 }
 
 // generateFlagSet generates a pflag.FlagSet from a struct based on its `mapstructure` tags.
@@ -183,25 +195,80 @@ func traverseStruct(value reflect.Value, flagSet *pflag.FlagSet, prefix string) 
 	return nil
 }
 
-func NewDefaultConfig(rootCmd *cobra.Command) (*viper.Viper, *CommonServiceConfig, error) {
-	v := viper.NewWithOptions(
-		viper.EnvKeyReplacer(strings.NewReplacer("-", "_")),
-	)
+func NewDefaultConfig() *CommonServiceConfig {
 
-	v.AutomaticEnv()
+	config := &CommonServiceConfig{
+		DebugLabelValue:         "",
+		MaxConcurrentReconciles: 10,
+		Environment:             "",
+		Region:                  "local",
+		Kubeconfig:              "",
+		IsLocal:                 false,
 
-	var config CommonServiceConfig
-	flagSet, err := generateFlagSet(config)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to generate flag set: %w", err)
+		Image: ImageConfig{
+			Name: "",
+			Tag:  "",
+		},
+
+		Log: LogConfig{
+			Level:  "info",
+			NoJson: false,
+		},
+
+		ShutdownTimeout: time.Minute,
+
+		Metrics: MetricsConfig{
+			BindAddress: ":9090",
+			Secure:      false,
+		},
+
+		Tracing: TracingConfig{
+			Enabled:   false,
+			Collector: traces.Config{},
+		},
+
+		EnableHTTP2:            true,
+		HealthProbeBindAddress: ":8090",
+
+		LeaderElectionEnabled: false,
+
+		Sentry: SentryConfig{
+			Dsn: "",
+		},
 	}
 
-	err = v.BindPFlags(flagSet)
-	rootCmd.PersistentFlags().AddFlagSet(flagSet)
+	return config
+}
 
-	cobra.OnInitialize(unmarshalIntoStruct(v, &config))
+func (c *CommonServiceConfig) AddFlags(fs *pflag.FlagSet) {
+	fs.StringVar(&c.DebugLabelValue, "debug-label-value", c.DebugLabelValue, "Set the debug label value")
+	fs.IntVar(&c.MaxConcurrentReconciles, "max-concurrent-reconciles", c.MaxConcurrentReconciles, "Set the max concurrent reconciles")
+	fs.StringVar(&c.Environment, "environment", c.Environment, "Set the environment of the service")
+	fs.StringVar(&c.Region, "region", c.Region, "Set the region of the service, e.g. local, dev, staging, prod")
+	fs.StringVar(&c.Kubeconfig, "kubeconfig", c.Kubeconfig, "Set the kubeconfig path")
+	fs.BoolVar(&c.IsLocal, "is-local", c.IsLocal, "Flagging execution to be local")
 
-	return v, &config, err
+	fs.StringVar(&c.Image.Name, "image-name", c.Image.Name, "Set the image name")
+	fs.StringVar(&c.Image.Tag, "image-tag", c.Image.Tag, "Set the image tag")
+
+	fs.StringVar(&c.Log.Level, "log-level", c.Log.Level, "Set the log level")
+	fs.BoolVar(&c.Log.NoJson, "no-json", c.Log.NoJson, "Disable JSON logging")
+
+	fs.DurationVar(&c.ShutdownTimeout, "shutdown-timeout", c.ShutdownTimeout, "Set the shutdown timeout as duration in seconds, e.g. 30s, 1m, 2h")
+	fs.StringVar(&c.Metrics.BindAddress, "metrics-bind-address", c.Metrics.BindAddress, "Set the metrics bind address")
+	fs.BoolVar(&c.Metrics.Secure, "metrics-secure", c.Metrics.Secure, "Set if metrics should be exposed via https")
+
+	fs.BoolVar(&c.Tracing.Enabled, "tracing-enabled", c.Tracing.Enabled, "Enable tracing for the service")
+	fs.StringVar(&c.Tracing.Collector.ServiceName, "tracing-config-service-name", c.Tracing.Collector.ServiceName, "Set the tracing service name used in traces")
+	fs.StringVar(&c.Tracing.Collector.ServiceVersion, "tracing-config-service-version", c.Tracing.Collector.ServiceVersion, "Set the tracing service version used in traces")
+	fs.StringVar(&c.Tracing.Collector.CollectorEndpoint, "tracing-config-collector-endpoint", c.Tracing.Collector.CollectorEndpoint, "Set the tracing collector endpoint used to send traces to the collector")
+
+	fs.BoolVar(&c.EnableHTTP2, "enable-http2", c.EnableHTTP2, "Toggle to disable metrics/webhook serving using http2")
+	fs.StringVar(&c.HealthProbeBindAddress, "health-probe-bind-address", c.HealthProbeBindAddress, "Set the health probe bind address")
+
+	fs.BoolVar(&c.LeaderElectionEnabled, "leader-elect", c.LeaderElectionEnabled, "Enable leader election for the controller manager")
+
+	fs.StringVar(&c.Sentry.Dsn, "sentry-dsn", c.Sentry.Dsn, "Set the Sentry DSN for error reporting")
 }
 
 func BindConfigToFlags(v *viper.Viper, cmd *cobra.Command, config any) error {

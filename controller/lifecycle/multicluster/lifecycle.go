@@ -150,7 +150,7 @@ func (l *LifecycleManager) WithConditionManagement() api.Lifecycle {
 func (l *LifecycleManager) WithStaticThenExponentialRateLimiter(opts ...ratelimiter.Option) *LifecycleManager {
 	rateLimiter, err := ratelimiter.NewStaticThenExponentialRateLimiter[mcreconcile.Request](ratelimiter.NewConfig(opts...))
 	if err != nil {
-		log.Fatalf("rate limiter config error: %s",err)
+		log.Fatalf("rate limiter config error: %s", err)
 	}
 	l.rateLimiter = rateLimiter
 	return l

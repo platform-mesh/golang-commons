@@ -1,5 +1,18 @@
 template: testify
 packages:
+  sigs.k8s.io/controller-runtime/pkg/client:
+    config:
+      dir: controller/lifecycle/mocks
+      pkgname: mocks
+      filename: client.go
+    interfaces:
+      Client:
+        config:
+          structname: Client
+      SubResourceWriter:
+        config:
+          filename: sub_resource_client.go
+          structname: SubResourceWriter
   github.com/openfga/api/proto/openfga/v1:
     config:
       dir: directive/mocks

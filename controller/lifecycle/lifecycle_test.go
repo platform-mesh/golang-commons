@@ -1046,7 +1046,7 @@ func TestRemoveTerminatorIfNeeded(t *testing.T) {
 	fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 	t.Run("removes terminator from status", func(t *testing.T) {
-		err := removeTerminatorIfNeeded(context.Background(), instance, fakeClient, terminatorToRemove)
+		err := removeTerminator(context.Background(), instance, fakeClient, terminatorToRemove)
 		assert.NoError(t, err)
 		assert.Equal(t, []string{"other:terminator"}, instance.Status.Terminators)
 
@@ -1062,7 +1062,7 @@ func TestRemoveTerminatorIfNeeded(t *testing.T) {
 			Status:     pmtesting.TestStatus{Terminators: []string{terminatorToRemove}},
 		}
 		fakeClient3 := pmtesting.CreateFakeClient(t, instance3)
-		err := removeTerminatorIfNeeded(context.Background(), instance3, fakeClient3, "")
+		err := removeTerminator(context.Background(), instance3, fakeClient3, "")
 		assert.NoError(t, err)
 		assert.Equal(t, []string{terminatorToRemove}, instance3.Status.Terminators)
 	})
@@ -1073,7 +1073,7 @@ func TestRemoveTerminatorIfNeeded(t *testing.T) {
 			Status:     pmtesting.TestStatus{Terminators: []string{"other:terminator"}},
 		}
 		fakeClient5 := pmtesting.CreateFakeClient(t, instance5)
-		err := removeTerminatorIfNeeded(context.Background(), instance5, fakeClient5, terminatorToRemove)
+		err := removeTerminator(context.Background(), instance5, fakeClient5, terminatorToRemove)
 		assert.NoError(t, err)
 		assert.Equal(t, []string{"other:terminator"}, instance5.Status.Terminators)
 	})
@@ -1084,7 +1084,7 @@ func TestRemoveTerminatorIfNeeded(t *testing.T) {
 			Status:     pmtesting.TestStatus{},
 		}
 		fakeClient6 := pmtesting.CreateFakeClient(t, instance6)
-		err := removeTerminatorIfNeeded(context.Background(), instance6, fakeClient6, terminatorToRemove)
+		err := removeTerminator(context.Background(), instance6, fakeClient6, terminatorToRemove)
 		assert.NoError(t, err)
 		assert.Nil(t, instance6.Status.Terminators)
 	})
@@ -1101,7 +1101,7 @@ func TestRemoveInitializerIfNeeded(t *testing.T) {
 	fakeClient := pmtesting.CreateFakeClient(t, instance)
 
 	t.Run("removes initializer from status", func(t *testing.T) {
-		err := removeInitializerIfNeeded(context.Background(), instance, fakeClient, initializerToRemove)
+		err := removeInitializer(context.Background(), instance, fakeClient, initializerToRemove)
 		assert.NoError(t, err)
 		assert.Equal(t, []string{"other:initializer"}, instance.Status.Initializers)
 
@@ -1117,7 +1117,7 @@ func TestRemoveInitializerIfNeeded(t *testing.T) {
 			Status:     pmtesting.TestStatus{Initializers: []string{initializerToRemove}},
 		}
 		fakeClient3 := pmtesting.CreateFakeClient(t, instance3)
-		err := removeInitializerIfNeeded(context.Background(), instance3, fakeClient3, "")
+		err := removeInitializer(context.Background(), instance3, fakeClient3, "")
 		assert.NoError(t, err)
 		assert.Equal(t, []string{initializerToRemove}, instance3.Status.Initializers)
 	})

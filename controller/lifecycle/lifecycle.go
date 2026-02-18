@@ -144,14 +144,14 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 
 	if result.RequeueAfter == 0 && inDeletion && l.Terminator() != "" {
 		log.Debug().Msgf("Removing terminator")
-		if err := removeTerminatorIfNeeded(ctx, instance, cl, l.Terminator()); err != nil {
+		if err := removeTerminator(ctx, instance, cl, l.Terminator()); err != nil {
 			return result, fmt.Errorf("potentially removing Terminator: %w", err)
 		}
 	}
 
 	if result.RequeueAfter == 0 && !inDeletion && l.Initializer() != "" {
 		log.Debug().Msgf("Removing initializer")
-		if err := removeInitializerIfNeeded(ctx, instance, cl, l.Initializer()); err != nil {
+		if err := removeInitializer(ctx, instance, cl, l.Initializer()); err != nil {
 			return result, fmt.Errorf("potentially removing Initializer: %w", err)
 		}
 	}
@@ -271,7 +271,7 @@ func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.Runtime
 	return nil
 }
 
-func removeTerminatorIfNeeded(ctx context.Context, instance runtimeobject.RuntimeObject, cl client.Client, terminator string) error {
+func removeTerminator(ctx context.Context, instance runtimeobject.RuntimeObject, cl client.Client, terminator string) error {
 	if terminator == "" {
 		return nil
 	}
@@ -309,7 +309,7 @@ func removeTerminatorIfNeeded(ctx context.Context, instance runtimeobject.Runtim
 	return nil
 }
 
-func removeInitializerIfNeeded(ctx context.Context, instance runtimeobject.RuntimeObject, cl client.Client, initializer string) error {
+func removeInitializer(ctx context.Context, instance runtimeobject.RuntimeObject, cl client.Client, initializer string) error {
 	if initializer == "" {
 		return nil
 	}

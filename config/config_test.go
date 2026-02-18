@@ -167,11 +167,16 @@ func TestBindConfigToFlagsWrongTypeNoStruct(t *testing.T) {
 }
 
 func TestNewDefaultConfig(t *testing.T) {
-	v, _, err := config.NewDefaultConfig(&cobra.Command{})
-	assert.NoError(t, err)
+	cfg := config.NewDefaultConfig()
 
-	err = v.Unmarshal(&config.CommonServiceConfig{})
-	assert.NoError(t, err)
+	assert.NotNil(t, cfg)
+	assert.Equal(t, 10, cfg.MaxConcurrentReconciles)
+	assert.Equal(t, "local", cfg.Region)
+	assert.Equal(t, "info", cfg.Log.Level)
+	assert.Equal(t, ":9090", cfg.Metrics.BindAddress)
+	assert.Equal(t, ":8090", cfg.HealthProbeBindAddress)
+	assert.Equal(t, time.Minute, cfg.ShutdownTimeout)
+	assert.True(t, cfg.EnableHTTP2)
 }
 
 func TestGenerateFlagSetUnsupportedType(t *testing.T) {

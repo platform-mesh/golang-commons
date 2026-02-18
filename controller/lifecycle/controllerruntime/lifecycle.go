@@ -35,6 +35,7 @@ type LifecycleManager struct {
 	prepareContextFunc api.PrepareContextFunc
 	rateLimiter        workqueue.TypedRateLimiter[reconcile.Request]
 	terminator         string
+	initializer        string
 }
 
 func NewLifecycleManager(subroutines []subroutine.Subroutine, operatorName string, controllerName string, client client.Client, log *logger.Logger) *LifecycleManager {
@@ -82,6 +83,10 @@ func (l *LifecycleManager) Reconcile(ctx context.Context, req ctrl.Request, inst
 
 func (l *LifecycleManager) Terminator() string {
 	return l.terminator
+}
+
+func (l *LifecycleManager) Initializer() string {
+	return l.initializer
 }
 
 func (l *LifecycleManager) SetupWithManagerBuilder(mgr ctrl.Manager, maxReconciles int, reconcilerName string, instance runtimeobject.RuntimeObject, debugLabelValue string, log *logger.Logger, eventPredicates ...predicate.Predicate) (*builder.Builder, error) {
@@ -154,5 +159,10 @@ func (l *LifecycleManager) WithStaticThenExponentialRateLimiter(opts ...ratelimi
 
 func (l *LifecycleManager) WithTerminator(terminator string) *LifecycleManager {
 	l.terminator = terminator
+	return l
+}
+
+func (l *LifecycleManager) WithInitializer(initializer string) *LifecycleManager {
+	l.initializer = initializer
 	return l
 }

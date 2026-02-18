@@ -149,6 +149,13 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 		}
 	}
 
+	if result.RequeueAfter == 0 && !inDeletion && l.Initializer() != "" {
+		log.Debug().Msgf("Removing initializer")
+		if err := removeInitializerIfNeeded(ctx, instance, cl, l.Initializer()); err != nil {
+			return result, fmt.Errorf("potentially removing Initializer: %w", err)
+		}
+	}
+
 	if l.ConditionsManager() != nil {
 		util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
 	}
@@ -193,7 +200,16 @@ func reconcileSubroutine(ctx context.Context, instance runtimeobject.RuntimeObje
 				sentry.CaptureError(err.Err(), sentryTags)
 			}
 			subroutineLogger.Error().Err(err.Err()).Bool("retry", err.Retry()).Msg("terminator ended with error")
-			return result, err.Retry(), err.Err()
+		}
+	} else if initializer, ok := s.(subroutine.Initializer); ok && instance.GetDeletionTimestamp() == nil {
+		subroutineLogger.Debug().Msg("initializing instance")
+		result, err = initializer.Initialize(ctx, instance)
+		subroutineLogger.Debug().Any("result", result).Bool("err_is_nil", err == nil).Msg("initialized instance")
+		if err != nil {
+			if err.Sentry() {
+				sentry.CaptureError(err.Err(), sentryTags)
+			}
+			subroutineLogger.Error().Err(err.Err()).Bool("retry", err.Retry()).Msg("initializer ended with error")
 		}
 	} else if instance.GetDeletionTimestamp() != nil && containsFinalizer(instance, s.Finalizers(instance)) {
 		subroutineLogger.Debug().Msg("finalizing instance")
@@ -279,6 +295,44 @@ func removeTerminatorIfNeeded(ctx context.Context, instance runtimeobject.Runtim
 
 	if err := unstructured.SetNestedStringSlice(currentUn, newTerminators, "status", "terminators"); err != nil {
 		return fmt.Errorf("failed to set terminators: %w", err)
+	}
+
+	original := instance.DeepCopyObject().(client.Object)
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(currentUn, instance); err != nil {
+		return fmt.Errorf("failed to convert unstructured to instance: %w", err)
+	}
+
+	if err := cl.Status().Patch(ctx, instance.(client.Object), client.MergeFrom(original)); err != nil {
+		return fmt.Errorf("failed to patch instance status: %w", err)
+	}
+
+	return nil
+}
+
+func removeInitializerIfNeeded(ctx context.Context, instance runtimeobject.RuntimeObject, cl client.Client, initializer string) error {
+	if initializer == "" {
+		return nil
+	}
+
+	currentUn, err := runtime.DefaultUnstructuredConverter.ToUnstructured(instance)
+	if err != nil {
+		return fmt.Errorf("failed to convert instance to unstructured: %w", err)
+	}
+
+	initializers, ok, err := unstructured.NestedStringSlice(currentUn, "status", "initializers")
+	if err != nil || !ok || len(initializers) == 0 {
+		return nil
+	}
+
+	newInitializers := slices.DeleteFunc(initializers, func(i string) bool {
+		return i == initializer
+	})
+	if len(newInitializers) == len(initializers) {
+		return nil
+	}
+
+	if err := unstructured.SetNestedStringSlice(currentUn, newInitializers, "status", "initializers"); err != nil {
+		return fmt.Errorf("failed to set initializers: %w", err)
 	}
 
 	original := instance.DeepCopyObject().(client.Object)

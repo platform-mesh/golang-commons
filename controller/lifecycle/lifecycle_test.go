@@ -264,6 +264,39 @@ func TestLifecycle(t *testing.T) {
 		assert.NoError(t, getErr)
 		assert.Equal(t, []string{"other:terminator"}, serverObject.Status.Terminators)
 	})
+	t.Run("Lifecycle removes initializer when not in deletion", func(t *testing.T) {
+		// Arrange: instance without deletion timestamp, with initializers in status
+		initializerName := "root:security"
+		instance := &pmtesting.TestApiObject{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+			Status: pmtesting.TestStatus{
+				Initializers: []string{initializerName, "other:initializer"},
+			},
+		}
+
+		fakeClient := pmtesting.CreateFakeClient(t, instance)
+
+		mgr := &pmtesting.TestLifecycleManager{
+			Logger:         log,
+			SubroutinesArr: []subroutine.Subroutine{},
+		}
+		mgr.WithInitializer(initializerName)
+
+		// Act
+		_, err := Reconcile(ctx, request.NamespacedName, instance, fakeClient, mgr)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"other:initializer"}, instance.Status.Initializers)
+
+		serverObject := &pmtesting.TestApiObject{}
+		getErr := fakeClient.Get(ctx, client.ObjectKey{Name: name, Namespace: namespace}, serverObject)
+		assert.NoError(t, getErr)
+		assert.Equal(t, []string{"other:initializer"}, serverObject.Status.Initializers)
+	})
 	t.Run("Lifecycle without changing status", func(t *testing.T) {
 		// Arrange
 		instance := &pmtesting.TestApiObject{
@@ -1054,6 +1087,39 @@ func TestRemoveTerminatorIfNeeded(t *testing.T) {
 		err := removeTerminatorIfNeeded(context.Background(), instance6, fakeClient6, terminatorToRemove)
 		assert.NoError(t, err)
 		assert.Nil(t, instance6.Status.Terminators)
+	})
+}
+
+func TestRemoveInitializerIfNeeded(t *testing.T) {
+	initializerToRemove := "root:security"
+	instance := &pmtesting.TestApiObject{
+		ObjectMeta: metav1.ObjectMeta{Name: "instance1", Namespace: "default"},
+		Status: pmtesting.TestStatus{
+			Initializers: []string{initializerToRemove, "other:initializer"},
+		},
+	}
+	fakeClient := pmtesting.CreateFakeClient(t, instance)
+
+	t.Run("removes initializer from status", func(t *testing.T) {
+		err := removeInitializerIfNeeded(context.Background(), instance, fakeClient, initializerToRemove)
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"other:initializer"}, instance.Status.Initializers)
+
+		serverObject := &pmtesting.TestApiObject{}
+		getErr := fakeClient.Get(context.Background(), client.ObjectKey{Name: "instance1", Namespace: "default"}, serverObject)
+		assert.NoError(t, getErr)
+		assert.Equal(t, []string{"other:initializer"}, serverObject.Status.Initializers)
+	})
+
+	t.Run("does nothing when initializer is empty", func(t *testing.T) {
+		instance3 := &pmtesting.TestApiObject{
+			ObjectMeta: metav1.ObjectMeta{Name: "instance3", Namespace: "default"},
+			Status:     pmtesting.TestStatus{Initializers: []string{initializerToRemove}},
+		}
+		fakeClient3 := pmtesting.CreateFakeClient(t, instance3)
+		err := removeInitializerIfNeeded(context.Background(), instance3, fakeClient3, "")
+		assert.NoError(t, err)
+		assert.Equal(t, []string{initializerToRemove}, instance3.Status.Initializers)
 	})
 }
 

@@ -18,6 +18,7 @@ type Builder struct {
 	withSpreadingReconciles bool
 	withReadOnly            bool
 	terminator              string
+	initializer             string
 	rateLimiterOptions      *[]ratelimiter.Option
 	subroutines             []subroutine.Subroutine
 	log                     *logger.Logger
@@ -58,6 +59,11 @@ func (b *Builder) WithTerminator(terminator string) *Builder {
 	return b
 }
 
+func (b *Builder) WithInitializer(initializer string) *Builder {
+	b.initializer = initializer
+	return b
+}
+
 func (b *Builder) BuildControllerRuntime(cl client.Client) *controllerruntime.LifecycleManager {
 	lm := controllerruntime.NewLifecycleManager(b.subroutines, b.operatorName, b.controllerName, cl, b.log)
 	if b.withConditionManagement {
@@ -74,6 +80,9 @@ func (b *Builder) BuildControllerRuntime(cl client.Client) *controllerruntime.Li
 	}
 	if b.terminator != "" {
 		lm.WithTerminator(b.terminator)
+	}
+	if b.initializer != "" {
+		lm.WithInitializer(b.initializer)
 	}
 	return lm
 }
@@ -94,6 +103,9 @@ func (b *Builder) BuildMultiCluster(mgr mcmanager.Manager) *multicluster.Lifecyc
 	}
 	if b.terminator != "" {
 		lm.WithTerminator(b.terminator)
+	}
+	if b.initializer != "" {
+		lm.WithInitializer(b.initializer)
 	}
 	return lm
 }

@@ -22,6 +22,7 @@ type TestLifecycleManager struct {
 	ShouldReconcile    bool
 	prepareContextFunc api.PrepareContextFunc
 	terminator         string
+	initializer        string
 }
 
 func (l *TestLifecycleManager) Config() api.Config {
@@ -39,8 +40,13 @@ func (l *TestLifecycleManager) PrepareContextFunc() api.PrepareContextFunc {
 }
 func (l *TestLifecycleManager) Subroutines() []subroutine.Subroutine { return l.SubroutinesArr }
 func (l *TestLifecycleManager) Terminator() string                   { return l.terminator }
+func (l *TestLifecycleManager) Initializer() string                  { return l.initializer }
 func (l *TestLifecycleManager) WithTerminator(terminator string) *TestLifecycleManager {
 	l.terminator = terminator
+	return l
+}
+func (l *TestLifecycleManager) WithInitializer(initializer string) *TestLifecycleManager {
+	l.initializer = initializer
 	return l
 }
 func (l *TestLifecycleManager) WithSpreadingReconciles() api.Lifecycle {

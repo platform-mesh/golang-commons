@@ -20,6 +20,7 @@ type Lifecycle interface {
 	PrepareContextFunc() PrepareContextFunc
 	Subroutines() []subroutine.Subroutine
 	Terminator() string
+	Initializer() string
 }
 
 type PrepareContextFunc func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, errors.OperatorError)

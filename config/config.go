@@ -2,16 +2,9 @@ package config
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"reflect"
-	"strconv"
-	"strings"
 	"time"
 
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 
 	"github.com/platform-mesh/golang-commons/context/keys"
 	"github.com/platform-mesh/golang-commons/traces"
@@ -74,125 +67,6 @@ type CommonServiceConfig struct {
 	LeaderElectionEnabled bool
 
 	Sentry SentryConfig
-}
-
-// generateFlagSet generates a pflag.FlagSet from a struct based on its `mapstructure` tags.
-func generateFlagSet(config any) (*pflag.FlagSet, error) {
-	flagSet := pflag.NewFlagSet("generated", pflag.ContinueOnError)
-	err := traverseStruct(reflect.ValueOf(config), flagSet, "")
-	return flagSet, err
-}
-
-// traverseStruct recursively traverses a struct and adds flags to the FlagSet.
-func traverseStruct(value reflect.Value, flagSet *pflag.FlagSet, prefix string) error {
-	if value.Kind() == reflect.Ptr {
-		value = value.Elem()
-	}
-
-	if value.Kind() != reflect.Struct {
-		return errors.New("value must be a struct")
-	}
-
-	typ := value.Type()
-	for i := 0; i < value.NumField(); i++ {
-		field := typ.Field(i)
-		fieldValue := value.Field(i)
-
-		// Get the `mapstructure` tag
-		tag := field.Tag.Get("mapstructure")
-		if tag == "" || tag == "-" {
-			continue
-		}
-
-		defaultValueTag := field.Tag.Get("default")
-		defaultStrValue := ""
-		if defaultValueTag != "" {
-			defaultStrValue = defaultValueTag
-		}
-
-		descriptionValueTag := field.Tag.Get("description")
-		descriptionStrValue := ""
-		if descriptionValueTag != "" {
-			descriptionStrValue = descriptionValueTag
-		}
-
-		// Handle nested structs
-		if fieldValue.Kind() == reflect.Struct {
-			if tag == ",squash" {
-				err := traverseStruct(fieldValue, flagSet, "")
-				if err != nil {
-					return err
-				}
-			} else {
-				err := traverseStruct(fieldValue, flagSet, prefix+tag+".")
-				if err != nil {
-					return err
-				}
-			}
-			continue
-		}
-
-		description := fmt.Sprintf("Set the %s", tag)
-		if descriptionStrValue != "" {
-			description = descriptionStrValue
-		}
-
-		// Add flags based on the field type
-		switch fieldValue.Kind() {
-		case reflect.String:
-			flagSet.String(prefix+tag, defaultStrValue, description)
-		case reflect.Int, reflect.Int64:
-			if fieldValue.Type() == reflect.TypeOf(time.Duration(0)) {
-				var durVal time.Duration
-				if defaultStrValue != "" {
-					parsedDurVal, err := time.ParseDuration(defaultStrValue)
-					if err != nil {
-						return fmt.Errorf("invalid duration value for field %s: %w", field.Name, err)
-					}
-					durVal = parsedDurVal
-				}
-
-				durDescription := fmt.Sprintf("Set the %s in seconds", tag)
-				if descriptionStrValue != "" {
-					durDescription = descriptionStrValue
-				}
-				flagSet.Duration(prefix+tag, durVal, durDescription)
-			} else {
-				i := 0
-				if defaultStrValue != "" {
-					parsedInt, err := strconv.Atoi(defaultStrValue)
-					if err != nil {
-						return err
-					}
-					i = parsedInt
-				}
-				flagSet.Int(prefix+tag, i, description)
-			}
-		case reflect.Bool:
-			var defaultBoolValue bool
-			if defaultStrValue != "" {
-				b, err := strconv.ParseBool(defaultStrValue)
-				if err != nil {
-					return err
-				}
-				defaultBoolValue = b
-			}
-			flagSet.Bool(prefix+tag, defaultBoolValue, description)
-		case reflect.Slice:
-			var defaultSliceValue []string
-			if defaultStrValue != "" {
-				defaultSliceValue = strings.Split(defaultStrValue, ",")
-			}
-			if fieldValue.Type().Elem().Kind() != reflect.String {
-				return fmt.Errorf("unsupported slice element type %s for field %s", fieldValue.Type().Elem().Kind(), field.Name)
-			}
-			flagSet.StringSlice(prefix+tag, defaultSliceValue, description)
-		default:
-			return fmt.Errorf("unsupported field type %s for field %s", fieldValue.Kind(), field.Name)
-		}
-
-	}
-	return nil
 }
 
 func NewDefaultConfig() *CommonServiceConfig {
@@ -269,30 +143,4 @@ func (c *CommonServiceConfig) AddFlags(fs *pflag.FlagSet) {
 	fs.BoolVar(&c.LeaderElectionEnabled, "leader-elect", c.LeaderElectionEnabled, "Enable leader election for the controller manager")
 
 	fs.StringVar(&c.Sentry.Dsn, "sentry-dsn", c.Sentry.Dsn, "Set the Sentry DSN for error reporting")
-}
-
-func BindConfigToFlags(v *viper.Viper, cmd *cobra.Command, config any) error {
-	flagSet, err := generateFlagSet(config)
-	if err != nil {
-		return fmt.Errorf("failed to generate flag set: %w", err)
-	}
-	err = v.BindPFlags(flagSet)
-	if err != nil {
-		return err
-	}
-
-	cmd.Flags().AddFlagSet(flagSet)
-
-	cobra.OnInitialize(unmarshalIntoStruct(v, config))
-
-	return nil
-}
-
-// unmarshalIntoStruct returns a function that unmarshal viper config into cfg and panics on error.
-func unmarshalIntoStruct(v *viper.Viper, cfg any) func() {
-	return func() {
-		if err := v.Unmarshal(cfg); err != nil {
-			panic(fmt.Errorf("failed to unmarshal config: %w", err))
-		}
-	}
 }

@@ -40,6 +40,7 @@ type LifecycleManager struct {
 	conditionsManager  *conditions.ConditionManager
 	prepareContextFunc api.PrepareContextFunc
 	rateLimiter        workqueue.TypedRateLimiter[mcreconcile.Request]
+	terminator         string
 }
 
 func NewLifecycleManager(subroutines []subroutine.Subroutine, operatorName string, controllerName string, mgr ClusterGetter, log *logger.Logger) *LifecycleManager {
@@ -80,6 +81,11 @@ func (l *LifecycleManager) Spreader() api.SpreadManager { // it is important to 
 	}
 	return l.spreader
 }
+
+func (l *LifecycleManager) Terminator() string {
+	return l.terminator
+}
+
 func (l *LifecycleManager) Reconcile(ctx context.Context, req mcreconcile.Request, instance runtimeobject.RuntimeObject) (ctrl.Result, error) {
 	cl, err := l.mgr.GetCluster(ctx, req.ClusterName)
 	if err != nil {
@@ -150,8 +156,13 @@ func (l *LifecycleManager) WithConditionManagement() api.Lifecycle {
 func (l *LifecycleManager) WithStaticThenExponentialRateLimiter(opts ...ratelimiter.Option) *LifecycleManager {
 	rateLimiter, err := ratelimiter.NewStaticThenExponentialRateLimiter[mcreconcile.Request](ratelimiter.NewConfig(opts...))
 	if err != nil {
-		log.Fatalf("rate limiter config error: %s",err)
+		log.Fatalf("rate limiter config error: %s", err)
 	}
 	l.rateLimiter = rateLimiter
+	return l
+}
+
+func (l *LifecycleManager) WithTerminator(terminator string) *LifecycleManager {
+	l.terminator = terminator
 	return l
 }

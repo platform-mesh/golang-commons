@@ -142,6 +142,13 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 		}
 	}
 
+	if result.RequeueAfter == 0 && inDeletion && l.Terminator() != "" {
+		log.Debug().Msgf("Removing terminator")
+		if err := removeTerminatorIfNeeded(ctx, instance, cl, l.Terminator()); err != nil {
+			return result, fmt.Errorf("potentially removing Terminator: %w", err)
+		}
+	}
+
 	if l.ConditionsManager() != nil {
 		util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
 	}
@@ -243,6 +250,44 @@ func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.Runtime
 				return errors.NewOperatorError(errors.Wrap(err, "failed to update instance"), true, false)
 			}
 		}
+	}
+
+	return nil
+}
+
+func removeTerminatorIfNeeded(ctx context.Context, instance runtimeobject.RuntimeObject, cl client.Client, terminator string) error {
+	if terminator == "" {
+		return nil
+	}
+
+	currentUn, err := runtime.DefaultUnstructuredConverter.ToUnstructured(instance)
+	if err != nil {
+		return fmt.Errorf("failed to convert instance to unstructured: %w", err)
+	}
+
+	terminators, ok, err := unstructured.NestedStringSlice(currentUn, "status", "terminators")
+	if err != nil || !ok || len(terminators) == 0 {
+		return nil
+	}
+
+	newTerminators := slices.DeleteFunc(terminators, func(t string) bool {
+		return t == terminator
+	})
+	if len(newTerminators) == len(terminators) {
+		return nil
+	}
+
+	if err := unstructured.SetNestedStringSlice(currentUn, newTerminators, "status", "terminators"); err != nil {
+		return fmt.Errorf("failed to set terminators: %w", err)
+	}
+
+	original := instance.DeepCopyObject().(client.Object)
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(currentUn, instance); err != nil {
+		return fmt.Errorf("failed to convert unstructured to instance: %w", err)
+	}
+
+	if err := cl.Status().Patch(ctx, instance.(client.Object), client.MergeFrom(original)); err != nil {
+		return fmt.Errorf("failed to patch instance status: %w", err)
 	}
 
 	return nil

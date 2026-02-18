@@ -17,6 +17,7 @@ type Builder struct {
 	withConditionManagement bool
 	withSpreadingReconciles bool
 	withReadOnly            bool
+	terminator              string
 	rateLimiterOptions      *[]ratelimiter.Option
 	subroutines             []subroutine.Subroutine
 	log                     *logger.Logger
@@ -52,6 +53,11 @@ func (b *Builder) WithStaticThenExponentialRateLimiter(opts ...ratelimiter.Optio
 	return b
 }
 
+func (b *Builder) WithTerminator(terminator string) *Builder {
+	b.terminator = terminator
+	return b
+}
+
 func (b *Builder) BuildControllerRuntime(cl client.Client) *controllerruntime.LifecycleManager {
 	lm := controllerruntime.NewLifecycleManager(b.subroutines, b.operatorName, b.controllerName, cl, b.log)
 	if b.withConditionManagement {
@@ -65,6 +71,9 @@ func (b *Builder) BuildControllerRuntime(cl client.Client) *controllerruntime.Li
 	}
 	if b.rateLimiterOptions != nil {
 		lm.WithStaticThenExponentialRateLimiter((*b.rateLimiterOptions)...)
+	}
+	if b.terminator != "" {
+		lm.WithTerminator(b.terminator)
 	}
 	return lm
 }
@@ -82,6 +91,9 @@ func (b *Builder) BuildMultiCluster(mgr mcmanager.Manager) *multicluster.Lifecyc
 	}
 	if b.rateLimiterOptions != nil {
 		lm.WithStaticThenExponentialRateLimiter((*b.rateLimiterOptions)...)
+	}
+	if b.terminator != "" {
+		lm.WithTerminator(b.terminator)
 	}
 	return lm
 }

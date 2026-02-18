@@ -16,6 +16,7 @@ type TestStatus struct {
 	Conditions         []metav1.Condition
 	NextReconcileTime  metav1.Time
 	ObservedGeneration int64
+	Terminators        []string `json:"terminators,omitempty"`
 }
 
 func (t *TestApiObject) DeepCopyObject() runtime.Object {

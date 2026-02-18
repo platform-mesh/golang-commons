@@ -168,28 +168,37 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 	return result, nil
 }
 
-func reconcileSubroutine(ctx context.Context, instance runtimeobject.RuntimeObject, subroutine subroutine.Subroutine, cl client.Client, l api.Lifecycle, log *logger.Logger, generationChanged bool, sentryTags map[string]string) (ctrl.Result, bool, error) {
-	subroutineLogger := log.ChildLogger("subroutine", subroutine.GetName())
+func reconcileSubroutine(ctx context.Context, instance runtimeobject.RuntimeObject, s subroutine.Subroutine, cl client.Client, l api.Lifecycle, log *logger.Logger, generationChanged bool, sentryTags map[string]string) (ctrl.Result, bool, error) {
+	subroutineLogger := log.ChildLogger("subroutine", s.GetName())
 	ctx = logger.SetLoggerInContext(ctx, subroutineLogger)
 	subroutineLogger.Debug().Msg("start subroutine")
 
-	ctx, span := otel.Tracer(l.Config().OperatorName).Start(ctx, fmt.Sprintf("%s.reconcileSubroutine.%s", l.Config().ControllerName, subroutine.GetName()))
+	ctx, span := otel.Tracer(l.Config().OperatorName).Start(ctx, fmt.Sprintf("%s.reconcileSubroutine.%s", l.Config().ControllerName, s.GetName()))
 	defer span.End()
 	var result ctrl.Result
 	var err errors.OperatorError
-	if instance.GetDeletionTimestamp() != nil {
-		if containsFinalizer(instance, subroutine.Finalizers(instance)) {
-			subroutineLogger.Debug().Msg("finalizing instance")
-			result, err = subroutine.Finalize(ctx, instance)
-			subroutineLogger.Debug().Any("result", result).Msg("finalized instance")
-			if err == nil {
-				// Remove finalizers unless requeue is requested
-				err = removeFinalizerIfNeeded(ctx, instance, subroutine, result, l.Config().ReadOnly, cl)
+	if terminator, ok := s.(subroutine.Terminator); ok && instance.GetDeletionTimestamp() != nil {
+		subroutineLogger.Debug().Msg("terminating instance")
+		result, err = terminator.Terminate(ctx, instance)
+		subroutineLogger.Debug().Any("result", result).Bool("err_is_nil", err == nil).Msg("terminated instance")
+		if err != nil {
+			if err.Sentry() {
+				sentry.CaptureError(err.Err(), sentryTags)
 			}
+			subroutineLogger.Error().Err(err.Err()).Bool("retry", err.Retry()).Msg("terminator ended with error")
+			return result, err.Retry(), err.Err()
+		}
+	} else if instance.GetDeletionTimestamp() != nil && containsFinalizer(instance, s.Finalizers(instance)) {
+		subroutineLogger.Debug().Msg("finalizing instance")
+		result, err = s.Finalize(ctx, instance)
+		subroutineLogger.Debug().Any("result", result).Msg("finalized instance")
+		if err == nil {
+			// Remove finalizers unless requeue is requested
+			err = removeFinalizerIfNeeded(ctx, instance, s, result, l.Config().ReadOnly, cl)
 		}
 	} else {
 		subroutineLogger.Debug().Msg("processing instance")
-		result, err = subroutine.Process(ctx, instance)
+		result, err = s.Process(ctx, instance)
 		subroutineLogger.Debug().Any("result", result).Msg("processed instance")
 	}
 
@@ -214,7 +223,7 @@ func containsFinalizer(o client.Object, subroutineFinalizers []string) bool {
 	return false
 }
 
-func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.RuntimeObject, subroutine subroutine.Subroutine, result ctrl.Result, readonly bool, cl client.Client) errors.OperatorError {
+func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.RuntimeObject, s subroutine.Subroutine, result ctrl.Result, readonly bool, cl client.Client) errors.OperatorError {
 	if readonly {
 		return nil
 	}
@@ -222,7 +231,7 @@ func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.Runtime
 	if result.RequeueAfter == 0 {
 		update := false
 		original := instance.DeepCopyObject().(client.Object)
-		for _, f := range subroutine.Finalizers(instance) {
+		for _, f := range s.Finalizers(instance) {
 			needsUpdate := controllerutil.RemoveFinalizer(instance, f)
 			if needsUpdate {
 				update = true
@@ -331,9 +340,9 @@ func AddFinalizersIfNeeded(ctx context.Context, cl client.Client, instance runti
 	return nil
 }
 
-func AddFinalizerIfNeeded(instance runtimeobject.RuntimeObject, subroutine subroutine.Subroutine) bool {
+func AddFinalizerIfNeeded(instance runtimeobject.RuntimeObject, s subroutine.Subroutine) bool {
 	update := false
-	for _, f := range subroutine.Finalizers(instance) {
+	for _, f := range s.Finalizers(instance) {
 		needsUpdate := controllerutil.AddFinalizer(instance, f)
 		if needsUpdate {
 			update = true

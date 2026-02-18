@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-http-utils/headers"
 	"github.com/go-jose/go-jose/v4"
 
 	pmcontext "github.com/platform-mesh/golang-commons/context"
@@ -25,7 +24,7 @@ func StoreWebToken() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
 			ctx := request.Context()
-			tokens := strings.Fields(request.Header.Get(headers.Authorization))
+			tokens := strings.Fields(request.Header.Get(AuthorizationHeader))
 			if len(tokens) == 2 && strings.EqualFold(tokens[0], tokenAuthPrefix) {
 				ctx = pmcontext.AddWebTokenToContext(ctx, tokens[1], signatureAlgorithms)
 			}

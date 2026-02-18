@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-http-utils/headers"
 	"github.com/platform-mesh/golang-commons/context"
 	"github.com/stretchr/testify/assert"
 )
@@ -29,7 +28,7 @@ func TestStoreWebToken_WithFakeBearerToken(t *testing.T) {
 	handlerToTest := middleware(nextHandler)
 
 	req := httptest.NewRequest("GET", "http://testing", nil)
-	req.Header.Set(headers.Authorization, authHeader)
+	req.Header.Set(AuthorizationHeader, authHeader)
 	recorder := httptest.NewRecorder()
 
 	handlerToTest.ServeHTTP(recorder, req)
@@ -71,7 +70,7 @@ func TestStoreWebToken_WithNonBearerToken(t *testing.T) {
 	handlerToTest := middleware(nextHandler)
 
 	req := httptest.NewRequest("GET", "http://testing", nil)
-	req.Header.Set(headers.Authorization, "Basic dXNlcjpwYXNz") // Basic auth, not Bearer
+	req.Header.Set(AuthorizationHeader, "Basic dXNlcjpwYXNz") // Basic auth, not Bearer
 	recorder := httptest.NewRecorder()
 
 	handlerToTest.ServeHTTP(recorder, req)
@@ -92,7 +91,7 @@ func TestStoreWebToken_WithEmptyBearerToken(t *testing.T) {
 	handlerToTest := middleware(nextHandler)
 
 	req := httptest.NewRequest("GET", "http://testing", nil)
-	req.Header.Set(headers.Authorization, "Bearer ")
+	req.Header.Set(AuthorizationHeader, "Bearer ")
 	recorder := httptest.NewRecorder()
 
 	handlerToTest.ServeHTTP(recorder, req)
@@ -118,7 +117,7 @@ func TestStoreWebToken_WithFakeBearerTokenLowercase(t *testing.T) {
 	handlerToTest := middleware(nextHandler)
 
 	req := httptest.NewRequest("GET", "http://testing", nil)
-	req.Header.Set(headers.Authorization, authHeader)
+	req.Header.Set(AuthorizationHeader, authHeader)
 	recorder := httptest.NewRecorder()
 
 	handlerToTest.ServeHTTP(recorder, req)
@@ -139,7 +138,7 @@ func TestStoreWebToken_WithMalformedAuthHeader(t *testing.T) {
 	handlerToTest := middleware(nextHandler)
 
 	req := httptest.NewRequest("GET", "http://testing", nil)
-	req.Header.Set(headers.Authorization, "Bearer") // Missing space and token
+	req.Header.Set(AuthorizationHeader, "Bearer") // Missing space and token
 	recorder := httptest.NewRecorder()
 
 	handlerToTest.ServeHTTP(recorder, req)

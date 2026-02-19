@@ -163,3 +163,25 @@ func (r Result) ToSubroutine() (ctrl.Result, errors.OperatorError) {
 	}
 	return r.Ctrl, nil
 }
+
+// ResultFromSubroutine converts the legacy (ctrl.Result, OperatorError) format to custom struct Result
+// Used by the lifecycle to unify handling of both Subroutine and ChainSubroutine
+func ResultFromSubroutine(ctrlResult ctrl.Result, err errors.OperatorError) Result {
+	if err == nil {
+		return OKWithRequeue(ctrlResult)
+	}
+
+	if err.Retry() {
+		result := Result{Ctrl: ctrlResult, Outcome: ErrorRetry, Error: err.Err()}
+		if err.Sentry() {
+			result.Sentry = true
+		}
+		return result
+	}
+
+	result := Result{Ctrl: ctrlResult, Outcome: ErrorStop, Error: err.Err()}
+	if err.Sentry() {
+		result.Sentry = true
+	}
+	return result
+}

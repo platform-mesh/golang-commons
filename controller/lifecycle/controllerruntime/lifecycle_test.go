@@ -40,7 +40,7 @@ func TestLifecycle(t *testing.T) {
 		assert.NoError(t, err)
 
 		log := testlogger.New()
-		lm := NewLifecycleManager([]subroutine.Subroutine{}, "test-operator", "test-controller", fakeClient, log.Logger)
+		lm := NewLifecycleManager([]subroutine.BaseSubroutine{}, "test-operator", "test-controller", fakeClient, log.Logger)
 		lm.WithSpreadingReconciles()
 		tr := &testReconciler{lifecycleManager: lm}
 
@@ -58,7 +58,7 @@ func TestLifecycle(t *testing.T) {
 		m, err := manager.New(&rest.Config{}, manager.Options{Scheme: fakeClient.Scheme()})
 		assert.NoError(t, err)
 
-		lm, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
+		lm, log := createLifecycleManager([]subroutine.BaseSubroutine{}, fakeClient)
 		lm.WithSpreadingReconciles()
 		tr := &testReconciler{lifecycleManager: lm}
 
@@ -76,7 +76,7 @@ func TestLifecycle(t *testing.T) {
 		m, err := manager.New(&rest.Config{}, manager.Options{Scheme: fakeClient.Scheme()})
 		assert.NoError(t, err)
 
-		lm, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
+		lm, log := createLifecycleManager([]subroutine.BaseSubroutine{}, fakeClient)
 		lm.WithSpreadingReconciles()
 		lm.WithReadOnly()
 		tr := &testReconciler{lifecycleManager: lm}
@@ -95,7 +95,7 @@ func TestLifecycle(t *testing.T) {
 
 			fakeClient := pmtesting.CreateFakeClient(t, testApiObject)
 
-			lm, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.ContextValueSubroutine{}}, fakeClient)
+			lm, _ := createLifecycleManager([]subroutine.BaseSubroutine{pmtesting.ContextValueSubroutine{}}, fakeClient)
 			lm = lm.WithPrepareContextFunc(func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, errors.OperatorError) {
 				return context.WithValue(ctx, pmtesting.ContextValueKey, "valueFromContext"), nil
 			})
@@ -118,7 +118,7 @@ func TestLifecycle(t *testing.T) {
 
 			fakeClient := pmtesting.CreateFakeClient(t, testApiObject)
 
-			lm, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.ContextValueSubroutine{}}, fakeClient)
+			lm, _ := createLifecycleManager([]subroutine.BaseSubroutine{pmtesting.ContextValueSubroutine{}}, fakeClient)
 			lm = lm.WithPrepareContextFunc(func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, errors.OperatorError) {
 				return nil, errors.NewOperatorError(goerrors.New(errorMessage), true, false)
 			})
@@ -134,10 +134,10 @@ func TestLifecycle(t *testing.T) {
 	t.Run("WthConditionManagement", func(t *testing.T) {
 		// Given
 		fakeClient := pmtesting.CreateFakeClient(t, &pmtesting.TestApiObject{})
-		_, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
+		_, log := createLifecycleManager([]subroutine.BaseSubroutine{}, fakeClient)
 
 		// When
-		l := NewLifecycleManager([]subroutine.Subroutine{}, "test-operator", "test-controller", fakeClient, log.Logger).WithConditionManagement()
+		l := NewLifecycleManager([]subroutine.BaseSubroutine{}, "test-operator", "test-controller", fakeClient, log.Logger).WithConditionManagement()
 
 		// Then
 		assert.True(t, true, l.ConditionsManager() != nil)
@@ -145,10 +145,10 @@ func TestLifecycle(t *testing.T) {
 	t.Run("WithReadOnly", func(t *testing.T) {
 		// Given
 		fakeClient := pmtesting.CreateFakeClient(t, &pmtesting.TestApiObject{})
-		_, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
+		_, log := createLifecycleManager([]subroutine.BaseSubroutine{}, fakeClient)
 
 		// When
-		l := NewLifecycleManager([]subroutine.Subroutine{}, "test-operator", "test-controller", fakeClient, log.Logger).WithReadOnly()
+		l := NewLifecycleManager([]subroutine.BaseSubroutine{}, "test-operator", "test-controller", fakeClient, log.Logger).WithReadOnly()
 
 		// Then
 		assert.True(t, true, l.ConditionsManager() != nil)
@@ -156,9 +156,9 @@ func TestLifecycle(t *testing.T) {
 
 	t.Run("WithRateLimiter", func(t *testing.T) {
 		fakeClient := pmtesting.CreateFakeClient(t, &pmtesting.TestApiObject{})
-		_, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
+		_, log := createLifecycleManager([]subroutine.BaseSubroutine{}, fakeClient)
 
-		l := NewLifecycleManager([]subroutine.Subroutine{}, "test-operator", "test-controller", fakeClient, log.Logger)
+		l := NewLifecycleManager([]subroutine.BaseSubroutine{}, "test-operator", "test-controller", fakeClient, log.Logger)
 		expectedCfg := ratelimiter.Config{
 			StaticRequeueDelay:        5 * time.Second,
 			StaticWindow:              10 * time.Second,
@@ -189,7 +189,7 @@ func (r *testReconciler) Reconcile(ctx context.Context, req controllerruntime.Re
 	return r.lifecycleManager.Reconcile(ctx, req, &pmtesting.TestApiObject{})
 }
 
-func createLifecycleManager(subroutines []subroutine.Subroutine, c client.Client) (*LifecycleManager, *testlogger.TestLogger) {
+func createLifecycleManager(subroutines []subroutine.BaseSubroutine, c client.Client) (*LifecycleManager, *testlogger.TestLogger) {
 	log := testlogger.New()
 	mgr := NewLifecycleManager(subroutines, "test-operator", "test-controller", c, log.Logger)
 	return mgr, log

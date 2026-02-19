@@ -36,10 +36,6 @@ func (s OKChainSubroutine) Finalizers(_ runtimeobject.RuntimeObject) []string {
 	return []string{ChainSubroutineFinalizer}
 }
 
-func (s OKChainSubroutine) Adapted() subroutine.Subroutine {
-	return subroutine.NewChainAdapter(s)
-}
-
 type StopChainSubroutine struct {
 	Name         string
 	Reason       string
@@ -66,10 +62,6 @@ func (s StopChainSubroutine) GetName() string {
 
 func (s StopChainSubroutine) Finalizers(_ runtimeobject.RuntimeObject) []string {
 	return nil
-}
-
-func (s StopChainSubroutine) Adapted() subroutine.Subroutine {
-	return subroutine.NewChainAdapter(s)
 }
 
 type RetryChainSubroutine struct {
@@ -105,10 +97,6 @@ func (s RetryChainSubroutine) Finalizers(_ runtimeobject.RuntimeObject) []string
 	return []string{ChainSubroutineFinalizer}
 }
 
-func (s RetryChainSubroutine) Adapted() subroutine.Subroutine {
-	return subroutine.NewChainAdapter(s)
-}
-
 type FailChainSubroutine struct {
 	Name   string
 	Err    error
@@ -142,10 +130,6 @@ func (s FailChainSubroutine) GetName() string {
 
 func (s FailChainSubroutine) Finalizers(_ runtimeobject.RuntimeObject) []string {
 	return nil
-}
-
-func (s FailChainSubroutine) Adapted() subroutine.Subroutine {
-	return subroutine.NewChainAdapter(s)
 }
 
 type ChangeStatusChainSubroutine struct {
@@ -184,10 +168,6 @@ func (s ChangeStatusChainSubroutine) Finalizers(_ runtimeobject.RuntimeObject) [
 	return []string{"changestatus-chain"}
 }
 
-func (s ChangeStatusChainSubroutine) Adapted() subroutine.Subroutine {
-	return subroutine.NewChainAdapter(s)
-}
-
 type FinalizerChainSubroutine struct {
 	Client       client.Client
 	Err          error
@@ -222,10 +202,6 @@ func (s FinalizerChainSubroutine) Finalizers(_ runtimeobject.RuntimeObject) []st
 	return []string{ChainSubroutineFinalizer}
 }
 
-func (s FinalizerChainSubroutine) Adapted() subroutine.Subroutine {
-	return subroutine.NewChainAdapter(s)
-}
-
 type ErrorStopChainSubroutine struct {
 	Name   string
 	Err    error
@@ -256,10 +232,6 @@ func (s ErrorStopChainSubroutine) Finalizers(_ runtimeobject.RuntimeObject) []st
 	return nil
 }
 
-func (s ErrorStopChainSubroutine) Adapted() subroutine.Subroutine {
-	return subroutine.NewChainAdapter(s)
-}
-
 type TrackingChainSubroutine struct {
 	Name           string
 	ProcessCalled  bool
@@ -286,8 +258,4 @@ func (s *TrackingChainSubroutine) GetName() string {
 
 func (s *TrackingChainSubroutine) Finalizers(_ runtimeobject.RuntimeObject) []string {
 	return []string{ChainSubroutineFinalizer}
-}
-
-func (s *TrackingChainSubroutine) Adapted() subroutine.Subroutine {
-	return subroutine.NewChainAdapter(s)
 }

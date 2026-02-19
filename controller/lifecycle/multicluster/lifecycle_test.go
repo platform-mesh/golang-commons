@@ -41,7 +41,7 @@ func TestLifecycle(t *testing.T) {
 		instance := &v1.Namespace{}
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
+		mgr, log := createLifecycleManager([]subroutine.BaseSubroutine{}, fakeClient)
 
 		tr := &testReconciler{
 			lifecycleManager: mgr,
@@ -64,7 +64,7 @@ func TestLifecycle(t *testing.T) {
 		instance := &pmtesting.NotImplementingSpreadReconciles{}
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
+		mgr, log := createLifecycleManager([]subroutine.BaseSubroutine{}, fakeClient)
 		mgr.WithSpreadingReconciles()
 		tr := &testReconciler{
 			lifecycleManager: mgr,
@@ -85,7 +85,7 @@ func TestLifecycle(t *testing.T) {
 		instance := &pmtesting.NotImplementingSpreadReconciles{}
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
+		mgr, log := createLifecycleManager([]subroutine.BaseSubroutine{}, fakeClient)
 		mgr.WithReadOnly()
 		tr := &testReconciler{
 			lifecycleManager: mgr,
@@ -106,7 +106,7 @@ func TestLifecycle(t *testing.T) {
 		instance := &pmtesting.ImplementingSpreadReconciles{}
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
+		mgr, log := createLifecycleManager([]subroutine.BaseSubroutine{}, fakeClient)
 		mgr.WithReadOnly()
 		mgr.WithSpreadingReconciles()
 		tr := &testReconciler{
@@ -132,7 +132,7 @@ func TestLifecycle(t *testing.T) {
 
 			fakeClient := pmtesting.CreateFakeClient(t, testApiObject)
 
-			lm, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.ContextValueSubroutine{}}, fakeClient)
+			lm, _ := createLifecycleManager([]subroutine.BaseSubroutine{pmtesting.ContextValueSubroutine{}}, fakeClient)
 			lm = lm.WithPrepareContextFunc(func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, operrors.OperatorError) {
 				return context.WithValue(ctx, pmtesting.ContextValueKey, "valueFromContext"), nil
 			})
@@ -158,7 +158,7 @@ func TestLifecycle(t *testing.T) {
 
 			fakeClient := pmtesting.CreateFakeClient(t, testApiObject)
 
-			lm, _ := createLifecycleManager([]subroutine.Subroutine{pmtesting.ContextValueSubroutine{}}, fakeClient)
+			lm, _ := createLifecycleManager([]subroutine.BaseSubroutine{pmtesting.ContextValueSubroutine{}}, fakeClient)
 			lm = lm.WithPrepareContextFunc(func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, operrors.OperatorError) {
 				return nil, operrors.NewOperatorError(goerrors.New(errorMessage), true, false)
 			})
@@ -182,10 +182,10 @@ func TestLifecycleManager_WithConditionManagement(t *testing.T) {
 	// Given
 	fakeClient := pmtesting.CreateFakeClient(t, &pmtesting.TestApiObject{})
 	clusterGetter := &pmtesting.FakeManager{Client: fakeClient}
-	_, log := createLifecycleManager([]subroutine.Subroutine{}, fakeClient)
+	_, log := createLifecycleManager([]subroutine.BaseSubroutine{}, fakeClient)
 
 	// When
-	l := NewLifecycleManager([]subroutine.Subroutine{}, "test-operator", "test-controller", clusterGetter, log.Logger).WithConditionManagement()
+	l := NewLifecycleManager([]subroutine.BaseSubroutine{}, "test-operator", "test-controller", clusterGetter, log.Logger).WithConditionManagement()
 
 	// Then
 	assert.True(t, true, l.ConditionsManager() != nil)
@@ -199,7 +199,7 @@ func (r *testReconciler) Reconcile(ctx context.Context, req mcreconcile.Request)
 	return r.lifecycleManager.Reconcile(ctx, req, &pmtesting.TestApiObject{})
 }
 
-func createLifecycleManager(subroutines []subroutine.Subroutine, client client.Client) (*LifecycleManager, *testlogger.TestLogger) {
+func createLifecycleManager(subroutines []subroutine.BaseSubroutine, client client.Client) (*LifecycleManager, *testlogger.TestLogger) {
 	log := testlogger.New()
 	clusterGetter := &pmtesting.FakeManager{Client: client}
 	m := NewLifecycleManager(subroutines, "test-operator", "test-controller", clusterGetter, log.Logger)

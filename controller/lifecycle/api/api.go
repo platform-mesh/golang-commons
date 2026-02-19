@@ -18,7 +18,7 @@ type Lifecycle interface {
 	Spreader() SpreadManager
 	ConditionsManager() ConditionManager
 	PrepareContextFunc() PrepareContextFunc
-	Subroutines() []subroutine.Subroutine
+	Subroutines() []subroutine.BaseSubroutine
 }
 
 type PrepareContextFunc func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, errors.OperatorError)
@@ -31,8 +31,20 @@ type Config struct {
 
 type ConditionManager interface {
 	SetInstanceConditionUnknownIfNotSet(conditions *[]metav1.Condition) bool
-	SetSubroutineConditionToUnknownIfNotSet(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, isFinalize bool, log *logger.Logger) bool
-	SetSubroutineCondition(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, subroutineResult ctrl.Result, subroutineErr error, isFinalize bool, log *logger.Logger) bool
+	SetSubroutineConditionToUnknownIfNotSet(
+		conditions *[]metav1.Condition,
+		subroutine subroutine.BaseSubroutine,
+		isFinalize bool,
+		log *logger.Logger,
+	) bool
+	SetSubroutineCondition(
+		conditions *[]metav1.Condition,
+		subroutine subroutine.BaseSubroutine,
+		subroutineResult ctrl.Result,
+		subroutineErr error,
+		isFinalize bool,
+		log *logger.Logger,
+	) bool
 	SetInstanceConditionReady(conditions *[]metav1.Condition, status metav1.ConditionStatus) bool
 }
 

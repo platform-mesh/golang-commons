@@ -90,7 +90,7 @@ func Reconcile(
 	}
 
 	// In case of deletion execute the finalize subroutines in the reverse order as subroutine processing
-	subroutines := make([]subroutine.Subroutine, len(l.Subroutines()))
+	subroutines := make([]subroutine.BaseSubroutine, len(l.Subroutines()))
 	copy(subroutines, l.Subroutines())
 	if inDeletion {
 		slices.Reverse(subroutines)
@@ -108,110 +108,85 @@ func Reconcile(
 			util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
 		}
 
-		if adapter, ok := s.(*subroutine.ChainAdapter); ok {
-			chain := adapter.Unwrap()
-			subResult := reconcileChainSubroutine(ctx, instance, chain, cl, l, log, generationChanged, sentryTags)
-			if l.ConditionsManager() != nil {
-				condArr = util.MustToInterface[api.RuntimeObjectConditions](instance, log).GetConditions()
-			}
-
-			if subResult.Ctrl.RequeueAfter > 0 {
-				if subResult.Ctrl.RequeueAfter < result.RequeueAfter || result.RequeueAfter == 0 {
-					result.RequeueAfter = subResult.Ctrl.RequeueAfter
-				}
-			}
-
-			switch subResult.Outcome {
-			case subroutine.Continue:
-				if l.ConditionsManager() != nil && subResult.Ctrl.RequeueAfter == 0 {
-					l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult.Ctrl, nil, inDeletion, log)
-				}
-			case subroutine.StopChain:
-				if l.ConditionsManager() != nil {
-					l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult.Ctrl, nil, inDeletion, log)
-				}
-
-				log.Info().Str("subroutine", s.GetName()).Str("reason", subResult.Reason).Msg("stop chain requested")
-				stopChain = true
-			case subroutine.Skipped:
-				if l.ConditionsManager() != nil {
-					l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult.Ctrl, nil, inDeletion, log)
-				}
-			case subroutine.ErrorRetry:
-				if l.ConditionsManager() != nil {
-					l.ConditionsManager().
-						SetSubroutineCondition(&condArr, s, subResult.Ctrl, subResult.Error, inDeletion, log)
-					l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
-					util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
-				}
-
-				if !l.Config().ReadOnly {
-					_ = updateStatus(ctx, cl, originalCopy, instance, log, generationChanged, sentryTags)
-				}
-
-				return subResult.Ctrl, subResult.Error
-			case subroutine.ErrorContinue:
-				hasNonRetryableError = true
-				if l.ConditionsManager() != nil {
-					l.ConditionsManager().
-						SetSubroutineCondition(&condArr, s, subResult.Ctrl, subResult.Error, inDeletion, log)
-				}
-
-				log.Warn().Str("subroutine", s.GetName()).Err(subResult.Error).Msg("non-retryable error, continuing")
-			case subroutine.ErrorStop:
-				hasNonRetryableError = true
-				if l.ConditionsManager() != nil {
-					l.ConditionsManager().
-						SetSubroutineCondition(&condArr, s, subResult.Ctrl, subResult.Error, inDeletion, log)
-					l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
-					util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
-				}
-
-				log.Warn().
-					Str("subroutine", s.GetName()).
-					Err(subResult.Error).
-					Str("reason", subResult.Reason).
-					Msg("non-retryable error, stopping chain")
-				stopChain = true
-			}
-
-			if stopChain {
-				break
-			}
+		var subResult subroutine.Result
+		switch sub := s.(type) {
+		case subroutine.ChainSubroutine:
+			subResult = reconcileChainSubroutine(ctx, instance, sub, cl, l, log, generationChanged, sentryTags)
+		case subroutine.Subroutine:
+			subResult = reconcileSubroutine(ctx, instance, sub, cl, l, log, generationChanged, sentryTags)
+		default:
+			log.Error().Str("subroutine", s.GetName()).Msg("unknown subroutine type")
 			continue
 		}
 
-		subResult, retry, err := reconcileSubroutine(ctx, instance, s, cl, l, log, generationChanged, sentryTags)
-		// Update condArr with any changes the s did
 		if l.ConditionsManager() != nil {
 			condArr = util.MustToInterface[api.RuntimeObjectConditions](instance, log).GetConditions()
 		}
-		if err != nil {
+
+		if subResult.Ctrl.RequeueAfter > 0 {
+			if subResult.Ctrl.RequeueAfter < result.RequeueAfter || result.RequeueAfter == 0 {
+				result.RequeueAfter = subResult.Ctrl.RequeueAfter
+			}
+		}
+
+		switch subResult.Outcome {
+		case subroutine.Continue:
+			if l.ConditionsManager() != nil && subResult.Ctrl.RequeueAfter == 0 {
+				l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult.Ctrl, nil, inDeletion, log)
+			}
+		case subroutine.StopChain:
 			if l.ConditionsManager() != nil {
-				l.ConditionsManager().SetSubroutineCondition(&condArr, s, result, err, inDeletion, log)
+				l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult.Ctrl, nil, inDeletion, log)
+			}
+
+			log.Info().Str("subroutine", s.GetName()).Str("reason", subResult.Reason).Msg("stop chain requested")
+			stopChain = true
+		case subroutine.Skipped:
+			if l.ConditionsManager() != nil {
+				l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult.Ctrl, nil, inDeletion, log)
+			}
+		case subroutine.ErrorRetry:
+			if l.ConditionsManager() != nil {
+				l.ConditionsManager().
+					SetSubroutineCondition(&condArr, s, subResult.Ctrl, subResult.Error, inDeletion, log)
 				l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
 				util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
 			}
-			if !retry {
-				MarkResourceAsFinal(instance, log, condArr, v1.ConditionFalse, l)
-			}
+
 			if !l.Config().ReadOnly {
-				_ = updateStatus(ctx, cl, originalCopy, instance, log, generationChanged, sentryTags)
+				if updateErr := updateStatus(ctx, cl, originalCopy, instance, log, generationChanged, sentryTags); updateErr != nil {
+					log.Error().Err(updateErr).Msg("failed to update status during error retry")
+				}
 			}
-			if !retry {
-				return ctrl.Result{}, nil
+
+			return subResult.Ctrl, subResult.Error
+		case subroutine.ErrorContinue:
+			hasNonRetryableError = true
+			if l.ConditionsManager() != nil {
+				l.ConditionsManager().
+					SetSubroutineCondition(&condArr, s, subResult.Ctrl, subResult.Error, inDeletion, log)
 			}
-			return subResult, err
+
+			log.Warn().Str("subroutine", s.GetName()).Err(subResult.Error).Msg("non-retryable error, continuing")
+		case subroutine.ErrorStop:
+			hasNonRetryableError = true
+			if l.ConditionsManager() != nil {
+				l.ConditionsManager().
+					SetSubroutineCondition(&condArr, s, subResult.Ctrl, subResult.Error, inDeletion, log)
+				l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
+				util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
+			}
+
+			log.Warn().
+				Str("subroutine", s.GetName()).
+				Err(subResult.Error).
+				Str("reason", subResult.Reason).
+				Msg("non-retryable error, stopping chain")
+			stopChain = true
 		}
-		if subResult.RequeueAfter > 0 {
-			if subResult.RequeueAfter < result.RequeueAfter || result.RequeueAfter == 0 {
-				result.RequeueAfter = subResult.RequeueAfter
-			}
-		}
-		if l.ConditionsManager() != nil {
-			if subResult.RequeueAfter == 0 {
-				l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult, err, inDeletion, log)
-			}
+
+		if stopChain {
+			break
 		}
 	}
 
@@ -256,48 +231,65 @@ func Reconcile(
 func reconcileSubroutine(
 	ctx context.Context,
 	instance runtimeobject.RuntimeObject,
-	subroutine subroutine.Subroutine,
+	s subroutine.Subroutine,
 	cl client.Client,
 	l api.Lifecycle,
 	log *logger.Logger,
 	generationChanged bool,
 	sentryTags map[string]string,
-) (ctrl.Result, bool, error) {
-	subroutineLogger := log.ChildLogger("subroutine", subroutine.GetName())
+) subroutine.Result {
+	subroutineLogger := log.ChildLogger("subroutine", s.GetName())
 	ctx = logger.SetLoggerInContext(ctx, subroutineLogger)
 	subroutineLogger.Debug().Msg("start subroutine")
 
 	ctx, span := otel.Tracer(l.Config().OperatorName).
-		Start(ctx, fmt.Sprintf("%s.reconcileSubroutine.%s", l.Config().ControllerName, subroutine.GetName()))
+		Start(ctx, fmt.Sprintf("%s.reconcileSubroutine.%s", l.Config().ControllerName, s.GetName()))
 	defer span.End()
-	var result ctrl.Result
+
+	var ctrlResult ctrl.Result
 	var err errors.OperatorError
 	if instance.GetDeletionTimestamp() != nil {
-		if containsFinalizer(instance, subroutine.Finalizers(instance)) {
+		if containsFinalizer(instance, s.Finalizers(instance)) {
 			subroutineLogger.Debug().Msg("finalizing instance")
-			result, err = subroutine.Finalize(ctx, instance)
-			subroutineLogger.Debug().Any("result", result).Msg("finalized instance")
+			ctrlResult, err = s.Finalize(ctx, instance)
+			subroutineLogger.Debug().Any("result", ctrlResult).Msg("finalized instance")
 			if err == nil {
 				// Remove finalizers unless requeue is requested
-				err = removeFinalizerIfNeeded(ctx, instance, subroutine, result, l.Config().ReadOnly, cl)
+				if ferr := removeSubroutineFinalizerIfNeeded(
+					ctx,
+					instance,
+					s,
+					ctrlResult,
+					l.Config().ReadOnly,
+					cl,
+				); ferr != nil {
+					return subroutine.Retry(ferr)
+				}
 			}
+		} else {
+			return subroutine.Skip("no finalizer")
 		}
 	} else {
 		subroutineLogger.Debug().Msg("processing instance")
-		result, err = subroutine.Process(ctx, instance)
-		subroutineLogger.Debug().Any("result", result).Msg("processed instance")
+		ctrlResult, err = s.Process(ctx, instance)
+		subroutineLogger.Debug().Any("result", ctrlResult).Msg("processed instance")
 	}
 
-	if err != nil {
-		if generationChanged && err.Sentry() {
-			sentry.CaptureError(err.Err(), sentryTags)
-		}
-		subroutineLogger.Error().Err(err.Err()).Bool("retry", err.Retry()).Msg("subroutine ended with error")
-		return result, err.Retry(), err.Err()
+	result := subroutine.ResultFromSubroutine(ctrlResult, err)
+
+	if result.IsError() && result.Sentry && generationChanged {
+		sentry.CaptureError(result.Error, sentryTags)
+	}
+
+	if result.IsError() {
+		subroutineLogger.Error().
+			Err(result.Error).
+			Bool("retry", result.Outcome == subroutine.ErrorRetry).
+			Msg("subroutine ended with error")
 	}
 
 	subroutineLogger.Debug().Msg("end subroutine")
-	return result, false, nil
+	return result
 }
 
 func reconcileChainSubroutine(
@@ -360,14 +352,14 @@ func containsFinalizer(o client.Object, subroutineFinalizers []string) bool {
 	return false
 }
 
-func removeFinalizerIfNeeded(
+func removeSubroutineFinalizerIfNeeded(
 	ctx context.Context,
 	instance runtimeobject.RuntimeObject,
-	subroutine subroutine.Subroutine,
+	s subroutine.Subroutine,
 	result ctrl.Result,
 	readonly bool,
 	cl client.Client,
-) errors.OperatorError {
+) error {
 	if readonly {
 		return nil
 	}
@@ -375,7 +367,7 @@ func removeFinalizerIfNeeded(
 	if result.RequeueAfter == 0 {
 		update := false
 		original := instance.DeepCopyObject().(client.Object)
-		for _, f := range subroutine.Finalizers(instance) {
+		for _, f := range s.Finalizers(instance) {
 			needsUpdate := controllerutil.RemoveFinalizer(instance, f)
 			if needsUpdate {
 				update = true
@@ -384,7 +376,7 @@ func removeFinalizerIfNeeded(
 		if update {
 			err := cl.Patch(ctx, instance, client.MergeFrom(original))
 			if err != nil {
-				return errors.NewOperatorError(errors.Wrap(err, "failed to update instance"), true, false)
+				return fmt.Errorf("failed to update instance: %w", err)
 			}
 		}
 	}
@@ -512,7 +504,7 @@ func AddFinalizersIfNeeded(
 	ctx context.Context,
 	cl client.Client,
 	instance runtimeobject.RuntimeObject,
-	subroutines []subroutine.Subroutine,
+	subroutines []subroutine.BaseSubroutine,
 	readonly bool,
 ) error {
 	if readonly {
@@ -527,7 +519,7 @@ func AddFinalizersIfNeeded(
 	original := instance.DeepCopyObject().(client.Object)
 	for _, s := range subroutines {
 		if len(s.Finalizers(instance)) > 0 {
-			needsUpdate := AddFinalizerIfNeeded(instance, s)
+			needsUpdate := addFinalizerIfNeeded(instance, s)
 			if needsUpdate {
 				update = true
 			}
@@ -542,9 +534,9 @@ func AddFinalizersIfNeeded(
 	return nil
 }
 
-func AddFinalizerIfNeeded(instance runtimeobject.RuntimeObject, subroutine subroutine.Subroutine) bool {
+func addFinalizerIfNeeded(instance runtimeobject.RuntimeObject, s subroutine.BaseSubroutine) bool {
 	update := false
-	for _, f := range subroutine.Finalizers(instance) {
+	for _, f := range s.Finalizers(instance) {
 		needsUpdate := controllerutil.AddFinalizer(instance, f)
 		if needsUpdate {
 			update = true

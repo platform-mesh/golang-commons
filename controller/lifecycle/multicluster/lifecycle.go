@@ -35,14 +35,14 @@ type LifecycleManager struct {
 	log                *logger.Logger
 	mgr                ClusterGetter
 	config             api.Config
-	subroutines        []subroutine.Subroutine
+	subroutines        []subroutine.BaseSubroutine
 	spreader           *spread.Spreader
 	conditionsManager  *conditions.ConditionManager
 	prepareContextFunc api.PrepareContextFunc
 	rateLimiter        workqueue.TypedRateLimiter[mcreconcile.Request]
 }
 
-func NewLifecycleManager(subroutines []subroutine.Subroutine, operatorName string, controllerName string, mgr ClusterGetter, log *logger.Logger) *LifecycleManager {
+func NewLifecycleManager(subroutines []subroutine.BaseSubroutine, operatorName string, controllerName string, mgr ClusterGetter, log *logger.Logger) *LifecycleManager {
 	log = log.MustChildLoggerWithAttributes("operator", operatorName, "controller", controllerName)
 	return &LifecycleManager{
 		log:         log,
@@ -61,7 +61,7 @@ func (l *LifecycleManager) Config() api.Config {
 func (l *LifecycleManager) Log() *logger.Logger {
 	return l.log
 }
-func (l *LifecycleManager) Subroutines() []subroutine.Subroutine {
+func (l *LifecycleManager) Subroutines() []subroutine.BaseSubroutine {
 	return l.subroutines
 }
 func (l *LifecycleManager) PrepareContextFunc() api.PrepareContextFunc {
@@ -150,7 +150,7 @@ func (l *LifecycleManager) WithConditionManagement() api.Lifecycle {
 func (l *LifecycleManager) WithStaticThenExponentialRateLimiter(opts ...ratelimiter.Option) *LifecycleManager {
 	rateLimiter, err := ratelimiter.NewStaticThenExponentialRateLimiter[mcreconcile.Request](ratelimiter.NewConfig(opts...))
 	if err != nil {
-		log.Fatalf("rate limiter config error: %s",err)
+		log.Fatalf("rate limiter config error: %s", err)
 	}
 	l.rateLimiter = rateLimiter
 	return l

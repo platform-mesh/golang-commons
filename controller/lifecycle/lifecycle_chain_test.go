@@ -44,8 +44,8 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.OKChainSubroutine{}.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				pmtesting.OKChainSubroutine{},
 			},
 		}
 
@@ -68,8 +68,8 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.ChangeStatusChainSubroutine{Client: fakeClient}.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				pmtesting.ChangeStatusChainSubroutine{Client: fakeClient},
 			},
 		}
 
@@ -100,9 +100,9 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.StopChainSubroutine{Name: "StopFirst", Reason: "test stop"}.Adapted(),
-				tracker.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				pmtesting.StopChainSubroutine{Name: "StopFirst", Reason: "test stop"},
+				tracker,
 			},
 		}
 
@@ -124,12 +124,12 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
+			SubroutinesArr: []subroutine.BaseSubroutine{
 				pmtesting.StopChainSubroutine{
 					Name:         "StopWithRequeue",
 					Reason:       "waiting",
 					RequeueAfter: 30 * time.Second,
-				}.Adapted(),
+				},
 			},
 		}
 
@@ -156,9 +156,9 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.RetryChainSubroutine{Name: "RetryFirst", Err: retryErr, Sentry: true}.Adapted(),
-				tracker.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				pmtesting.RetryChainSubroutine{Name: "RetryFirst", Err: retryErr, Sentry: true},
+				tracker,
 			},
 		}
 
@@ -187,9 +187,9 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.FailChainSubroutine{Name: "FailFirst", Err: failErr, Sentry: true}.Adapted(),
-				tracker.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				pmtesting.FailChainSubroutine{Name: "FailFirst", Err: failErr, Sentry: true},
+				tracker,
 			},
 		}
 
@@ -217,9 +217,9 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
+			SubroutinesArr: []subroutine.BaseSubroutine{
 				pmtesting.ChangeStatusSubroutine{Client: fakeClient}, // standard subroutine
-				tracker.Adapted(), // chainsubroutine
+				tracker, // chainsubroutine
 			},
 		}
 
@@ -244,8 +244,8 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.FinalizerChainSubroutine{Client: fakeClient}.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				pmtesting.FinalizerChainSubroutine{Client: fakeClient},
 			},
 		}
 
@@ -270,8 +270,8 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.FinalizerChainSubroutine{Client: fakeClient, Err: finalizeErr}.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				pmtesting.FinalizerChainSubroutine{Client: fakeClient, Err: finalizeErr},
 			},
 		}
 
@@ -296,8 +296,8 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.FinalizerChainSubroutine{Client: fakeClient, RequeueAfter: 5 * time.Second}.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				pmtesting.FinalizerChainSubroutine{Client: fakeClient, RequeueAfter: 5 * time.Second},
 			},
 		}
 
@@ -326,8 +326,8 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
-				tracker.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				tracker,
 			},
 		}
 
@@ -353,8 +353,8 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.OKChainSubroutine{}.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				pmtesting.OKChainSubroutine{},
 			},
 		}
 		mgr.WithConditionManagement()
@@ -382,8 +382,8 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.StopChainSubroutine{Reason: "waiting for dependency"}.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				pmtesting.StopChainSubroutine{Reason: "waiting for dependency"},
 			},
 		}
 		mgr.WithConditionManagement()
@@ -414,8 +414,8 @@ func TestChainSubroutine(t *testing.T) {
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger:          log,
 			ShouldReconcile: true,
-			SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.FailChainSubroutine{Err: fmt.Errorf("non-retryable"), Sentry: false}.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				pmtesting.FailChainSubroutine{Err: fmt.Errorf("non-retryable"), Sentry: false},
 			},
 		}
 		mgr.WithSpreadingReconciles()
@@ -451,7 +451,7 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger:         log,
-			SubroutinesArr: []subroutine.Subroutine{sub1.Adapted(), sub2.Adapted()},
+			SubroutinesArr: []subroutine.BaseSubroutine{sub1, sub2},
 		}
 
 		result, err := Reconcile(ctx, request.NamespacedName, instance, fakeClient, mgr)
@@ -473,7 +473,7 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger:         log,
-			SubroutinesArr: []subroutine.Subroutine{pmtesting.FinalizerChainSubroutine{Client: fakeClient}.Adapted()},
+			SubroutinesArr: []subroutine.BaseSubroutine{pmtesting.FinalizerChainSubroutine{Client: fakeClient}},
 		}
 
 		_, err := Reconcile(ctx, request.NamespacedName, instance, fakeClient, mgr)
@@ -493,8 +493,8 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.RetryChainSubroutine{Err: fmt.Errorf("expected error"), Sentry: false}.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				pmtesting.RetryChainSubroutine{Err: fmt.Errorf("expected error"), Sentry: false},
 			},
 		}
 
@@ -518,8 +518,8 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.FailChainSubroutine{Err: fmt.Errorf("config error"), Reason: "bad config"}.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				pmtesting.FailChainSubroutine{Err: fmt.Errorf("config error"), Reason: "bad config"},
 			},
 		}
 		mgr.WithConditionManagement()
@@ -548,8 +548,8 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
-				tracker.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				tracker,
 				pmtesting.ChangeStatusSubroutine{Client: fakeClient},
 			},
 		}
@@ -579,8 +579,8 @@ func TestChainSubroutine(t *testing.T) {
 
 		mgr := &pmtesting.TestLifecycleManager{
 			Logger: log,
-			SubroutinesArr: []subroutine.Subroutine{
-				pmtesting.StopChainSubroutine{Reason: "stop"}.Adapted(),
+			SubroutinesArr: []subroutine.BaseSubroutine{
+				pmtesting.StopChainSubroutine{Reason: "stop"},
 				pmtesting.ChangeStatusSubroutine{Client: fakeClient}, // standard subroutine msut not be called
 			},
 		}
@@ -632,71 +632,5 @@ func TestReconcileChainSubroutine(t *testing.T) {
 
 		assert.Equal(t, subroutine.Skipped, result.Outcome)
 		assert.Equal(t, "no finalizer", result.Reason)
-	})
-}
-
-func TestChainAdapter(t *testing.T) {
-	t.Run("ChainAdapter Process delegates to V2", func(t *testing.T) {
-		tracker := &pmtesting.TrackingChainSubroutine{
-			Name:         "Tracker",
-			ReturnResult: subroutine.OK(),
-		}
-		adapter := subroutine.NewChainAdapter(tracker)
-
-		result, err := adapter.Process(context.Background(), &pmtesting.TestApiObject{})
-
-		assert.Nil(t, err)
-		assert.Equal(t, ctrl.Result{}, result)
-		assert.True(t, tracker.ProcessCalled)
-	})
-
-	t.Run("ChainAdapter Finalize delegates to V2", func(t *testing.T) {
-		tracker := &pmtesting.TrackingChainSubroutine{
-			Name:         "Tracker",
-			ReturnResult: subroutine.OK(),
-		}
-		adapter := subroutine.NewChainAdapter(tracker)
-
-		result, err := adapter.Finalize(context.Background(), &pmtesting.TestApiObject{})
-
-		assert.Nil(t, err)
-		assert.Equal(t, ctrl.Result{}, result)
-		assert.True(t, tracker.FinalizeCalled)
-	})
-
-	t.Run("ChainAdapter converts error results correctly", func(t *testing.T) {
-		testErr := fmt.Errorf("test error")
-		sub := pmtesting.RetryChainSubroutine{Err: testErr, Sentry: true}
-		adapter := subroutine.NewChainAdapter(sub)
-
-		result, err := adapter.Process(context.Background(), &pmtesting.TestApiObject{})
-
-		assert.NotNil(t, err)
-		assert.Equal(t, testErr, err.Err())
-		assert.True(t, err.Retry())
-		assert.True(t, err.Sentry())
-		assert.Equal(t, ctrl.Result{}, result)
-	})
-
-	t.Run("ChainAdapter GetName delegates to V2", func(t *testing.T) {
-		sub := pmtesting.OKChainSubroutine{Name: "TestName"}
-		adapter := subroutine.NewChainAdapter(sub)
-		assert.Equal(t, "TestName", adapter.GetName())
-	})
-
-	t.Run("ChainAdapter Finalizers delegates to V2", func(t *testing.T) {
-		sub := pmtesting.FinalizerChainSubroutine{}
-		adapter := subroutine.NewChainAdapter(sub)
-
-		assert.Equal(t, []string{pmtesting.ChainSubroutineFinalizer}, adapter.Finalizers(&pmtesting.TestApiObject{}))
-	})
-
-	t.Run("ChainAdapter Unwrap returns underlying V2", func(t *testing.T) {
-		sub := pmtesting.OKChainSubroutine{Name: "TestName"}
-		adapter := subroutine.NewChainAdapter(sub)
-
-		unwrapped := adapter.Unwrap()
-
-		assert.Equal(t, sub, unwrapped)
 	})
 }

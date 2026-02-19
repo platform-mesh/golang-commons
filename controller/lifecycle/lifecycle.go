@@ -276,6 +276,8 @@ func removeTerminator(ctx context.Context, instance runtimeobject.RuntimeObject,
 		return nil
 	}
 
+	original := instance.DeepCopyObject().(client.Object)
+
 	currentUn, err := runtime.DefaultUnstructuredConverter.ToUnstructured(instance)
 	if err != nil {
 		return fmt.Errorf("failed to convert instance to unstructured: %w", err)
@@ -297,7 +299,6 @@ func removeTerminator(ctx context.Context, instance runtimeobject.RuntimeObject,
 		return fmt.Errorf("failed to set terminators: %w", err)
 	}
 
-	original := instance.DeepCopyObject().(client.Object)
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(currentUn, instance); err != nil {
 		return fmt.Errorf("failed to convert unstructured to instance: %w", err)
 	}
@@ -313,6 +314,8 @@ func removeInitializer(ctx context.Context, instance runtimeobject.RuntimeObject
 	if initializer == "" {
 		return nil
 	}
+
+	original := instance.DeepCopyObject().(client.Object)
 
 	currentUn, err := runtime.DefaultUnstructuredConverter.ToUnstructured(instance)
 	if err != nil {
@@ -335,7 +338,6 @@ func removeInitializer(ctx context.Context, instance runtimeobject.RuntimeObject
 		return fmt.Errorf("failed to set initializers: %w", err)
 	}
 
-	original := instance.DeepCopyObject().(client.Object)
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(currentUn, instance); err != nil {
 		return fmt.Errorf("failed to convert unstructured to instance: %w", err)
 	}

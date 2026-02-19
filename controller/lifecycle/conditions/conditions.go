@@ -64,7 +64,7 @@ func (c *ConditionManager) SetInstanceConditionUnknownIfNotSet(conditions *[]met
 	return false
 }
 
-func (c *ConditionManager) SetSubroutineConditionToUnknownIfNotSet(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, isFinalize bool, log *logger.Logger) bool {
+func (c *ConditionManager) SetSubroutineConditionToUnknownIfNotSet(conditions *[]metav1.Condition, subroutine subroutine.BaseSubroutine, isFinalize bool, log *logger.Logger) bool {
 	conditionName, conditionMessage := getConditionNameAndMessage(subroutine, isFinalize)
 
 	existingCondition := meta.FindStatusCondition(*conditions, conditionName)
@@ -79,7 +79,7 @@ func (c *ConditionManager) SetSubroutineConditionToUnknownIfNotSet(conditions *[
 	return false
 }
 
-func getConditionNameAndMessage(subroutine subroutine.Subroutine, isFinalize bool) (string, string) {
+func getConditionNameAndMessage(subroutine subroutine.BaseSubroutine, isFinalize bool) (string, string) {
 	conditionName := fmt.Sprintf(subroutineReadyConditionFormatString, subroutine.GetName())
 	conditionMessage := "subroutine"
 	if isFinalize {
@@ -90,7 +90,7 @@ func getConditionNameAndMessage(subroutine subroutine.Subroutine, isFinalize boo
 }
 
 // Set Subroutines Conditions
-func (c *ConditionManager) SetSubroutineCondition(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, subroutineResult ctrl.Result, subroutineErr error, isFinalize bool, log *logger.Logger) bool {
+func (c *ConditionManager) SetSubroutineCondition(conditions *[]metav1.Condition, subroutine subroutine.BaseSubroutine, subroutineResult ctrl.Result, subroutineErr error, isFinalize bool, log *logger.Logger) bool {
 	conditionName, conditionMessage := getConditionNameAndMessage(subroutine, isFinalize)
 
 	// processing complete

@@ -26,14 +26,21 @@ import (
 	"github.com/platform-mesh/golang-commons/sentry"
 )
 
-func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtimeobject.RuntimeObject, cl client.Client, l api.Lifecycle) (ctrl.Result, error) {
+func Reconcile(
+	ctx context.Context,
+	nName types.NamespacedName,
+	instance runtimeobject.RuntimeObject,
+	cl client.Client,
+	l api.Lifecycle,
+) (ctrl.Result, error) {
 	ctx, span := otel.Tracer(l.Config().OperatorName).Start(ctx, fmt.Sprintf("%s.Reconcile", l.Config().ControllerName))
 	defer span.End()
 
 	result := ctrl.Result{}
 	reconcileId := uuid.New().String()
 
-	log := l.Log().MustChildLoggerWithAttributes("name", nName.Name, "namespace", nName.Namespace, "reconcile_id", reconcileId)
+	log := l.Log().
+		MustChildLoggerWithAttributes("name", nName.Name, "namespace", nName.Namespace, "reconcile_id", reconcileId)
 	sentryTags := sentry.Tags{"namespace": nName.Namespace, "name": nName.Name}
 
 	ctx = logger.SetLoggerInContext(ctx, log)
@@ -83,13 +90,14 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 	}
 
 	// In case of deletion execute the finalize subroutines in the reverse order as subroutine processing
-	subroutines := make([]subroutine.Subroutine, len(l.Subroutines()))
+	subroutines := make([]subroutine.BaseSubroutine, len(l.Subroutines()))
 	copy(subroutines, l.Subroutines())
 	if inDeletion {
 		slices.Reverse(subroutines)
 	}
 
 	// Continue with reconciliation
+	var hasNonRetryableError, stopChain bool
 	for _, s := range subroutines {
 		if l.ConditionsManager() != nil {
 			l.ConditionsManager().SetSubroutineConditionToUnknownIfNotSet(&condArr, s, inDeletion, log)
@@ -99,43 +107,95 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 		if l.ConditionsManager() != nil {
 			util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
 		}
-		subResult, retry, err := reconcileSubroutine(ctx, instance, s, cl, l, log, generationChanged, sentryTags)
-		// Update condArr with any changes the s did
+
+		var subResult subroutine.Result
+		switch sub := s.(type) {
+		case subroutine.ChainSubroutine:
+			subResult = reconcileChainSubroutine(ctx, instance, sub, cl, l, log, generationChanged, sentryTags)
+		case subroutine.Subroutine:
+			subResult = reconcileSubroutine(ctx, instance, sub, cl, l, log, generationChanged, sentryTags)
+		default:
+			log.Error().Str("subroutine", s.GetName()).Msg("unknown subroutine type")
+			continue
+		}
+
 		if l.ConditionsManager() != nil {
 			condArr = util.MustToInterface[api.RuntimeObjectConditions](instance, log).GetConditions()
 		}
-		if err != nil {
+
+		if subResult.Ctrl.RequeueAfter > 0 {
+			if subResult.Ctrl.RequeueAfter < result.RequeueAfter || result.RequeueAfter == 0 {
+				result.RequeueAfter = subResult.Ctrl.RequeueAfter
+			}
+		}
+
+		switch subResult.Outcome {
+		case subroutine.Continue:
+			if l.ConditionsManager() != nil && subResult.Ctrl.RequeueAfter == 0 {
+				l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult.Ctrl, nil, inDeletion, log)
+			}
+		case subroutine.StopChain:
 			if l.ConditionsManager() != nil {
-				l.ConditionsManager().SetSubroutineCondition(&condArr, s, result, err, inDeletion, log)
+				l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult.Ctrl, nil, inDeletion, log)
+			}
+
+			log.Info().Str("subroutine", s.GetName()).Str("reason", subResult.Reason).Msg("stop chain requested")
+			stopChain = true
+		case subroutine.Skipped:
+			if l.ConditionsManager() != nil {
+				l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult.Ctrl, nil, inDeletion, log)
+			}
+		case subroutine.ErrorRetry:
+			if l.ConditionsManager() != nil {
+				l.ConditionsManager().
+					SetSubroutineCondition(&condArr, s, subResult.Ctrl, subResult.Error, inDeletion, log)
 				l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
 				util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
 			}
-			if !retry {
-				MarkResourceAsFinal(instance, log, condArr, v1.ConditionFalse, l)
-			}
+
 			if !l.Config().ReadOnly {
-				_ = updateStatus(ctx, cl, originalCopy, instance, log, generationChanged, sentryTags)
+				if updateErr := updateStatus(ctx, cl, originalCopy, instance, log, generationChanged, sentryTags); updateErr != nil {
+					log.Error().Err(updateErr).Msg("failed to update status during error retry")
+				}
 			}
-			if !retry {
-				return ctrl.Result{}, nil
+
+			return subResult.Ctrl, subResult.Error
+		case subroutine.ErrorContinue:
+			hasNonRetryableError = true
+			if l.ConditionsManager() != nil {
+				l.ConditionsManager().
+					SetSubroutineCondition(&condArr, s, subResult.Ctrl, subResult.Error, inDeletion, log)
 			}
-			return subResult, err
+
+			log.Warn().Str("subroutine", s.GetName()).Err(subResult.Error).Msg("non-retryable error, continuing")
+		case subroutine.ErrorStop:
+			hasNonRetryableError = true
+			if l.ConditionsManager() != nil {
+				l.ConditionsManager().
+					SetSubroutineCondition(&condArr, s, subResult.Ctrl, subResult.Error, inDeletion, log)
+				l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
+				util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
+			}
+
+			log.Warn().
+				Str("subroutine", s.GetName()).
+				Err(subResult.Error).
+				Str("reason", subResult.Reason).
+				Msg("non-retryable error, stopping chain")
+			stopChain = true
 		}
-		if subResult.RequeueAfter > 0 {
-			if subResult.RequeueAfter < result.RequeueAfter || result.RequeueAfter == 0 {
-				result.RequeueAfter = subResult.RequeueAfter
-			}
-		}
-		if l.ConditionsManager() != nil {
-			if subResult.RequeueAfter == 0 {
-				l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult, err, inDeletion, log)
-			}
+
+		if stopChain {
+			break
 		}
 	}
 
 	if result.RequeueAfter == 0 {
-		// Reconciliation was successful
-		MarkResourceAsFinal(instance, log, condArr, v1.ConditionTrue, l)
+		if hasNonRetryableError {
+			MarkResourceAsFinal(instance, log, condArr, v1.ConditionFalse, l)
+		} else {
+			MarkResourceAsFinal(instance, log, condArr, v1.ConditionTrue, l)
+		}
 	} else {
 		if l.ConditionsManager() != nil {
 			l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
@@ -168,41 +228,119 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 	return result, nil
 }
 
-func reconcileSubroutine(ctx context.Context, instance runtimeobject.RuntimeObject, subroutine subroutine.Subroutine, cl client.Client, l api.Lifecycle, log *logger.Logger, generationChanged bool, sentryTags map[string]string) (ctrl.Result, bool, error) {
-	subroutineLogger := log.ChildLogger("subroutine", subroutine.GetName())
+func reconcileSubroutine(
+	ctx context.Context,
+	instance runtimeobject.RuntimeObject,
+	s subroutine.Subroutine,
+	cl client.Client,
+	l api.Lifecycle,
+	log *logger.Logger,
+	generationChanged bool,
+	sentryTags map[string]string,
+) subroutine.Result {
+	subroutineLogger := log.ChildLogger("subroutine", s.GetName())
 	ctx = logger.SetLoggerInContext(ctx, subroutineLogger)
 	subroutineLogger.Debug().Msg("start subroutine")
 
-	ctx, span := otel.Tracer(l.Config().OperatorName).Start(ctx, fmt.Sprintf("%s.reconcileSubroutine.%s", l.Config().ControllerName, subroutine.GetName()))
+	ctx, span := otel.Tracer(l.Config().OperatorName).
+		Start(ctx, fmt.Sprintf("%s.reconcileSubroutine.%s", l.Config().ControllerName, s.GetName()))
 	defer span.End()
-	var result ctrl.Result
+
+	var ctrlResult ctrl.Result
 	var err errors.OperatorError
 	if instance.GetDeletionTimestamp() != nil {
-		if containsFinalizer(instance, subroutine.Finalizers(instance)) {
+		if containsFinalizer(instance, s.Finalizers(instance)) {
 			subroutineLogger.Debug().Msg("finalizing instance")
-			result, err = subroutine.Finalize(ctx, instance)
-			subroutineLogger.Debug().Any("result", result).Msg("finalized instance")
+			ctrlResult, err = s.Finalize(ctx, instance)
+			subroutineLogger.Debug().Any("result", ctrlResult).Msg("finalized instance")
 			if err == nil {
 				// Remove finalizers unless requeue is requested
-				err = removeFinalizerIfNeeded(ctx, instance, subroutine, result, l.Config().ReadOnly, cl)
+				if ferr := removeSubroutineFinalizerIfNeeded(
+					ctx,
+					instance,
+					s,
+					ctrlResult,
+					l.Config().ReadOnly,
+					cl,
+				); ferr != nil {
+					return subroutine.Retry(ferr)
+				}
 			}
+		} else {
+			return subroutine.Skip("no finalizer")
 		}
 	} else {
 		subroutineLogger.Debug().Msg("processing instance")
-		result, err = subroutine.Process(ctx, instance)
-		subroutineLogger.Debug().Any("result", result).Msg("processed instance")
+		ctrlResult, err = s.Process(ctx, instance)
+		subroutineLogger.Debug().Any("result", ctrlResult).Msg("processed instance")
 	}
 
-	if err != nil {
-		if generationChanged && err.Sentry() {
-			sentry.CaptureError(err.Err(), sentryTags)
-		}
-		subroutineLogger.Error().Err(err.Err()).Bool("retry", err.Retry()).Msg("subroutine ended with error")
-		return result, err.Retry(), err.Err()
+	result := subroutine.ResultFromSubroutine(ctrlResult, err)
+
+	if result.IsError() && result.Sentry && generationChanged {
+		sentry.CaptureError(result.Error, sentryTags)
+	}
+
+	if result.IsError() {
+		subroutineLogger.Error().
+			Err(result.Error).
+			Bool("retry", result.Outcome == subroutine.ErrorRetry).
+			Msg("subroutine ended with error")
 	}
 
 	subroutineLogger.Debug().Msg("end subroutine")
-	return result, false, nil
+	return result
+}
+
+func reconcileChainSubroutine(
+	ctx context.Context,
+	instance runtimeobject.RuntimeObject,
+	s subroutine.ChainSubroutine,
+	cl client.Client,
+	l api.Lifecycle,
+	log *logger.Logger,
+	generationChanged bool,
+	sentryTags map[string]string,
+) subroutine.Result {
+	subroutineLogger := log.ChildLogger("subroutine", s.GetName())
+	ctx = logger.SetLoggerInContext(ctx, subroutineLogger)
+
+	ctx, span := otel.Tracer(l.Config().OperatorName).
+		Start(ctx, fmt.Sprintf("%s.reconcileSubroutine.%s", l.Config().ControllerName, s.GetName()))
+	defer span.End()
+
+	var result subroutine.Result
+	if instance.GetDeletionTimestamp() != nil {
+		if containsFinalizer(instance, s.Finalizers(instance)) {
+			result = s.Finalize(ctx, instance)
+			if !result.IsError() {
+				if ferr := removeChainSubroutineFinalizerIfNeeded(
+					ctx,
+					instance,
+					s,
+					result.Ctrl,
+					l.Config().ReadOnly,
+					cl,
+				); ferr != nil {
+					return subroutine.Retry(ferr)
+				}
+			}
+		} else {
+			return subroutine.Skip("no finalizer")
+		}
+	} else {
+		result = s.Process(ctx, instance)
+	}
+
+	if result.IsError() && result.Sentry && generationChanged {
+		sentry.CaptureError(result.Error, sentryTags)
+	}
+
+	if result.IsError() {
+		subroutineLogger.Error().Err(result.Error).Msg("subroutine error")
+	}
+
+	return result
 }
 
 func containsFinalizer(o client.Object, subroutineFinalizers []string) bool {
@@ -214,7 +352,14 @@ func containsFinalizer(o client.Object, subroutineFinalizers []string) bool {
 	return false
 }
 
-func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.RuntimeObject, subroutine subroutine.Subroutine, result ctrl.Result, readonly bool, cl client.Client) errors.OperatorError {
+func removeSubroutineFinalizerIfNeeded(
+	ctx context.Context,
+	instance runtimeobject.RuntimeObject,
+	s subroutine.Subroutine,
+	result ctrl.Result,
+	readonly bool,
+	cl client.Client,
+) error {
 	if readonly {
 		return nil
 	}
@@ -222,7 +367,7 @@ func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.Runtime
 	if result.RequeueAfter == 0 {
 		update := false
 		original := instance.DeepCopyObject().(client.Object)
-		for _, f := range subroutine.Finalizers(instance) {
+		for _, f := range s.Finalizers(instance) {
 			needsUpdate := controllerutil.RemoveFinalizer(instance, f)
 			if needsUpdate {
 				update = true
@@ -231,7 +376,7 @@ func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.Runtime
 		if update {
 			err := cl.Patch(ctx, instance, client.MergeFrom(original))
 			if err != nil {
-				return errors.NewOperatorError(errors.Wrap(err, "failed to update instance"), true, false)
+				return fmt.Errorf("failed to update instance: %w", err)
 			}
 		}
 	}
@@ -239,7 +384,47 @@ func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.Runtime
 	return nil
 }
 
-func updateStatus(ctx context.Context, cl client.Client, original runtime.Object, current runtimeobject.RuntimeObject, log *logger.Logger, generationChanged bool, sentryTags sentry.Tags) error {
+func removeChainSubroutineFinalizerIfNeeded(
+	ctx context.Context,
+	instance runtimeobject.RuntimeObject,
+	s subroutine.ChainSubroutine,
+	result ctrl.Result,
+	readonly bool,
+	cl client.Client,
+) error {
+	if readonly {
+		return nil
+	}
+
+	if result.RequeueAfter == 0 {
+		update := false
+		original := instance.DeepCopyObject().(client.Object)
+		for _, f := range s.Finalizers(instance) {
+			needsUpdate := controllerutil.RemoveFinalizer(instance, f)
+			if needsUpdate {
+				update = true
+			}
+		}
+		if update {
+			err := cl.Patch(ctx, instance, client.MergeFrom(original))
+			if err != nil {
+				return fmt.Errorf("failed to update instance: %w", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func updateStatus(
+	ctx context.Context,
+	cl client.Client,
+	original runtime.Object,
+	current runtimeobject.RuntimeObject,
+	log *logger.Logger,
+	generationChanged bool,
+	sentryTags sentry.Tags,
+) error {
 	currentUn, err := runtime.DefaultUnstructuredConverter.ToUnstructured(current)
 	if err != nil {
 		return err
@@ -282,7 +467,13 @@ func updateStatus(ctx context.Context, cl client.Client, original runtime.Object
 	return nil
 }
 
-func HandleClientError(msg string, log *logger.Logger, err error, generationChanged bool, sentryTags sentry.Tags) (ctrl.Result, error) {
+func HandleClientError(
+	msg string,
+	log *logger.Logger,
+	err error,
+	generationChanged bool,
+	sentryTags sentry.Tags,
+) (ctrl.Result, error) {
 	log.Error().Err(err).Msg(msg)
 	if generationChanged {
 		sentry.CaptureError(err, sentryTags)
@@ -291,7 +482,13 @@ func HandleClientError(msg string, log *logger.Logger, err error, generationChan
 	return ctrl.Result{}, err
 }
 
-func MarkResourceAsFinal(instance runtimeobject.RuntimeObject, log *logger.Logger, conditions []v1.Condition, status v1.ConditionStatus, l api.Lifecycle) {
+func MarkResourceAsFinal(
+	instance runtimeobject.RuntimeObject,
+	log *logger.Logger,
+	conditions []v1.Condition,
+	status v1.ConditionStatus,
+	l api.Lifecycle,
+) {
 	if l.Spreader() != nil && instance.GetDeletionTimestamp().IsZero() {
 		instanceStatusObj := util.MustToInterface[api.RuntimeObjectSpreadReconcileStatus](instance, log)
 		l.Spreader().SetNextReconcileTime(instanceStatusObj, log)
@@ -303,7 +500,13 @@ func MarkResourceAsFinal(instance runtimeobject.RuntimeObject, log *logger.Logge
 	}
 }
 
-func AddFinalizersIfNeeded(ctx context.Context, cl client.Client, instance runtimeobject.RuntimeObject, subroutines []subroutine.Subroutine, readonly bool) error {
+func AddFinalizersIfNeeded(
+	ctx context.Context,
+	cl client.Client,
+	instance runtimeobject.RuntimeObject,
+	subroutines []subroutine.BaseSubroutine,
+	readonly bool,
+) error {
 	if readonly {
 		return nil
 	}
@@ -316,7 +519,7 @@ func AddFinalizersIfNeeded(ctx context.Context, cl client.Client, instance runti
 	original := instance.DeepCopyObject().(client.Object)
 	for _, s := range subroutines {
 		if len(s.Finalizers(instance)) > 0 {
-			needsUpdate := AddFinalizerIfNeeded(instance, s)
+			needsUpdate := addFinalizerIfNeeded(instance, s)
 			if needsUpdate {
 				update = true
 			}
@@ -331,9 +534,9 @@ func AddFinalizersIfNeeded(ctx context.Context, cl client.Client, instance runti
 	return nil
 }
 
-func AddFinalizerIfNeeded(instance runtimeobject.RuntimeObject, subroutine subroutine.Subroutine) bool {
+func addFinalizerIfNeeded(instance runtimeobject.RuntimeObject, s subroutine.BaseSubroutine) bool {
 	update := false
-	for _, f := range subroutine.Finalizers(instance) {
+	for _, f := range s.Finalizers(instance) {
 		needsUpdate := controllerutil.AddFinalizer(instance, f)
 		if needsUpdate {
 			update = true
@@ -342,8 +545,18 @@ func AddFinalizerIfNeeded(instance runtimeobject.RuntimeObject, subroutine subro
 	return update
 }
 
-func HandleOperatorError(ctx context.Context, operatorError errors.OperatorError, msg string, generationChanged bool, log *logger.Logger) (ctrl.Result, error) {
-	log.Error().Bool("retry", operatorError.Retry()).Bool("sentry", operatorError.Sentry()).Err(operatorError.Err()).Msg(msg)
+func HandleOperatorError(
+	ctx context.Context,
+	operatorError errors.OperatorError,
+	msg string,
+	generationChanged bool,
+	log *logger.Logger,
+) (ctrl.Result, error) {
+	log.Error().
+		Bool("retry", operatorError.Retry()).
+		Bool("sentry", operatorError.Sentry()).
+		Err(operatorError.Err()).
+		Msg(msg)
 	if generationChanged && operatorError.Sentry() {
 		sentry.CaptureError(operatorError.Err(), sentry.GetSentryTagsFromContext(ctx))
 	}

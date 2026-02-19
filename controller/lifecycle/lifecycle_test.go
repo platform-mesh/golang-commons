@@ -73,7 +73,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.FinalizerSubroutine{
 				Client: fakeClient,
 			}},
@@ -100,7 +100,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.FinalizerSubroutine{
 				Client: fakeClient,
 			},
@@ -127,7 +127,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.FinalizerSubroutine{
 				Client:       fakeClient,
 				RequeueAfter: 1 * time.Second,
@@ -156,7 +156,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.FinalizerSubroutine{
 				Client:       fakeClient,
 				RequeueAfter: 2 * time.Second,
@@ -186,7 +186,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.FinalizerSubroutine{
 				Client: fakeClient,
 			},
@@ -213,7 +213,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.FinalizerSubroutine{
 				Client: fakeClient,
 				Err:    fmt.Errorf("some error"),
@@ -237,7 +237,7 @@ func TestLifecycle(t *testing.T) {
 		}
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{}}
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.BaseSubroutine{}}
 
 		// Act
 		result, err := Reconcile(ctx, request.NamespacedName, instance, fakeClient, mgr)
@@ -258,7 +258,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.ChangeStatusSubroutine{
 				Client: fakeClient,
 			},
@@ -295,7 +295,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.ChangeStatusSubroutine{
 				Client: fakeClient,
 			},
@@ -329,7 +329,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.ChangeStatusSubroutine{
 				Client: fakeClient,
 			},
@@ -361,7 +361,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.FailureScenarioSubroutine{RequeAfter: false},
 		}}
 		mgr.WithSpreadingReconciles()
@@ -391,7 +391,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.FailureScenarioSubroutine{Retry: false, RequeAfter: false},
 		}}
 		mgr.WithSpreadingReconciles()
@@ -420,7 +420,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.FailureScenarioSubroutine{Retry: true, RequeAfter: false},
 		}}
 		mgr.WithSpreadingReconciles()
@@ -448,7 +448,7 @@ func TestLifecycle(t *testing.T) {
 		}
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.FailureScenarioSubroutine{RequeAfter: true},
 		}}
 		mgr.WithSpreadingReconciles()
@@ -476,7 +476,7 @@ func TestLifecycle(t *testing.T) {
 		}
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.FailureScenarioSubroutine{RequeAfter: true},
 		}}
 		mgr.WithSpreadingReconciles()
@@ -503,7 +503,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.ChangeStatusSubroutine{
 				Client: fakeClient,
 			},
@@ -534,7 +534,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.ChangeStatusSubroutine{
 				Client: fakeClient,
 			},
@@ -581,7 +581,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{}}
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{}}
 		mgr.WithConditionManagement()
 
 		// Act
@@ -608,7 +608,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.ChangeStatusSubroutine{
 				Client: fakeClient,
 			},
@@ -642,7 +642,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.ChangeStatusSubroutine{
 				Client: fakeClient,
 			},
@@ -678,7 +678,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.FailureScenarioSubroutine{},
 			pmtesting.ChangeStatusSubroutine{Client: fakeClient}}}
 		mgr.WithConditionManagement()
@@ -704,7 +704,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.FailureScenarioSubroutine{RequeAfter: false},
 		}}
 		mgr.WithConditionManagement()
@@ -730,7 +730,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.FailureScenarioSubroutine{Retry: true, RequeAfter: false},
 		}}
 		mgr.WithConditionManagement()
@@ -759,7 +759,7 @@ func TestLifecycle(t *testing.T) {
 
 		fakeClient := pmtesting.CreateFakeClient(t, instance)
 
-		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+		mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 			pmtesting.FailureScenarioSubroutine{RequeAfter: false},
 		}}
 		mgr.WithSpreadingReconciles()
@@ -794,7 +794,7 @@ func TestLifecycle(t *testing.T) {
 
 			fakeClient := pmtesting.CreateFakeClient(t, testApiObject)
 
-			mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+			mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 				pmtesting.ContextValueSubroutine{},
 			}}
 
@@ -819,7 +819,7 @@ func TestLifecycle(t *testing.T) {
 
 			fakeClient := pmtesting.CreateFakeClient(t, testApiObject)
 
-			mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.Subroutine{
+			mgr := &pmtesting.TestLifecycleManager{Logger: log, ShouldReconcile: true, SubroutinesArr: []subroutine.BaseSubroutine{
 				pmtesting.ContextValueSubroutine{},
 			}}
 
@@ -913,20 +913,20 @@ func TestAddFinalizersIfNeeded(t *testing.T) {
 	fakeClient := pmtesting.CreateFakeClient(t, instance)
 	sub := pmtesting.FinalizerSubroutine{Client: fakeClient}
 	// Should add finalizer
-	err := AddFinalizersIfNeeded(context.Background(), fakeClient, instance, []subroutine.Subroutine{sub}, false)
+	err := AddFinalizersIfNeeded(context.Background(), fakeClient, instance, []subroutine.BaseSubroutine{sub}, false)
 	assert.NoError(t, err)
 	assert.Contains(t, instance.Finalizers, pmtesting.SubroutineFinalizer)
 
 	// Should not add if readonly
 	instance2 := &pmtesting.TestApiObject{}
-	err = AddFinalizersIfNeeded(context.Background(), fakeClient, instance2, []subroutine.Subroutine{sub}, true)
+	err = AddFinalizersIfNeeded(context.Background(), fakeClient, instance2, []subroutine.BaseSubroutine{sub}, true)
 	assert.NoError(t, err)
 	assert.NotContains(t, instance2.Finalizers, pmtesting.SubroutineFinalizer)
 
 	// Should not add if deletion timestamp is set
 	now := metav1.Now()
 	instance3 := &pmtesting.TestApiObject{ObjectMeta: metav1.ObjectMeta{DeletionTimestamp: &now}}
-	err = AddFinalizersIfNeeded(context.Background(), fakeClient, instance3, []subroutine.Subroutine{sub}, false)
+	err = AddFinalizersIfNeeded(context.Background(), fakeClient, instance3, []subroutine.BaseSubroutine{sub}, false)
 	assert.NoError(t, err)
 }
 
@@ -934,33 +934,33 @@ func TestAddFinalizerIfNeeded(t *testing.T) {
 	instance := &pmtesting.TestApiObject{}
 	sub := pmtesting.FinalizerSubroutine{}
 	// Should add and return true
-	added := AddFinalizerIfNeeded(instance, sub)
+	added := addFinalizerIfNeeded(instance, sub)
 	assert.True(t, added)
 	// Should not add again
-	added = AddFinalizerIfNeeded(instance, sub)
+	added = addFinalizerIfNeeded(instance, sub)
 	assert.False(t, added)
 }
 
 func TestRemoveFinalizerIfNeeded(t *testing.T) {
 	instance := &pmtesting.TestApiObject{ObjectMeta: metav1.ObjectMeta{Name: "instance1"}}
 	sub := pmtesting.FinalizerSubroutine{}
-	AddFinalizerIfNeeded(instance, sub)
+	addFinalizerIfNeeded(instance, sub)
 	fakeClient := pmtesting.CreateFakeClient(t, instance)
 	// Should remove finalizer if not readonly and RequeueAfter == 0
 	res := ctrl.Result{}
-	err := removeFinalizerIfNeeded(context.Background(), instance, sub, res, false, fakeClient)
+	err := removeSubroutineFinalizerIfNeeded(context.Background(), instance, sub, res, false, fakeClient)
 	assert.Nil(t, err)
 	assert.NotContains(t, instance.Finalizers, pmtesting.SubroutineFinalizer)
 
 	// Should not remove if readonly
-	AddFinalizerIfNeeded(instance, sub)
-	err = removeFinalizerIfNeeded(context.Background(), instance, sub, res, true, fakeClient)
+	addFinalizerIfNeeded(instance, sub)
+	err = removeSubroutineFinalizerIfNeeded(context.Background(), instance, sub, res, true, fakeClient)
 	assert.Nil(t, err)
 	assert.Contains(t, instance.Finalizers, pmtesting.SubroutineFinalizer)
 
 	// Should not remove if RequeueAfter > 0
 	res = ctrl.Result{RequeueAfter: 1}
-	err = removeFinalizerIfNeeded(context.Background(), instance, sub, res, false, fakeClient)
+	err = removeSubroutineFinalizerIfNeeded(context.Background(), instance, sub, res, false, fakeClient)
 	assert.Nil(t, err)
 }
 
@@ -968,7 +968,7 @@ func TestContainsFinalizer(t *testing.T) {
 	instance := &pmtesting.TestApiObject{}
 	sub := pmtesting.FinalizerSubroutine{}
 	assert.False(t, containsFinalizer(instance, sub.Finalizers(instance)))
-	AddFinalizerIfNeeded(instance, sub)
+	addFinalizerIfNeeded(instance, sub)
 	assert.True(t, containsFinalizer(instance, sub.Finalizers(instance)))
 }
 

@@ -18,11 +18,11 @@ type Builder struct {
 	withSpreadingReconciles bool
 	withReadOnly            bool
 	rateLimiterOptions      *[]ratelimiter.Option
-	subroutines             []subroutine.Subroutine
+	subroutines             []subroutine.BaseSubroutine
 	log                     *logger.Logger
 }
 
-func NewBuilder(operatorName, controllerName string, subroutines []subroutine.Subroutine, log *logger.Logger) *Builder {
+func NewBuilder(operatorName, controllerName string, subroutines []subroutine.BaseSubroutine, log *logger.Logger) *Builder {
 	return &Builder{
 		operatorName:            operatorName,
 		controllerName:          controllerName,

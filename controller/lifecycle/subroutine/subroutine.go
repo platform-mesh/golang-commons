@@ -9,9 +9,13 @@ import (
 	"github.com/platform-mesh/golang-commons/errors"
 )
 
-type Subroutine interface {
-	Process(ctx context.Context, instance runtimeobject.RuntimeObject) (ctrl.Result, errors.OperatorError)
-	Finalize(ctx context.Context, instance runtimeobject.RuntimeObject) (ctrl.Result, errors.OperatorError)
+type BaseSubroutine interface {
 	GetName() string
 	Finalizers(instance runtimeobject.RuntimeObject) []string
+}
+
+type Subroutine interface {
+	BaseSubroutine
+	Process(ctx context.Context, instance runtimeobject.RuntimeObject) (ctrl.Result, errors.OperatorError)
+	Finalize(ctx context.Context, instance runtimeobject.RuntimeObject) (ctrl.Result, errors.OperatorError)
 }

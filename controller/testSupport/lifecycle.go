@@ -16,7 +16,7 @@ import (
 
 type TestLifecycleManager struct {
 	Logger             *logger.Logger
-	SubroutinesArr     []subroutine.Subroutine
+	SubroutinesArr     []subroutine.BaseSubroutine
 	spreader           api.SpreadManager
 	conditionsManager  api.ConditionManager
 	ShouldReconcile    bool
@@ -36,7 +36,7 @@ func (l *TestLifecycleManager) ConditionsManager() api.ConditionManager { return
 func (l *TestLifecycleManager) PrepareContextFunc() api.PrepareContextFunc {
 	return l.prepareContextFunc
 }
-func (l *TestLifecycleManager) Subroutines() []subroutine.Subroutine { return l.SubroutinesArr }
+func (l *TestLifecycleManager) Subroutines() []subroutine.BaseSubroutine { return l.SubroutinesArr }
 func (l *TestLifecycleManager) WithSpreadingReconciles() api.Lifecycle {
 	l.spreader = &TestSpreader{ShouldReconcile: l.ShouldReconcile}
 	return l
@@ -102,18 +102,18 @@ func (t TestConditionManager) SetInstanceConditionUnknownIfNotSet(conditions *[]
 	})
 }
 
-func (t TestConditionManager) SetSubroutineConditionToUnknownIfNotSet(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, _ bool, _ *logger.Logger) bool {
+func (t TestConditionManager) SetSubroutineConditionToUnknownIfNotSet(conditions *[]metav1.Condition, s subroutine.BaseSubroutine, _ bool, _ *logger.Logger) bool {
 	return meta.SetStatusCondition(conditions, metav1.Condition{
-		Type:    fmt.Sprintf("%s_Ready", subroutine.GetName()),
+		Type:    fmt.Sprintf("%s_Ready", s.GetName()),
 		Status:  metav1.ConditionUnknown,
 		Message: "The resource is in an unknown state",
 		Reason:  "Unknown",
 	})
 }
 
-func (t TestConditionManager) SetSubroutineCondition(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, _ ctrl.Result, _ error, _ bool, _ *logger.Logger) bool {
+func (t TestConditionManager) SetSubroutineCondition(conditions *[]metav1.Condition, s subroutine.BaseSubroutine, _ ctrl.Result, _ error, _ bool, _ *logger.Logger) bool {
 	return meta.SetStatusCondition(conditions, metav1.Condition{
-		Type:    fmt.Sprintf("%s_Ready", subroutine.GetName()),
+		Type:    fmt.Sprintf("%s_Ready", s.GetName()),
 		Status:  metav1.ConditionTrue,
 		Message: "The subroutine is complete",
 		Reason:  "ok",

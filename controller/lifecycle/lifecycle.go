@@ -201,6 +201,14 @@ func reconcileSubroutine(ctx context.Context, instance runtimeobject.RuntimeObje
 			}
 			subroutineLogger.Error().Err(err.Err()).Bool("retry", err.Retry()).Msg("terminator ended with error")
 		}
+	} else if instance.GetDeletionTimestamp() != nil && containsFinalizer(instance, s.Finalizers(instance)) {
+		subroutineLogger.Debug().Msg("finalizing instance")
+		result, err = s.Finalize(ctx, instance)
+		subroutineLogger.Debug().Any("result", result).Msg("finalized instance")
+		if err == nil {
+			// Remove finalizers unless requeue is requested
+			err = removeFinalizerIfNeeded(ctx, instance, s, result, l.Config().ReadOnly, cl)
+		}
 	} else if initializer, ok := s.(subroutine.Initializer); ok && instance.GetDeletionTimestamp() == nil {
 		subroutineLogger.Debug().Msg("initializing instance")
 		result, err = initializer.Initialize(ctx, instance)
@@ -210,14 +218,6 @@ func reconcileSubroutine(ctx context.Context, instance runtimeobject.RuntimeObje
 				sentry.CaptureError(err.Err(), sentryTags)
 			}
 			subroutineLogger.Error().Err(err.Err()).Bool("retry", err.Retry()).Msg("initializer ended with error")
-		}
-	} else if instance.GetDeletionTimestamp() != nil && containsFinalizer(instance, s.Finalizers(instance)) {
-		subroutineLogger.Debug().Msg("finalizing instance")
-		result, err = s.Finalize(ctx, instance)
-		subroutineLogger.Debug().Any("result", result).Msg("finalized instance")
-		if err == nil {
-			// Remove finalizers unless requeue is requested
-			err = removeFinalizerIfNeeded(ctx, instance, s, result, l.Config().ReadOnly, cl)
 		}
 	} else {
 		subroutineLogger.Debug().Msg("processing instance")

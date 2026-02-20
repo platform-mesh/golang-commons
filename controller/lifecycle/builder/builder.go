@@ -78,12 +78,6 @@ func (b *Builder) BuildControllerRuntime(cl client.Client) *controllerruntime.Li
 	if b.rateLimiterOptions != nil {
 		lm.WithStaticThenExponentialRateLimiter((*b.rateLimiterOptions)...)
 	}
-	if b.terminator != "" {
-		lm.WithTerminator(b.terminator)
-	}
-	if b.initializer != "" {
-		lm.WithInitializer(b.initializer)
-	}
 	return lm
 }
 

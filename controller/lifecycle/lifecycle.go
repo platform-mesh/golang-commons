@@ -142,16 +142,16 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 		}
 	}
 
-	if result.RequeueAfter == 0 && inDeletion && l.Terminator() != "" {
+	if t, ok := l.(api.TerminatingLifecycle); ok && result.RequeueAfter == 0 && inDeletion && t.Terminator() != "" {
 		log.Debug().Msgf("Removing terminator")
-		if err := removeTerminator(ctx, instance, cl, l.Terminator()); err != nil {
+		if err := removeTerminator(ctx, instance, cl, t.Terminator()); err != nil {
 			return result, fmt.Errorf("potentially removing Terminator: %w", err)
 		}
 	}
 
-	if result.RequeueAfter == 0 && !inDeletion && l.Initializer() != "" {
+	if i, ok := l.(api.InitializingLifecycle); ok && result.RequeueAfter == 0 && !inDeletion && i.Initializer() != "" {
 		log.Debug().Msgf("Removing initializer")
-		if err := removeInitializer(ctx, instance, cl, l.Initializer()); err != nil {
+		if err := removeInitializer(ctx, instance, cl, i.Initializer()); err != nil {
 			return result, fmt.Errorf("potentially removing Initializer: %w", err)
 		}
 	}

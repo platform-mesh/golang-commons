@@ -19,8 +19,14 @@ type Lifecycle interface {
 	ConditionsManager() ConditionManager
 	PrepareContextFunc() PrepareContextFunc
 	Subroutines() []subroutine.Subroutine
-	Terminator() string
+}
+
+type InitializingLifecycle interface {
 	Initializer() string
+}
+
+type TerminatingLifecycle interface {
+	Terminator() string
 }
 
 type PrepareContextFunc func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, errors.OperatorError)

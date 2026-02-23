@@ -61,7 +61,7 @@ func (l *LifecycleManager) Config() api.Config {
 func (l *LifecycleManager) Log() *logger.Logger {
 	return l.log
 }
-func (l *LifecycleManager) Subroutines() []subroutine.BaseSubroutine {
+func (l *LifecycleManager) BaseSubroutines() []subroutine.BaseSubroutine {
 	return l.subroutines
 }
 func (l *LifecycleManager) PrepareContextFunc() api.PrepareContextFunc {
@@ -137,12 +137,12 @@ func (l *LifecycleManager) WithReadOnly() *LifecycleManager {
 }
 
 // WithSpreadingReconciles sets the LifecycleManager to spread out the reconciles
-func (l *LifecycleManager) WithSpreadingReconciles() api.Lifecycle {
+func (l *LifecycleManager) WithSpreadingReconciles() api.ChainLifecycle {
 	l.spreader = spread.NewSpreader()
 	return l
 }
 
-func (l *LifecycleManager) WithConditionManagement() api.Lifecycle {
+func (l *LifecycleManager) WithConditionManagement() api.ChainLifecycle {
 	l.conditionsManager = conditions.NewConditionManager()
 	return l
 }

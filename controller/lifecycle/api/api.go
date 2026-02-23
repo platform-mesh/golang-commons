@@ -12,13 +12,22 @@ import (
 	"github.com/platform-mesh/golang-commons/logger"
 )
 
-type Lifecycle interface {
+type LifecycleCore interface {
 	Config() Config
 	Log() *logger.Logger
 	Spreader() SpreadManager
 	ConditionsManager() ConditionManager
 	PrepareContextFunc() PrepareContextFunc
-	Subroutines() []subroutine.BaseSubroutine
+}
+
+type Lifecycle interface {
+	LifecycleCore
+	Subroutines() []subroutine.Subroutine
+}
+
+type ChainLifecycle interface {
+	LifecycleCore
+	BaseSubroutines() []subroutine.BaseSubroutine
 }
 
 type PrepareContextFunc func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, errors.OperatorError)

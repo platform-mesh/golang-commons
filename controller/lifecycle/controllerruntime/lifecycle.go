@@ -55,7 +55,7 @@ func (l *LifecycleManager) Config() api.Config {
 func (l *LifecycleManager) Log() *logger.Logger {
 	return l.log
 }
-func (l *LifecycleManager) Subroutines() []subroutine.BaseSubroutine {
+func (l *LifecycleManager) BaseSubroutines() []subroutine.BaseSubroutine {
 	return l.subroutines
 }
 func (l *LifecycleManager) PrepareContextFunc() api.PrepareContextFunc {

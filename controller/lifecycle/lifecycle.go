@@ -31,7 +31,7 @@ func Reconcile(
 	nName types.NamespacedName,
 	instance runtimeobject.RuntimeObject,
 	cl client.Client,
-	l api.Lifecycle,
+	l api.LifecycleCore,
 ) (ctrl.Result, error) {
 	ctx, span := otel.Tracer(l.Config().OperatorName).Start(ctx, fmt.Sprintf("%s.Reconcile", l.Config().ControllerName))
 	defer span.End()
@@ -69,8 +69,20 @@ func Reconcile(
 		}
 	}
 
+	var baseSubroutines []subroutine.BaseSubroutine
+	switch lc := l.(type) {
+	case api.ChainLifecycle:
+		baseSubroutines = lc.BaseSubroutines()
+	case api.Lifecycle:
+		for _, s := range lc.Subroutines() {
+			baseSubroutines = append(baseSubroutines, s)
+		}
+	default:
+		return ctrl.Result{}, fmt.Errorf("lifecycle must implement either Lifecycle or ChainLifecycle interface")
+	}
+
 	// Manage Finalizers
-	ferr := AddFinalizersIfNeeded(ctx, cl, instance, l.Subroutines(), l.Config().ReadOnly)
+	ferr := AddFinalizersIfNeeded(ctx, cl, instance, baseSubroutines, l.Config().ReadOnly)
 	if ferr != nil {
 		return ctrl.Result{}, ferr
 	}
@@ -90,8 +102,8 @@ func Reconcile(
 	}
 
 	// In case of deletion execute the finalize subroutines in the reverse order as subroutine processing
-	subroutines := make([]subroutine.BaseSubroutine, len(l.Subroutines()))
-	copy(subroutines, l.Subroutines())
+	subroutines := make([]subroutine.BaseSubroutine, len(baseSubroutines))
+	copy(subroutines, baseSubroutines)
 	if inDeletion {
 		slices.Reverse(subroutines)
 	}
@@ -233,7 +245,7 @@ func reconcileSubroutine(
 	instance runtimeobject.RuntimeObject,
 	s subroutine.Subroutine,
 	cl client.Client,
-	l api.Lifecycle,
+	l api.LifecycleCore,
 	log *logger.Logger,
 	generationChanged bool,
 	sentryTags map[string]string,
@@ -297,7 +309,7 @@ func reconcileChainSubroutine(
 	instance runtimeobject.RuntimeObject,
 	s subroutine.ChainSubroutine,
 	cl client.Client,
-	l api.Lifecycle,
+	l api.LifecycleCore,
 	log *logger.Logger,
 	generationChanged bool,
 	sentryTags map[string]string,
@@ -487,7 +499,7 @@ func MarkResourceAsFinal(
 	log *logger.Logger,
 	conditions []v1.Condition,
 	status v1.ConditionStatus,
-	l api.Lifecycle,
+	l api.LifecycleCore,
 ) {
 	if l.Spreader() != nil && instance.GetDeletionTimestamp().IsZero() {
 		instanceStatusObj := util.MustToInterface[api.RuntimeObjectSpreadReconcileStatus](instance, log)
@@ -568,7 +580,7 @@ func HandleOperatorError(
 	return ctrl.Result{}, nil
 }
 
-func ValidateInterfaces(instance runtimeobject.RuntimeObject, log *logger.Logger, l api.Lifecycle) error {
+func ValidateInterfaces(instance runtimeobject.RuntimeObject, log *logger.Logger, l api.LifecycleCore) error {
 	if l.Spreader() != nil {
 		_, err := util.ToInterface[api.RuntimeObjectSpreadReconcileStatus](instance, log)
 		if err != nil {

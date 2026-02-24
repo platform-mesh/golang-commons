@@ -121,6 +121,7 @@ func Reconcile(
 		}
 
 		var subResult subroutine.Result
+
 		switch sub := s.(type) {
 		case subroutine.ChainSubroutine:
 			subResult = reconcileChainSubroutine(ctx, instance, sub, cl, l, log, generationChanged, sentryTags)
@@ -144,29 +145,36 @@ func Reconcile(
 		switch subResult.Outcome {
 		case subroutine.Continue:
 			if l.ConditionsManager() != nil && subResult.Ctrl.RequeueAfter == 0 {
-				l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult.Ctrl, nil, inDeletion, log)
+				setSubroutineCondition(l.ConditionsManager(), &condArr, s, subResult, inDeletion, log)
 			}
 		case subroutine.StopChain:
 			if l.ConditionsManager() != nil {
-				l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult.Ctrl, nil, inDeletion, log)
+				setSubroutineCondition(l.ConditionsManager(), &condArr, s, subResult, inDeletion, log)
 			}
 
 			log.Info().Str("subroutine", s.GetName()).Str("reason", subResult.Reason).Msg("stop chain requested")
 			stopChain = true
 		case subroutine.Skipped:
 			if l.ConditionsManager() != nil {
-				l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult.Ctrl, nil, inDeletion, log)
+				setSubroutineCondition(l.ConditionsManager(), &condArr, s, subResult, inDeletion, log)
 			}
 		case subroutine.ErrorRetry:
 			if l.ConditionsManager() != nil {
-				l.ConditionsManager().
-					SetSubroutineCondition(&condArr, s, subResult.Ctrl, subResult.Error, inDeletion, log)
+				setSubroutineCondition(l.ConditionsManager(), &condArr, s, subResult, inDeletion, log)
 				l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
 				util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
 			}
 
 			if !l.Config().ReadOnly {
-				if updateErr := updateStatus(ctx, cl, originalCopy, instance, log, generationChanged, sentryTags); updateErr != nil {
+				if updateErr := updateStatus(
+					ctx,
+					cl,
+					originalCopy,
+					instance,
+					log,
+					generationChanged,
+					sentryTags,
+				); updateErr != nil {
 					log.Error().Err(updateErr).Msg("failed to update status during error retry")
 				}
 			}
@@ -175,16 +183,14 @@ func Reconcile(
 		case subroutine.ErrorContinue:
 			hasNonRetryableError = true
 			if l.ConditionsManager() != nil {
-				l.ConditionsManager().
-					SetSubroutineCondition(&condArr, s, subResult.Ctrl, subResult.Error, inDeletion, log)
+				setSubroutineCondition(l.ConditionsManager(), &condArr, s, subResult, inDeletion, log)
 			}
 
 			log.Warn().Str("subroutine", s.GetName()).Err(subResult.Error).Msg("non-retryable error, continuing")
 		case subroutine.ErrorStop:
 			hasNonRetryableError = true
 			if l.ConditionsManager() != nil {
-				l.ConditionsManager().
-					SetSubroutineCondition(&condArr, s, subResult.Ctrl, subResult.Error, inDeletion, log)
+				setSubroutineCondition(l.ConditionsManager(), &condArr, s, subResult, inDeletion, log)
 				l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
 				util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
 			}
@@ -426,6 +432,23 @@ func removeChainSubroutineFinalizerIfNeeded(
 	}
 
 	return nil
+}
+
+func setSubroutineCondition(
+	cm api.ConditionManager,
+	conditions *[]v1.Condition,
+	s subroutine.BaseSubroutine,
+	result subroutine.Result,
+	isFinalize bool,
+	log *logger.Logger,
+) {
+	if _, isChain := s.(subroutine.ChainSubroutine); isChain {
+		if chainCM, ok := cm.(api.ChainConditionManager); ok {
+			chainCM.SetSubroutineConditionFromResult(conditions, s, result, isFinalize, log)
+			return
+		}
+	}
+	cm.SetSubroutineCondition(conditions, s, result.Ctrl, result.Error, isFinalize, log)
 }
 
 func updateStatus(

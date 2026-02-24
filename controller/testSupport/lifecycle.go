@@ -120,6 +120,64 @@ func (t TestConditionManager) SetSubroutineCondition(conditions *[]metav1.Condit
 	})
 }
 
+func (t TestConditionManager) SetSubroutineConditionFromResult(conditions *[]metav1.Condition, s subroutine.BaseSubroutine, result subroutine.Result, _ bool, _ *logger.Logger) bool {
+	var status metav1.ConditionStatus
+	var reason string
+	var message string
+
+	switch result.Outcome {
+	case subroutine.Continue:
+		if result.Ctrl.RequeueAfter > 0 {
+			status = metav1.ConditionUnknown
+			reason = "Processing"
+			message = "The subroutine is processing"
+		} else {
+			status = metav1.ConditionTrue
+			reason = "Complete"
+			message = "The subroutine is complete"
+		}
+	case subroutine.Skipped:
+		status = metav1.ConditionTrue
+		reason = "Skipped"
+		if result.Reason != "" {
+			message = fmt.Sprintf("The subroutine was skipped: %s", result.Reason)
+		} else {
+			message = "The subroutine was skipped"
+		}
+	case subroutine.StopChain:
+		status = metav1.ConditionTrue
+		reason = "StopChain"
+		if result.Reason != "" {
+			message = fmt.Sprintf("The subroutine stopped chain: %s", result.Reason)
+		} else {
+			message = "The subroutine stopped chain"
+		}
+	case subroutine.ErrorRetry:
+		status = metav1.ConditionFalse
+		reason = "ErrorRetry"
+		message = fmt.Sprintf("The subroutine has a retryable error: %s", result.Error)
+	case subroutine.ErrorContinue:
+		status = metav1.ConditionFalse
+		reason = "ErrorContinue"
+		message = fmt.Sprintf("The subroutine has a non-blocking error: %s", result.Error)
+	case subroutine.ErrorStop:
+		status = metav1.ConditionFalse
+		reason = "ErrorStop"
+		message = fmt.Sprintf("The subroutine has a terminal error: %s", result.Error)
+	default:
+		status = metav1.ConditionUnknown
+		reason = "Unknown"
+		message = "The subroutine is in an unknown state"
+	}
+
+	return meta.SetStatusCondition(conditions, metav1.Condition{
+		Type:    fmt.Sprintf("%s_Ready", s.GetName()),
+		Status:  status,
+		Message: message,
+		Reason:  reason,
+	})
+}
+
 func (t TestConditionManager) SetInstanceConditionReady(conditions *[]metav1.Condition, _ metav1.ConditionStatus) bool {
 	return meta.SetStatusCondition(conditions, metav1.Condition{
 		Type:    "Ready",

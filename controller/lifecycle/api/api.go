@@ -57,6 +57,19 @@ type ConditionManager interface {
 	SetInstanceConditionReady(conditions *[]metav1.Condition, status metav1.ConditionStatus) bool
 }
 
+// ChainConditionManager extends ConditionManager with support for ChainSubroutine Result types
+// Implementations that want detailed outcome tracking for ChainSubroutines should implement this interface
+type ChainConditionManager interface {
+	ConditionManager
+	SetSubroutineConditionFromResult(
+		conditions *[]metav1.Condition,
+		subroutine subroutine.BaseSubroutine,
+		result subroutine.Result,
+		isFinalize bool,
+		log *logger.Logger,
+	) bool
+}
+
 type RuntimeObjectConditions interface {
 	GetConditions() []metav1.Condition
 	SetConditions([]metav1.Condition)

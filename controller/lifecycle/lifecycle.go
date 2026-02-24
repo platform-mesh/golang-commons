@@ -15,6 +15,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	mccontext "sigs.k8s.io/multicluster-runtime/pkg/context"
 
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/api"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/runtimeobject"
@@ -31,7 +32,11 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 
 	result := ctrl.Result{}
 
-	log := l.Log().MustChildLoggerWithAttributes("name", nName.Name, "namespace", nName.Namespace)
+	log := l.Log().MustChildLoggerWithAttributes("name", nName.Name, "namespace", nName.Namespace, "reconcile_id", reconcileId)
+	cluster, ok := mccontext.ClusterFrom(ctx)
+	if ok {
+		log = log.MustChildLoggerWithAttributes("cluster", cluster)
+	}
 	sentryTags := sentry.Tags{"namespace": nName.Namespace, "name": nName.Name}
 
 	ctx = logger.SetLoggerInContext(ctx, log)
@@ -69,7 +74,7 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 	var condArr []v1.Condition
 	if l.ConditionsManager() != nil {
 		condArr = util.MustToInterface[api.RuntimeObjectConditions](instance, log).GetConditions()
-		l.ConditionsManager().SetInstanceConditionUnknownIfNotSet(&condArr)
+		l.ConditionsManager().SetInstanceConditionUnknownIfNotSet(&condArr, instance.GetGeneration())
 	}
 
 	if l.PrepareContextFunc() != nil {
@@ -90,7 +95,7 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 	// Continue with reconciliation
 	for _, s := range subroutines {
 		if l.ConditionsManager() != nil {
-			l.ConditionsManager().SetSubroutineConditionToUnknownIfNotSet(&condArr, s, inDeletion, log)
+			l.ConditionsManager().SetSubroutineConditionToUnknownIfNotSet(&condArr, instance.GetGeneration(), s, inDeletion, log)
 		}
 
 		// Set current condArr before reconciling the s
@@ -104,8 +109,8 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 		}
 		if err != nil {
 			if l.ConditionsManager() != nil {
-				l.ConditionsManager().SetSubroutineCondition(&condArr, s, result, err, inDeletion, log)
-				l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
+				l.ConditionsManager().SetSubroutineCondition(&condArr, instance.GetGeneration(), s, result, err, inDeletion, log)
+				l.ConditionsManager().SetInstanceConditionReady(&condArr, instance.GetGeneration(), v1.ConditionFalse)
 				util.MustToInterface[api.RuntimeObjectConditions](instance, log).SetConditions(condArr)
 			}
 			if !retry {
@@ -126,7 +131,7 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 		}
 		if l.ConditionsManager() != nil {
 			if subResult.RequeueAfter == 0 {
-				l.ConditionsManager().SetSubroutineCondition(&condArr, s, subResult, err, inDeletion, log)
+				l.ConditionsManager().SetSubroutineCondition(&condArr, instance.GetGeneration(), s, subResult, err, inDeletion, log)
 			}
 		}
 	}
@@ -136,7 +141,21 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 		MarkResourceAsFinal(instance, log, condArr, v1.ConditionTrue, l)
 	} else {
 		if l.ConditionsManager() != nil {
-			l.ConditionsManager().SetInstanceConditionReady(&condArr, v1.ConditionFalse)
+			l.ConditionsManager().SetInstanceConditionReady(&condArr, instance.GetGeneration(), v1.ConditionFalse)
+		}
+	}
+
+	if t, ok := l.(api.TerminatingLifecycle); ok && result.RequeueAfter == 0 && inDeletion && t.Terminator() != "" {
+		log.Debug().Msgf("Removing terminator")
+		if err := removeTerminator(ctx, instance, cl, t.Terminator()); err != nil {
+			return result, fmt.Errorf("potentially removing Terminator: %w", err)
+		}
+	}
+
+	if i, ok := l.(api.InitializingLifecycle); ok && result.RequeueAfter == 0 && !inDeletion && i.Initializer() != "" {
+		log.Debug().Msgf("Removing initializer")
+		if err := removeInitializer(ctx, instance, cl, i.Initializer()); err != nil {
+			return result, fmt.Errorf("potentially removing Initializer: %w", err)
 		}
 	}
 
@@ -166,28 +185,46 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 	return result, nil
 }
 
-func reconcileSubroutine(ctx context.Context, instance runtimeobject.RuntimeObject, subroutine subroutine.Subroutine, cl client.Client, l api.Lifecycle, log *logger.Logger, generationChanged bool, sentryTags map[string]string) (ctrl.Result, bool, error) {
-	subroutineLogger := log.ChildLogger("subroutine", subroutine.GetName())
+func reconcileSubroutine(ctx context.Context, instance runtimeobject.RuntimeObject, s subroutine.Subroutine, cl client.Client, l api.Lifecycle, log *logger.Logger, generationChanged bool, sentryTags map[string]string) (ctrl.Result, bool, error) {
+	subroutineLogger := log.ChildLogger("subroutine", s.GetName())
 	ctx = logger.SetLoggerInContext(ctx, subroutineLogger)
 	subroutineLogger.Debug().Msg("start subroutine")
 
-	ctx, span := otel.Tracer(l.Config().OperatorName).Start(ctx, fmt.Sprintf("%s.reconcileSubroutine.%s", l.Config().ControllerName, subroutine.GetName()))
+	ctx, span := otel.Tracer(l.Config().OperatorName).Start(ctx, fmt.Sprintf("%s.reconcileSubroutine.%s", l.Config().ControllerName, s.GetName()))
 	defer span.End()
 	var result ctrl.Result
 	var err errors.OperatorError
-	if instance.GetDeletionTimestamp() != nil {
-		if containsFinalizer(instance, subroutine.Finalizers(instance)) {
-			subroutineLogger.Debug().Msg("finalizing instance")
-			result, err = subroutine.Finalize(ctx, instance)
-			subroutineLogger.Debug().Any("result", result).Msg("finalized instance")
-			if err == nil {
-				// Remove finalizers unless requeue is requested
-				err = removeFinalizerIfNeeded(ctx, instance, subroutine, result, l.Config().ReadOnly, cl)
+	if terminator, ok := s.(subroutine.Terminator); ok && instance.GetDeletionTimestamp() != nil {
+		subroutineLogger.Debug().Msg("terminating instance")
+		result, err = terminator.Terminate(ctx, instance)
+		subroutineLogger.Debug().Any("result", result).Bool("err_is_nil", err == nil).Msg("terminated instance")
+		if err != nil {
+			if err.Sentry() {
+				sentry.CaptureError(err.Err(), sentryTags)
 			}
+			subroutineLogger.Error().Err(err.Err()).Bool("retry", err.Retry()).Msg("terminator ended with error")
+		}
+	} else if instance.GetDeletionTimestamp() != nil && containsFinalizer(instance, s.Finalizers(instance)) {
+		subroutineLogger.Debug().Msg("finalizing instance")
+		result, err = s.Finalize(ctx, instance)
+		subroutineLogger.Debug().Any("result", result).Msg("finalized instance")
+		if err == nil {
+			// Remove finalizers unless requeue is requested
+			err = removeFinalizerIfNeeded(ctx, instance, s, result, l.Config().ReadOnly, cl)
+		}
+	} else if initializer, ok := s.(subroutine.Initializer); ok && instance.GetDeletionTimestamp() == nil {
+		subroutineLogger.Debug().Msg("initializing instance")
+		result, err = initializer.Initialize(ctx, instance)
+		subroutineLogger.Debug().Any("result", result).Bool("err_is_nil", err == nil).Msg("initialized instance")
+		if err != nil {
+			if err.Sentry() {
+				sentry.CaptureError(err.Err(), sentryTags)
+			}
+			subroutineLogger.Error().Err(err.Err()).Bool("retry", err.Retry()).Msg("initializer ended with error")
 		}
 	} else {
 		subroutineLogger.Debug().Msg("processing instance")
-		result, err = subroutine.Process(ctx, instance)
+		result, err = s.Process(ctx, instance)
 		subroutineLogger.Debug().Any("result", result).Msg("processed instance")
 	}
 
@@ -212,7 +249,7 @@ func containsFinalizer(o client.Object, subroutineFinalizers []string) bool {
 	return false
 }
 
-func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.RuntimeObject, subroutine subroutine.Subroutine, result ctrl.Result, readonly bool, cl client.Client) errors.OperatorError {
+func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.RuntimeObject, s subroutine.Subroutine, result ctrl.Result, readonly bool, cl client.Client) errors.OperatorError {
 	if readonly {
 		return nil
 	}
@@ -220,7 +257,7 @@ func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.Runtime
 	if result.RequeueAfter == 0 {
 		update := false
 		original := instance.DeepCopyObject().(client.Object)
-		for _, f := range subroutine.Finalizers(instance) {
+		for _, f := range s.Finalizers(instance) {
 			needsUpdate := controllerutil.RemoveFinalizer(instance, f)
 			if needsUpdate {
 				update = true
@@ -232,6 +269,84 @@ func removeFinalizerIfNeeded(ctx context.Context, instance runtimeobject.Runtime
 				return errors.NewOperatorError(errors.Wrap(err, "failed to update instance"), true, false)
 			}
 		}
+	}
+
+	return nil
+}
+
+func removeTerminator(ctx context.Context, instance runtimeobject.RuntimeObject, cl client.Client, terminator string) error {
+	if terminator == "" {
+		return nil
+	}
+
+	original := instance.DeepCopyObject().(client.Object)
+
+	currentUn, err := runtime.DefaultUnstructuredConverter.ToUnstructured(instance)
+	if err != nil {
+		return fmt.Errorf("failed to convert instance to unstructured: %w", err)
+	}
+
+	terminators, ok, err := unstructured.NestedStringSlice(currentUn, "status", "terminators")
+	if err != nil || !ok || len(terminators) == 0 {
+		return nil
+	}
+
+	newTerminators := slices.DeleteFunc(terminators, func(t string) bool {
+		return t == terminator
+	})
+	if len(newTerminators) == len(terminators) {
+		return nil
+	}
+
+	if err := unstructured.SetNestedStringSlice(currentUn, newTerminators, "status", "terminators"); err != nil {
+		return fmt.Errorf("failed to set terminators: %w", err)
+	}
+
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(currentUn, instance); err != nil {
+		return fmt.Errorf("failed to convert unstructured to instance: %w", err)
+	}
+
+	if err := cl.Status().Patch(ctx, instance.(client.Object), client.MergeFrom(original)); err != nil {
+		return fmt.Errorf("failed to patch instance status: %w", err)
+	}
+
+	return nil
+}
+
+func removeInitializer(ctx context.Context, instance runtimeobject.RuntimeObject, cl client.Client, initializer string) error {
+	if initializer == "" {
+		return nil
+	}
+
+	original := instance.DeepCopyObject().(client.Object)
+
+	currentUn, err := runtime.DefaultUnstructuredConverter.ToUnstructured(instance)
+	if err != nil {
+		return fmt.Errorf("failed to convert instance to unstructured: %w", err)
+	}
+
+	initializers, ok, err := unstructured.NestedStringSlice(currentUn, "status", "initializers")
+	if err != nil || !ok || len(initializers) == 0 {
+		return nil
+	}
+
+	newInitializers := slices.DeleteFunc(initializers, func(i string) bool {
+		return i == initializer
+	})
+	if len(newInitializers) == len(initializers) {
+		return nil
+	}
+
+	if err := unstructured.SetNestedStringSlice(currentUn, newInitializers, "status", "initializers"); err != nil {
+		return fmt.Errorf("failed to set initializers: %w", err)
+	}
+
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(currentUn, instance); err != nil {
+		return fmt.Errorf("failed to convert unstructured to instance: %w", err)
+	}
+
+	if err := cl.Status().Patch(ctx, instance.(client.Object), client.MergeFrom(original)); err != nil {
+		return fmt.Errorf("failed to patch instance status: %w", err)
 	}
 
 	return nil
@@ -297,7 +412,7 @@ func MarkResourceAsFinal(instance runtimeobject.RuntimeObject, log *logger.Logge
 	}
 
 	if l.ConditionsManager() != nil {
-		l.ConditionsManager().SetInstanceConditionReady(&conditions, status)
+		l.ConditionsManager().SetInstanceConditionReady(&conditions, instance.GetGeneration(), status)
 	}
 }
 
@@ -329,9 +444,9 @@ func AddFinalizersIfNeeded(ctx context.Context, cl client.Client, instance runti
 	return nil
 }
 
-func AddFinalizerIfNeeded(instance runtimeobject.RuntimeObject, subroutine subroutine.Subroutine) bool {
+func AddFinalizerIfNeeded(instance runtimeobject.RuntimeObject, s subroutine.Subroutine) bool {
 	update := false
-	for _, f := range subroutine.Finalizers(instance) {
+	for _, f := range s.Finalizers(instance) {
 		needsUpdate := controllerutil.AddFinalizer(instance, f)
 		if needsUpdate {
 			update = true

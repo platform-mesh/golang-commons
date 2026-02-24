@@ -21,6 +21,14 @@ type Lifecycle interface {
 	Subroutines() []subroutine.Subroutine
 }
 
+type InitializingLifecycle interface {
+	Initializer() string
+}
+
+type TerminatingLifecycle interface {
+	Terminator() string
+}
+
 type PrepareContextFunc func(ctx context.Context, instance runtimeobject.RuntimeObject) (context.Context, errors.OperatorError)
 
 type Config struct {
@@ -30,10 +38,10 @@ type Config struct {
 }
 
 type ConditionManager interface {
-	SetInstanceConditionUnknownIfNotSet(conditions *[]metav1.Condition) bool
-	SetSubroutineConditionToUnknownIfNotSet(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, isFinalize bool, log *logger.Logger) bool
-	SetSubroutineCondition(conditions *[]metav1.Condition, subroutine subroutine.Subroutine, subroutineResult ctrl.Result, subroutineErr error, isFinalize bool, log *logger.Logger) bool
-	SetInstanceConditionReady(conditions *[]metav1.Condition, status metav1.ConditionStatus) bool
+	SetInstanceConditionUnknownIfNotSet(conditions *[]metav1.Condition, observedGeneration int64) bool
+	SetSubroutineConditionToUnknownIfNotSet(conditions *[]metav1.Condition, observedGeneration int64, subroutine subroutine.Subroutine, isFinalize bool, log *logger.Logger) bool
+	SetSubroutineCondition(conditions *[]metav1.Condition, observedGeneration int64, subroutine subroutine.Subroutine, subroutineResult ctrl.Result, subroutineErr error, isFinalize bool, log *logger.Logger) bool
+	SetInstanceConditionReady(conditions *[]metav1.Condition, observedGeneration int64, status metav1.ConditionStatus) bool
 }
 
 type RuntimeObjectConditions interface {

@@ -144,7 +144,7 @@ func Reconcile(
 
 		switch subResult.Outcome {
 		case subroutine.Continue:
-			if l.ConditionsManager() != nil && subResult.Ctrl.RequeueAfter == 0 {
+			if l.ConditionsManager() != nil {
 				setSubroutineCondition(l.ConditionsManager(), &condArr, s, subResult, inDeletion, log)
 			}
 		case subroutine.StopChain:
@@ -200,6 +200,12 @@ func Reconcile(
 				Err(subResult.Error).
 				Str("reason", subResult.Reason).
 				Msg("non-retryable error, stopping chain")
+			stopChain = true
+		default:
+			log.Error().
+				Str("subroutine", s.GetName()).
+				Int("outcome", int(subResult.Outcome)).
+				Msg("unknown outcome type, stopping chain")
 			stopChain = true
 		}
 

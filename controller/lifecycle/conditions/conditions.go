@@ -7,9 +7,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 
+	"github.com/platform-mesh/golang-commons/controller/lifecycle/api"
 	"github.com/platform-mesh/golang-commons/controller/lifecycle/subroutine"
 	"github.com/platform-mesh/golang-commons/logger"
 )
+
+var _ api.ChainConditionManager = (*ConditionManager)(nil)
 
 const (
 	ConditionReady = "Ready"
@@ -213,15 +216,15 @@ func (c *ConditionManager) SetSubroutineConditionFromResult(
 	case subroutine.ErrorRetry:
 		condition.Status = metav1.ConditionFalse
 		condition.Reason = reasonErrorRetry
-		condition.Message = fmt.Sprintf(subroutineMessageErrorRetryFormatString, conditionMessage, result.Error)
+		condition.Message = fmt.Sprintf(subroutineMessageErrorRetryFormatString, conditionMessage, errorToString(result.Error))
 	case subroutine.ErrorContinue:
 		condition.Status = metav1.ConditionFalse
 		condition.Reason = reasonErrorContinue
-		condition.Message = fmt.Sprintf(subroutineMessageErrorContinueFormatString, conditionMessage, result.Error)
+		condition.Message = fmt.Sprintf(subroutineMessageErrorContinueFormatString, conditionMessage, errorToString(result.Error))
 	case subroutine.ErrorStop:
 		condition.Status = metav1.ConditionFalse
 		condition.Reason = reasonErrorStop
-		condition.Message = fmt.Sprintf(subroutineMessageErrorStopFormatString, conditionMessage, result.Error)
+		condition.Message = fmt.Sprintf(subroutineMessageErrorStopFormatString, conditionMessage, errorToString(result.Error))
 	default:
 		condition.Status = metav1.ConditionUnknown
 		condition.Reason = reasonProcessing
@@ -240,4 +243,11 @@ func formatMessageWithOptionalReason(baseFormat, reasonFormat, conditionMessage,
 		return fmt.Sprintf(reasonFormat, conditionMessage, reason)
 	}
 	return fmt.Sprintf(baseFormat, conditionMessage)
+}
+
+func errorToString(err error) string {
+	if err == nil {
+		return "unknown error"
+	}
+	return err.Error()
 }

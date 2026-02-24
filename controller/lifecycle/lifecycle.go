@@ -32,7 +32,7 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 
 	result := ctrl.Result{}
 
-	log := l.Log().MustChildLoggerWithAttributes("name", nName.Name, "namespace", nName.Namespace, "reconcile_id", reconcileId)
+	log := l.Log().MustChildLoggerWithAttributes("name", nName.Name, "namespace", nName.Namespace)
 	cluster, ok := mccontext.ClusterFrom(ctx)
 	if ok {
 		log = log.MustChildLoggerWithAttributes("cluster", cluster)

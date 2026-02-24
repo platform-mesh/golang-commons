@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-http-utils/headers"
 	"github.com/machinebox/graphql"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	pmcontext "github.com/platform-mesh/golang-commons/context"
 	"github.com/platform-mesh/golang-commons/jwt"
 	"github.com/platform-mesh/golang-commons/logger"
+	"github.com/platform-mesh/golang-commons/middleware"
 )
 
 func createClient(ctx context.Context, iamApiUrl string) *graphql.Client {
@@ -32,7 +32,7 @@ func run(ctx context.Context, client GraphqlClient, request *graphql.Request, re
 	if err != nil || len(auth) == 0 {
 		return fmt.Errorf("the request context does not contain an auth header under the key %q. You can use authz.context to set it", jwt.AuthHeaderCtxKey)
 	}
-	request.Header.Add(headers.Authorization, auth)
+	request.Header.Add(middleware.AuthorizationHeader, auth)
 	requestCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	return client.Run(requestCtx, request, resp)

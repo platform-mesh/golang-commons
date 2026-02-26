@@ -166,9 +166,14 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 	}
 
 	if !l.Config().ReadOnly {
-		err = updateStatus(ctx, cl, originalCopy, instance, log, generationChanged, sentryTags)
-		if err != nil {
-			return result, err
+		// Skip status update if all finalizers are removed (object will be deleted)
+		if instance.GetDeletionTimestamp() != nil && len(instance.GetFinalizers()) == 0 {
+			log.Info().Msg("skipping status update - all finalizers removed, object will be deleted")
+		} else {
+			err = updateStatus(ctx, cl, originalCopy, instance, log, generationChanged, sentryTags)
+			if err != nil {
+				return result, err
+			}
 		}
 	}
 

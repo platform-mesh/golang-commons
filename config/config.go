@@ -38,10 +38,6 @@ type TracingConfig struct {
 	Collector traces.Config
 }
 
-type LeaderElectionConfig struct {
-	Enabled bool
-}
-
 type SentryConfig struct {
 	Dsn string
 }
@@ -137,7 +133,7 @@ func (c *CommonServiceConfig) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&c.Tracing.Collector.ServiceVersion, "tracing-config-service-version", c.Tracing.Collector.ServiceVersion, "Set the tracing service version used in traces")
 	fs.StringVar(&c.Tracing.Collector.CollectorEndpoint, "tracing-config-collector-endpoint", c.Tracing.Collector.CollectorEndpoint, "Set the tracing collector endpoint used to send traces to the collector")
 
-	fs.BoolVar(&c.EnableHTTP2, "enable-http2", c.EnableHTTP2, "Toggle to disable metrics/webhook serving using http2")
+	fs.BoolVar(&c.EnableHTTP2, "enable-http2", c.EnableHTTP2, "Enable HTTP/2 for metrics and webhook servers")
 	fs.StringVar(&c.HealthProbeBindAddress, "health-probe-bind-address", c.HealthProbeBindAddress, "Set the health probe bind address")
 
 	fs.BoolVar(&c.LeaderElectionEnabled, "leader-elect", c.LeaderElectionEnabled, "Enable leader election for the controller manager")

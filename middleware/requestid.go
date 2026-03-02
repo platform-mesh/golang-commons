@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/google/uuid"
+
 	"github.com/platform-mesh/golang-commons/context/keys"
 	"github.com/platform-mesh/golang-commons/logger"
 )
@@ -21,6 +23,8 @@ func SetRequestId() func(http.Handler) http.Handler {
 			var requestId string
 			if ids, ok := request.Header[requestIdHeader]; ok && len(ids) == 1 {
 				requestId = ids[0]
+			} else {
+				requestId = uuid.New().String()
 			}
 			ctx = context.WithValue(ctx, keys.RequestIdCtxKey, requestId)
 			next.ServeHTTP(responseWriter, request.WithContext(ctx))

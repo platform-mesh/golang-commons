@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/spf13/pflag"
@@ -103,7 +104,7 @@ func NewDefaultConfig() *CommonServiceConfig {
 		LeaderElectionEnabled: false,
 
 		Sentry: SentryConfig{
-			Dsn: "",
+			Dsn: os.Getenv("SENTRY_DSN"),
 		},
 	}
 
@@ -137,6 +138,4 @@ func (c *CommonServiceConfig) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&c.HealthProbeBindAddress, "health-probe-bind-address", c.HealthProbeBindAddress, "Set the health probe bind address")
 
 	fs.BoolVar(&c.LeaderElectionEnabled, "leader-elect", c.LeaderElectionEnabled, "Enable leader election for the controller manager")
-
-	fs.StringVar(&c.Sentry.Dsn, "sentry-dsn", c.Sentry.Dsn, "Set the Sentry DSN for error reporting")
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
 	"k8s.io/apimachinery/pkg/api/equality"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
@@ -15,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	mccontext "sigs.k8s.io/multicluster-runtime/pkg/context"
 
@@ -32,9 +32,8 @@ func Reconcile(ctx context.Context, nName types.NamespacedName, instance runtime
 	defer span.End()
 
 	result := ctrl.Result{}
-	reconcileId := uuid.New().String()
 
-	log := l.Log().MustChildLoggerWithAttributes("name", nName.Name, "namespace", nName.Namespace, "reconcile_id", reconcileId)
+	log := l.Log().MustChildLoggerWithAttributes("name", nName.Name, "namespace", nName.Namespace, "reconcile_id", string(controller.ReconcileIDFromContext(ctx)))
 	cluster, ok := mccontext.ClusterFrom(ctx)
 	if ok {
 		log = log.MustChildLoggerWithAttributes("cluster", cluster)

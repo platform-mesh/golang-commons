@@ -28,7 +28,7 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.42.0
 	go.opentelemetry.io/otel/sdk v1.42.0
 	go.opentelemetry.io/otel/trace v1.42.0
-	go.opentelemetry.io/proto/otlp v1.9.0
+	go.opentelemetry.io/proto/otlp v1.10.0
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/grpc v1.79.2
 	k8s.io/api v0.35.2

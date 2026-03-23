@@ -13,9 +13,9 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/jellydator/ttlcache/v3 v3.4.0
 	github.com/machinebox/graphql v0.2.2
-	github.com/openfga/api/proto v0.0.0-20260217232149-f917ddb000ce
+	github.com/openfga/api/proto v0.0.0-20260319214821-f153694bfc20
 	github.com/openfga/language/pkg/go v0.2.0-beta.2.0.20251202173232-1e8bf16f1dce
-	github.com/openfga/openfga v1.12.0
+	github.com/openfga/openfga v1.13.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/pflag v1.0.10
@@ -30,7 +30,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.42.0
 	go.opentelemetry.io/proto/otlp v1.10.0
 	golang.org/x/oauth2 v0.36.0
-	google.golang.org/grpc v1.79.2
+	google.golang.org/grpc v1.79.3
 	k8s.io/api v0.35.2
 	k8s.io/apimachinery v0.35.2
 	k8s.io/client-go v0.35.2

@@ -3,7 +3,7 @@ module github.com/platform-mesh/golang-commons
 go 1.25.0
 
 require (
-	github.com/99designs/gqlgen v0.17.88
+	github.com/99designs/gqlgen v0.17.89
 	github.com/getsentry/sentry-go v0.43.0
 	github.com/go-jose/go-jose/v4 v4.1.3
 	github.com/go-logr/logr v1.4.3

@@ -105,3 +105,88 @@ func TestBuildParentTuples(t *testing.T) {
 		}
 	})
 }
+
+func TestBuildContextualTuples(t *testing.T) {
+	accountObject := "core_platform-mesh_io_account:origin-cluster/my-account"
+
+	t.Run("namespaced resource produces two tuples", func(t *testing.T) {
+		tuples, err := BuildContextualTuples(accountObject, ResourceContext{
+			Group:     "apps",
+			Kind:      "deployment",
+			ClusterID: "tenant-cluster",
+			Name:      "my-deploy",
+			Namespace: "default",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(tuples) != 2 {
+			t.Fatalf("expected 2 tuples, got %d", len(tuples))
+		}
+		// tuple[0]: namespace.parent = account
+		wantNsObj := "core_namespace:tenant-cluster/default"
+		if tuples[0].Object != wantNsObj {
+			t.Errorf("tuple[0].Object = %q, want %q", tuples[0].Object, wantNsObj)
+		}
+		if tuples[0].User != accountObject {
+			t.Errorf("tuple[0].User = %q, want %q", tuples[0].User, accountObject)
+		}
+		// tuple[1]: resource.parent = namespace
+		wantResObj := "apps_deployment:tenant-cluster/default/my-deploy"
+		if tuples[1].Object != wantResObj {
+			t.Errorf("tuple[1].Object = %q, want %q", tuples[1].Object, wantResObj)
+		}
+		if tuples[1].User != wantNsObj {
+			t.Errorf("tuple[1].User = %q, want %q", tuples[1].User, wantNsObj)
+		}
+	})
+
+	t.Run("cluster-scoped resource produces one tuple", func(t *testing.T) {
+		tuples, err := BuildContextualTuples(accountObject, ResourceContext{
+			Group:     "core.platform-mesh.io",
+			Kind:      "account",
+			ClusterID: "child-cluster",
+			Name:      "child-account",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(tuples) != 1 {
+			t.Fatalf("expected 1 tuple, got %d", len(tuples))
+		}
+		wantObj := "core_platform-mesh_io_account:child-cluster/child-account"
+		if tuples[0].Object != wantObj {
+			t.Errorf("tuple[0].Object = %q, want %q", tuples[0].Object, wantObj)
+		}
+		if tuples[0].User != accountObject {
+			t.Errorf("tuple[0].User = %q, want %q", tuples[0].User, accountObject)
+		}
+	})
+
+	t.Run("self-referential account returns nil tuples", func(t *testing.T) {
+		tuples, err := BuildContextualTuples(accountObject, ResourceContext{
+			Group:     "core.platform-mesh.io",
+			Kind:      "account",
+			ClusterID: "origin-cluster",
+			Name:      "my-account",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(tuples) != 0 {
+			t.Fatalf("expected 0 tuples for self-referential account, got %d", len(tuples))
+		}
+	})
+
+	t.Run("empty accountObject returns error", func(t *testing.T) {
+		_, err := BuildContextualTuples("", ResourceContext{
+			Group:     "apps",
+			Kind:      "deployment",
+			ClusterID: "cluster",
+			Name:      "my-deploy",
+		})
+		if err == nil {
+			t.Fatal("expected error for empty accountObject")
+		}
+	})
+}

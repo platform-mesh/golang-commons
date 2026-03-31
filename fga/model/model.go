@@ -30,8 +30,7 @@ func BuildObjectNameFromType(objectType, clusterID, name string, namespace *stri
 	return fmt.Sprintf("%s:%s/%s", objectType, clusterID, name)
 }
 
-// BuildParentTuples renders the canonical parent hierarchy tuples used by the
-// webhook, operator, and search consumers.
+// BuildParentTuples renders the canonical parent hierarchy tuples
 func BuildParentTuples(parentObject, object string, namespaceObject *string) []*openfgav1.TupleKey {
 	if namespaceObject != nil && *namespaceObject != "" {
 		return []*openfgav1.TupleKey{

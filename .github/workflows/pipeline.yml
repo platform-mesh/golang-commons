@@ -13,7 +13,7 @@ jobs:
     concurrency:
       group: ${{ github.ref }}
       cancel-in-progress: true
-    uses: platform-mesh/.github/.github/workflows/pipeline-golang-module.yml@07550bab80de7691f4947214ee342351896e209b # main
+    uses: platform-mesh/.github/.github/workflows/pipeline-golang-module.yml@79135654f57b80714eac4a27467c95ff24af6046 # main
     secrets: inherit
     with:
       useLocalCoverageConfig: true

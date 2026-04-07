@@ -3,6 +3,7 @@ version: '3'
 vars:
   LOCAL_BIN: bin
   MOCKERY_VERSION: v3.6.4
+  GO_TEST_COVERAGE_VERSION: v2.17.1
 tasks:
   ## Setup
   setup:mockery:
@@ -45,3 +46,10 @@ tasks:
     cmds:
       - go clean -testcache
       - go test -coverprofile=cover.out -covermode=atomic -coverpkg=./... ./...
+  test-coverage:
+    desc: Run tests with coverage and check thresholds
+    deps:
+      - task: cover
+    cmds:
+      - go install github.com/vladopajic/go-test-coverage/v2@{{.GO_TEST_COVERAGE_VERSION}}
+      - go-test-coverage --profile cover.out --config ./.testcoverage.yml

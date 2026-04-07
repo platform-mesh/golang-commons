@@ -31,6 +31,7 @@ jobs:
     uses: platform-mesh/.github/.github/workflows/job-golang-test-source.yml@main
     secrets: inherit
     with:
+      useTask: true
       useLocalCoverageConfig: true
 
   # ──────────────────────────────────────────────

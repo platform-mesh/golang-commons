@@ -22,7 +22,9 @@ func createClient(ctx context.Context, iamApiUrl string) *graphql.Client {
 	client := graphql.NewClient(iamApiUrl, graphql.WithHTTPClient(hc))
 
 	if log != nil {
-		client.Log = log.ComponentLogger("graphql").Trace().Msg
+		client.Log = func(msg string) {
+			log.ComponentLogger("graphql").Trace().Msg(msg)
+		}
 	}
 	return client
 }

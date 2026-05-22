@@ -6,9 +6,7 @@ on:
       - main
 
 permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: release-${{ github.ref }}
@@ -16,24 +14,28 @@ concurrency:
 
 jobs:
   lint:
-    uses: platform-mesh/.github/.github/workflows/job-golang-lint.yml@main
+    uses: platform-mesh/.github/.github/workflows/job-golang-lint.yml@9ddacafbe3260312cb1cc3f9974ad2fece8effe0
     with:
       useTask: true
 
   test:
-    uses: platform-mesh/.github/.github/workflows/job-golang-test-source.yml@main
+    uses: platform-mesh/.github/.github/workflows/job-golang-test-source.yml@9ddacafbe3260312cb1cc3f9974ad2fece8effe0
     secrets: inherit
     with:
       useTask: true
       useLocalCoverageConfig: true
 
   create-version:
-    uses: platform-mesh/.github/.github/workflows/job-create-version.yml@main
+    uses: platform-mesh/.github/.github/workflows/job-create-version.yml@9ddacafbe3260312cb1cc3f9974ad2fece8effe0
     secrets: inherit
+    permissions:
+      contents: write
 
   publish-version:
     needs: [create-version, lint, test]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Create Release
         uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0

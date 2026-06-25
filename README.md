@@ -1,3 +1,7 @@
+> [!WARNING]
+> Development of subroutines moved to [github.com/platform-mesh/platfrom-mesh]
+> New import path for future versions: `go.platform-mesh.io/golang-commons` `v0.18.0`
+
 # Platform Mesh - golang-commons
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/platform-mesh/golang-commons/badge)](https://scorecard.dev/viewer/?uri=github.com/platform-mesh/golang-commons)

@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/jellydator/ttlcache/v3 v3.4.0
 	github.com/machinebox/graphql v0.2.2
-	github.com/openfga/api/proto v0.0.0-20260319214821-f153694bfc20
+	github.com/openfga/api/proto v0.0.0-20260619182052-dd87be81488e
 	github.com/openfga/language/pkg/go v0.3.0
 	github.com/openfga/openfga v1.18.0
 	github.com/pkg/errors v0.9.1
@@ -111,8 +111,8 @@ require (
 	golang.org/x/time v0.11.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	gonum.org/v1/gonum v0.17.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260526163538-3dc84a4a5aaa // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260615183401-62b3387ff324 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260615183401-62b3387ff324 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect

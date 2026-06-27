@@ -163,6 +163,7 @@ func (l *LifecycleManager) WithStaticThenExponentialRateLimiter(opts ...ratelimi
 	if err != nil {
 		log.Fatalf("rate limiter config error: %s", err)
 	}
+	rateLimiter.SetLogger(l.Log())
 	l.rateLimiter = rateLimiter
 	return l
 }

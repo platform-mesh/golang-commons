@@ -11,7 +11,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/golang-lru/v2 v2.0.7
-	github.com/jellydator/ttlcache/v3 v3.4.0
+	github.com/jellydator/ttlcache/v3 v3.4.1
 	github.com/machinebox/graphql v0.2.2
 	github.com/openfga/api/proto v0.0.0-20260619182052-dd87be81488e
 	github.com/openfga/language/pkg/go v0.3.0

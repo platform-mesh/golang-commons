@@ -15,7 +15,7 @@ require (
 	github.com/machinebox/graphql v0.2.2
 	github.com/openfga/api/proto v0.0.0-20260619182052-dd87be81488e
 	github.com/openfga/language/pkg/go v0.3.0
-	github.com/openfga/openfga v1.18.0
+	github.com/openfga/openfga v1.18.1
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.35.1
 	github.com/spf13/pflag v1.0.10
